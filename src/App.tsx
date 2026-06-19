@@ -1,39 +1,41 @@
 import React, { useState, useEffect } from "react";
 import {
   Brain,
-  Sparkles,
-  History,
-  Settings,
+  Sparkle,
+  ClockCounterClockwise,
+  GearSix,
   Key,
   Copy,
   Check,
-  RotateCcw,
+  ArrowCounterClockwise,
   FileText,
   Eye,
   BookOpen,
   UserCheck,
   Plus,
-  Trash2,
+  Trash,
   PlusCircle,
   Download,
-  Share2,
-  HelpCircle,
+  ShareNetwork,
+  Question,
   Info,
   Lock,
   ShieldCheck,
-  Menu,
+  List,
   X,
-  ChevronRight,
-  Wand2,
+  CaretRight,
+  MagicWand,
   Sliders,
   Cpu,
-  Layers,
-  ExternalLink,
+  Stack,
+  ArrowSquareOut,
   FileCode,
-  LayoutTemplate,
+  Layout,
   Flame,
-  AlertCircle,
-} from "lucide-react";
+  WarningCircle,
+  ArrowsClockwise,
+  Lightbulb,
+} from "@phosphor-icons/react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -70,6 +72,27 @@ import {
 } from "@/components/ui/dialog";
 
 export default function App() {
+  // Animation variants for staggered entry
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.06,
+        delayChildren: 0.08,
+      },
+    },
+  };
+
+  const staggerItem = {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 300, damping: 30 },
+    },
+  };
+
   // Navigation State
   const [activeTab, setActiveTab] = useState<
     "optimizer" | "templates" | "personas" | "history" | "about"
@@ -125,10 +148,18 @@ export default function App() {
     () => localStorage.getItem("openprompter_custom_model") || "",
   );
 
+  const [activeProvider, setActiveProvider] = useState(
+    () => localStorage.getItem("openprompter_provider") || "openai",
+  );
+
+  const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+
   const [apiKeyInputVal, setApiKeyInputVal] = useState(apiKey);
   const [endpointInputVal, setEndpointInputVal] = useState(apiEndpoint);
   
   const [customModelInputVal, setCustomModelInputVal] = useState(customModel);
+  const [providerInputVal, setProviderInputVal] = useState(activeProvider);
 
   const [showKeyDialog, setShowApiKeyDialog] = useState(false);
   const [visualComparisonExpanded, setVisualComparisonExpanded] =
@@ -186,34 +217,65 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isOptimizing]);
 
+  // Auto-fetch models when provider or key changes
+  useEffect(() => {
+    if (apiKey) fetchAvailableModels();
+  }, [activeProvider, apiKey]);
+
   // Handle save of Key
   const handleSaveApiKey = (
     keyToSave: string,
     endpointToSave?: string,
-    
+    providerToSave?: string,
     modelToSave?: string,
   ) => {
     const cleanedKey = keyToSave.trim();
     const cleanedEndpoint = (
       endpointToSave !== undefined ? endpointToSave : endpointInputVal
     ).trim();
-    
+    const cleanedProvider = (
+      providerToSave !== undefined ? providerToSave : providerInputVal
+    ).trim();
     const cleanedCustomModel = (
       modelToSave !== undefined ? modelToSave : customModelInputVal
     ).trim();
 
     setApiKey(cleanedKey);
     setApiEndpoint(cleanedEndpoint);
-    
     setCustomModel(cleanedCustomModel);
+    setActiveProvider(cleanedProvider);
 
     localStorage.setItem("openprompter_byok_key", cleanedKey);
     localStorage.setItem("openprompter_endpoint", cleanedEndpoint);
-    
     localStorage.setItem("openprompter_custom_model", cleanedCustomModel);
+    localStorage.setItem("openprompter_provider", cleanedProvider);
 
     toast.success("BYOK Engine configuration saved successfully.");
     setShowApiKeyDialog(false);
+    fetchAvailableModels();
+  };
+
+  // Fetch available models from the configured provider
+  const fetchAvailableModels = async () => {
+    if (!apiKey) return;
+    setModelsLoading(true);
+    try {
+      const resp = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey,
+          apiEndpoint,
+          provider: activeProvider,
+        }),
+      });
+      const data = await resp.json();
+      if (data.models) setAvailableModels(data.models);
+    } catch {
+      // silently fail
+    } finally {
+      setModelsLoading(false);
+    }
   };
 
   // Run the API optimizer proxy
@@ -240,7 +302,7 @@ export default function App() {
           apiKey: apiKey,
           model:
             customModel || selectedModel,
-          
+          provider: activeProvider,
           apiEndpoint: apiEndpoint,
           persona: activePersona
             ? `${activePersona.name}: ${activePersona.systemPrompt}`
@@ -364,7 +426,17 @@ export default function App() {
     text: string,
     type: "original" | "optimized" | "markdown" | "json",
   ) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(() => {
+      // Fallback: try execCommand
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    });
     setCopiedState(type);
     toast.success("Copied to clipboard!");
     setTimeout(() => {
@@ -410,13 +482,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
   });
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent\/20 selection:text-ink antialiased">
+    <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent/20 selection:text-ink antialiased">
       <Toaster richColors closeButton theme="light" position="top-right" />
 
-      {/* HEADER SECTION */}
-      <header className="border-b border-whisper bg-surface backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      {/* HEADER — Fluid Island */}
+      <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-3 sticky top-3 z-50">
+        <div className="bg-surface backdrop-blur-3xl rounded-[2rem] border border-whisper shadow-[0_20px_60px_-20px_rgba(0,0,0,0.08)] px-4 sm:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-[1rem] bg-accent text-white flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
@@ -433,14 +505,29 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             </div>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav
+              className="hidden md:flex items-center gap-1"
+              role="tablist"
+              onKeyDown={(e) => {
+                const tabs = ["optimizer","templates","personas","history","about"];
+                const idx = tabs.indexOf(activeTab);
+                if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setActiveTab(tabs[(idx + 1) % tabs.length] as any);
+                }
+                if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length] as any);
+                }
+              }}
+            >
               <Button
                 variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all ${activeTab === "optimizer" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-full px-5 transition-all active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("optimizer")}
                 id="tab-optimizer"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkle className="w-4 h-4 mr-2" />
                 Workspace
               </Button>
               <Button
@@ -449,7 +536,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 onClick={() => setActiveTab("templates")}
                 id="tab-templates"
               >
-                <LayoutTemplate className="w-4 h-4 mr-2" />
+                <Layout className="w-4 h-4 mr-2" />
                 Curated Presets
               </Button>
               <Button
@@ -467,7 +554,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 onClick={() => setActiveTab("history")}
                 id="tab-history"
               >
-                <History className="w-4 h-4 mr-2" />
+                <ClockCounterClockwise className="w-4 h-4 mr-2" />
                 Durable History
                 {historyList.length > 0 && (
                   <Badge
@@ -484,7 +571,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 onClick={() => setActiveTab("about")}
                 id="tab-about"
               >
-                <HelpCircle className="w-4 h-4 mr-2" />
+                <Question className="w-4 h-4 mr-2" />
                 About & Guide
               </Button>
             </nav>
@@ -515,82 +602,82 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {mobileMenuOpen ? (
                   <X className="w-6 h-6" />
                 ) : (
-                  <Menu className="w-6 h-6" />
+                  <List className="w-6 h-6" />
                 )}
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Mobile menu panel */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-900 bg-slate-950 px-4 py-3 space-y-2">
-            <Button
-              className="w-full justify-start text-left"
-              variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("optimizer");
-                setMobileMenuOpen(false);
-              }}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Workspace
-            </Button>
-            <Button
-              className="w-full justify-start text-left"
-              variant={activeTab === "templates" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("templates");
-                setMobileMenuOpen(false);
-              }}
-            >
-              <LayoutTemplate className="w-4 h-4 mr-2" />
-              Curated Presets
-            </Button>
-            <Button
-              className="w-full justify-start text-left"
-              variant={activeTab === "personas" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("personas");
-                setMobileMenuOpen(false);
-              }}
-            >
-              <UserCheck className="w-4 h-4 mr-2" />
-              Custom Personas
-            </Button>
-            <Button
-              className="w-full justify-start text-left"
-              variant={activeTab === "history" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("history");
-                setMobileMenuOpen(false);
-              }}
-            >
-              <History className="w-4 h-4 mr-2" />
-              Durable History
-            </Button>
-            <Button
-              className="w-full justify-start text-left"
-              variant={activeTab === "about" ? "secondary" : "ghost"}
-              onClick={() => {
-                setActiveTab("about");
-                setMobileMenuOpen(false);
-              }}
-            >
-              <HelpCircle className="w-4 h-4 mr-2" />
-              About & Guide
-            </Button>
-          </div>
-        )}
+          {/* Mobile menu panel */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-whisper px-4 py-3 space-y-2">
+              <Button
+                className="w-full justify-start text-left"
+                variant={activeTab === "optimizer" ? "secondary" : "ghost"}
+                onClick={() => {
+                  setActiveTab("optimizer");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Sparkle className="w-4 h-4 mr-2" />
+                Workspace
+              </Button>
+              <Button
+                className="w-full justify-start text-left"
+                variant={activeTab === "templates" ? "secondary" : "ghost"}
+                onClick={() => {
+                  setActiveTab("templates");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Layout className="w-4 h-4 mr-2" />
+                Curated Presets
+              </Button>
+              <Button
+                className="w-full justify-start text-left"
+                variant={activeTab === "personas" ? "secondary" : "ghost"}
+                onClick={() => {
+                  setActiveTab("personas");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <UserCheck className="w-4 h-4 mr-2" />
+                Custom Personas
+              </Button>
+              <Button
+                className="w-full justify-start text-left"
+                variant={activeTab === "history" ? "secondary" : "ghost"}
+                onClick={() => {
+                  setActiveTab("history");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <ClockCounterClockwise className="w-4 h-4 mr-2" />
+                Durable History
+              </Button>
+              <Button
+                className="w-full justify-start text-left"
+                variant={activeTab === "about" ? "secondary" : "ghost"}
+                onClick={() => {
+                  setActiveTab("about");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Question className="w-4 h-4 mr-2" />
+                About & Guide
+              </Button>
+            </div>
+          )}
+
+        </div>
       </header>
 
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-center text-xs text-indigo-700">
-        <span className="font-semibold text-indigo-900">
-          ⚡ Open-Source Prompt Optimizer:
+      {/* ANNOUNCEMENT BAR */}
+      <div className="bg-surface border-b border-whisper px-4 py-2.5 text-center text-[11px] text-steel">
+        <span className="font-semibold text-ink uppercase tracking-wider text-[10px]">
+          Open-Source Prompt Optimizer:
         </span>{" "}
-        Your prompts are processed directly via secure client-side BYOK and
-        never cached on servers. Absolutely no limits or forced paid pricing!
+        Your prompts are processed via secure client-side BYOK, never cached on servers.
       </div>
 
       {/* CORE CONTENT */}
@@ -604,41 +691,40 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* LEFT: WORKSPACE INPUTS & CONFIG */}
                 <div className="flex-1 lg:w-1/2 space-y-6">
                   {/* WORKSPACE CARD */}
-                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] relative overflow-hidden p-2">
-                    <div className="bg-surface rounded-[calc(2rem-0.5rem)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper/50 h-full">
-                      <CardHeader className="pb-4 pt-6 px-6">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display text-ink tracking-tight">
-                              <Sparkles className="w-5 h-5 text-ink" />
-                              Optimize Prompt
-                            </CardTitle>
-                            <CardDescription className="text-xs text-steel font-medium tracking-wide uppercase mt-2">
-                              Translate rough drafts into structured
-                              instructions
-                            </CardDescription>
-                          </div>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleResetWorkspace}
-                            className="h-8 text-xs text-muted hover:text-ink rounded-full"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                            Reset
-                          </Button>
+                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] relative overflow-hidden">
+                    <CardHeader className="pb-4 pt-6 px-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display text-ink tracking-tight">
+                            <Sparkle className="w-5 h-5 text-ink" />
+                            Optimize Prompt
+                          </CardTitle>
+                          <CardDescription className="text-xs text-steel font-medium tracking-wide uppercase mt-2">
+                            Translate rough drafts into structured
+                            instructions
+                          </CardDescription>
                         </div>
-                      </CardHeader>
 
-                      <CardContent className="space-y-6 px-6">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleResetWorkspace}
+                          className="h-8 text-xs text-muted hover:text-ink rounded-full"
+                        >
+                          <ArrowCounterClockwise className="w-3.5 h-3.5 mr-1" />
+                          Reset
+                        </Button>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-6 px-6">
                         {/* INPUT AREA */}
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
@@ -665,7 +751,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           />
                           <div className="text-[10px] text-muted flex justify-between">
                             <span>
-                              💡 Press{" "}
+                              <Lightbulb className="w-3 h-3 inline -mt-0.5 text-muted" /> Press{" "}
                               <kbd className="bg-slate-100 border border-whisper px-1.5 py-0.5 rounded text-steel font-mono shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
                                 Ctrl + Enter
                               </kbd>{" "}
@@ -718,8 +804,113 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </Select>
                             </div>
 
-                            
-                          </div>
+                            {/* Model Selector */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[11px] font-semibold text-steel uppercase tracking-wider">
+                                  Model
+                                </label>
+                                {modelsLoading ? (
+                                  <span className="flex items-center gap-1 text-[10px] text-muted">
+                                    <div className="w-2.5 h-2.5 rounded-full border-2 border-muted border-t-transparent animate-spin" />
+                                    Loading models...
+                                  </span>
+                                ) : availableModels.length > 0 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowApiKeyDialog(true)}
+                                    className="tabular-nums text-[10px] text-accent hover:text-accent-hover font-semibold tracking-wider"
+                                  >
+                                    {availableModels.length} models
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowApiKeyDialog(true)}
+                                    className="text-[10px] text-accent hover:text-accent-hover font-semibold tracking-wider"
+                                  >
+                                    Configure API
+                                  </button>
+                                )}
+                              </div>
+                              <Select
+                                value={selectedModel}
+                                onValueChange={(val) => {
+                                  setSelectedModel(val);
+                                  setCustomModelInputVal(val);
+                                }}
+                              >
+                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
+                                  <SelectValue placeholder={selectedModel || "Select model"} />
+                                </SelectTrigger>
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-[1rem] shadow-xl max-h-60">
+                                  {availableModels.length > 0 ? (
+                                    availableModels.map((m) => (
+                                      <SelectItem
+                                        key={m.id}
+                                        value={m.id}
+                                        className="text-xs py-2 focus:bg-canvas focus:text-ink"
+                                      >
+                                        {m.name}
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="gpt-4o" className="text-xs">
+                                      gpt-4o (default)
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={fetchAvailableModels}
+                                  className="text-[10px] text-accent hover:text-accent-hover font-medium flex items-center gap-1 transition-colors"
+                                >
+                                  <ArrowsClockwise className={`w-3 h-3 ${modelsLoading ? "animate-spin" : ""}`} />
+                                  {modelsLoading ? "Loading..." : "Refresh from API"}
+                                </button>
+                                <span className="text-[10px] text-muted">
+                                  · {availableModels.length} models available
+                                </span>
+                              </div>
+                            </div>
+                            </div>
+
+                          {/* MODEL MARQUEE */}
+                          {availableModels.length > 0 && (
+                            <div className="relative overflow-hidden rounded-[1rem] bg-canvas border border-whisper py-2.5 px-4 shadow-inner">
+                              <div className="flex items-center gap-2 text-[11px] text-muted mb-1.5">
+                                <Cpu className="w-3 h-3 text-accent" />
+                                <span className="font-semibold uppercase tracking-wider">Available Models</span>
+                                <span className="text-[10px]">· {availableModels.length}</span>
+                              </div>
+                              <div className="overflow-hidden">
+                                <motion.div
+                                  className="flex gap-3 whitespace-nowrap"
+                                  animate={{ x: ["0%", "-50%"] }}
+                                  transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                                >
+                                  {/* Duplicate array for seamless loop */}
+                                  {[...availableModels, ...availableModels].map((m, i) => (
+                                    <button
+                                      key={`${m.id}-${i}`}
+                                      onClick={() => {
+                                        setSelectedModel(m.id);
+                                        setCustomModelInputVal(m.id);
+                                        toast.info(`Model set to ${m.name}`);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-whisper text-[11px] text-steel hover:border-accent hover:text-accent transition-colors shrink-0 cursor-pointer"
+                                    >
+                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                      {m.name}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              </div>
+                            </div>
+                          )}
+
+                            </div>
 
                           {/* Additional Instructions */}
                           <div className="space-y-2">
@@ -732,35 +923,42 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setCustomInstructions(e.target.value)
                               }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                  e.preventDefault();
+                                  handleOptimizePrompt();
+                                }
+                              }}
                               className="bg-surface border-whisper text-ink text-xs h-10 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus-visible:ring-slate-900 focus-visible:ring-offset-1 placeholder:text-muted"
                             />
                           </div>
-                        </div>
-                      </CardContent>
+
+                    </CardContent>
 
                       <CardFooter className="border-t border-whisper pt-5 pb-6 flex justify-end gap-3 bg-canvas rounded-b-[calc(2rem-0.5rem)] px-6 mt-4">
                         <Button
                           size="lg"
-                          className="w-full sm:w-auto bg-accent hover:bg-accent-hover text-sm font-semibold rounded-full text-white px-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group h-11 active:-translate-y-px transition-all"
+                          className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-[1.25rem] text-white pl-8 pr-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
                           disabled={isOptimizing}
                           onClick={handleOptimizePrompt}
                           id="run-optimize-btn"
                         >
                           {isOptimizing ? (
                             <>
-                              <div className="w-4 h-4 rounded-full border-2 border-whisper border-t-transparent animate-spin mr-2" />
+                              <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                               Optimizing...
                             </>
                           ) : (
                             <>
-                              <Wand2 className="w-4 h-4 text-white transition-transform group-hover:rotate-12" />
-                              Optimize Prompt
+                              <span>Optimize Prompt</span>
+                              <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:bg-white/25 transition-colors group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-300">
+                                <Sparkle className="w-3.5 h-3.5 text-white" />
+                              </span>
                             </>
                           )}
                         </Button>
                       </CardFooter>
-                    </div>
-                  </Card>
+                    </Card>
 
                   {/* BYOK ENCOURAGEMENT CARD */}
                   <div className="border border-whisper rounded-[1.5rem] p-5 bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-start gap-4">
@@ -817,9 +1015,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           style={{ animationDuration: "3s" }}
                         />
                         <div className="relative w-20 h-20 rounded-full bg-surface flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-whisper z-10">
-                          <Wand2 className="w-8 h-8 text-accent shrink-0" />
+                          <MagicWand className="w-8 h-8 text-accent shrink-0" />
                           <div className="absolute -top-1 -right-1 w-6 h-6 bg-surface border border-whisper rounded-full flex items-center justify-center shadow-sm">
-                            <Sparkles className="w-3 h-3 text-emerald-500" />
+                            <Sparkle className="w-3 h-3 text-emerald-500" />
                           </div>
                         </div>
                       </div>
@@ -839,7 +1037,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         onClick={() => setActiveTab("templates")}
                       >
                         Browse professional presets{" "}
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <CaretRight className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   )}
@@ -934,7 +1132,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <CardHeader className="pb-4 pt-6 px-6 border-b border-whisper flex flex-row items-center justify-between">
                             <div>
                               <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display tracking-tight text-ink">
-                                <Sparkles className="w-5 h-5 text-ink" />
+                                <Sparkle className="w-5 h-5 text-ink" />
                                 Engineered Prompt
                               </CardTitle>
                             </div>
@@ -999,7 +1197,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           </CardContent>
 
                           <CardFooter className="py-4 flex justify-between bg-surface text-xs text-muted font-medium px-6 rounded-b-[calc(2rem-0.5rem)]">
-                            <span>🎯 Engineered via {selectedModel}</span>
+                            <span>Engineered via {selectedModel}</span>
                             <span className="flex items-center gap-1.5 text-steel tracking-tight">
                               <ShieldCheck className="w-4 h-4 text-emerald-500" />
                               Secure client-side execution
@@ -1021,7 +1219,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
               {/* FILTER TOOLBAR */}
@@ -1031,8 +1229,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     Prompt Presets Gallery
                   </h3>
                   <p className="text-xs text-steel mt-0.5">
-                    High-fidelity prompts verified across Gemini, GPT-4, and
-                    Claude. Select any to load.
+                    High-fidelity prompts verified across GPT-4, Claude, and
+                    DeepSeek models. Select any to load.
                   </p>
                 </div>
 
@@ -1068,12 +1266,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </div>
 
               {/* GRID */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-1 md:grid-cols-3 gap-5"
+              >
                 {filteredTemplates.map((tpl, i) => (
-                  <Card
-                    key={i}
-                    className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem]"
-                  >
+                  <motion.div key={i} variants={staggerItem}>
+                    <Card
+                      className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem]"
+                    >
                     <CardHeader className="pb-3 pt-5 px-5">
                       <div className="flex justify-between items-start">
                         <span className="text-[10px] font-mono tracking-widest uppercase font-bold text-muted">
@@ -1112,14 +1315,15 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </Button>
                     </CardFooter>
                   </Card>
-                ))}
+                </motion.div>
+              ))}
 
                 {filteredTemplates.length === 0 && (
                   <div className="col-span-full py-12 text-center text-steel">
                     No curated templates matched your search criteria.
                   </div>
                 )}
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -1130,7 +1334,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
               <div className="flex flex-col lg:flex-row gap-6">
@@ -1141,7 +1345,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <CardHeader className="px-6 pt-6">
                         <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight">
                           {editingPersona ? (
-                            <Settings className="w-5 h-5 text-ink" />
+                            <GearSix className="w-5 h-5 text-ink" />
                           ) : (
                             <PlusCircle className="w-5 h-5 text-ink" />
                           )}
@@ -1269,7 +1473,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         return (
                           <Card
                             key={pers.id}
-                            className={`border-whisper flex flex-col justify-between relative group rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:shadow-md ${selectedPersona === pers.id ? "bg-indigo-50/30 border-indigo-100" : "bg-surface"}`}
+                            className={`border-whisper flex flex-col justify-between relative group rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
                           >
                             <CardHeader className="pb-3 pt-5 px-5">
                               <div className="flex justify-between items-start">
@@ -1278,7 +1482,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   className={
                                     isPreset
                                       ? "bg-slate-100 border border-transparent text-[10px] text-steel font-semibold tracking-widest uppercase"
-                                      : "bg-violet-100 text-violet-700 border border-violet-200 text-[10px] uppercase tracking-widest font-semibold"
+                                      : "bg-canvas text-accent border border-accent/20 text-[10px] uppercase tracking-widest font-semibold"
                                   }
                                 >
                                   {isPreset ? "Preset Default" : "Custom Built"}
@@ -1292,7 +1496,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                       className="h-8 w-8 text-muted hover:text-ink hover:bg-slate-100 rounded-full"
                                       onClick={() => handleEditPersona(pers)}
                                     >
-                                      <Settings className="w-3.5 h-3.5" />
+                                      <GearSix className="w-3.5 h-3.5" />
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -1309,7 +1513,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                         );
                                       }}
                                     >
-                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <Trash className="w-3.5 h-3.5" />
                                     </Button>
                                   </div>
                                 )}
@@ -1366,7 +1570,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
               <div className="bg-surface p-6 border border-whisper rounded-[1.5rem] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
@@ -1381,23 +1585,72 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 </div>
 
                 {historyList.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs text-error hover:text-error hover:text-error hover:bg-rose-50 border-rose-100 self-end md:self-auto rounded-full font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
-                    onClick={() => {
-                      if (
-                        confirm(
-                          "Wipe all local history? This cannot be undone.",
-                        )
-                      ) {
-                        setHistoryList([]);
-                        toast.success("History cache cleared pristine!");
-                      }
-                    }}
-                  >
-                    Wipe History Logs
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-steel hover:text-ink rounded-full font-semibold"
+                      onClick={() => {
+                        // Download as JSON
+                        const blob = new Blob(
+                          [JSON.stringify(historyList, null, 2)],
+                          { type: "application/json" },
+                        );
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "openprompter-history.json";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("History exported as JSON");
+                      }}
+                    >
+                      <Download className="w-3.5 h-3.5 mr-1.5" />
+                      JSON
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-steel hover:text-ink rounded-full font-semibold"
+                      onClick={() => {
+                        const md = historyList
+                          .map(
+                            (h) =>
+                              `# ${h.promptType} - ${h.createdAt}\n\n**Original:**\n${h.originalPrompt}\n\n**Optimized:**\n${h.optimizedPrompt}\n\n**Improvements:**\n${(h.improvements || []).map((i) => `- ${i}`).join("\n")}\n\n**Confidence:** ${h.confidenceScore}%  \n---\n`,
+                          )
+                          .join("\n");
+                        const blob = new Blob([md], { type: "text/markdown" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "openprompter-history.md";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("History exported as Markdown");
+                      }}
+                    >
+                      <FileText className="w-3.5 h-3.5 mr-1.5" />
+                      MD
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs text-error hover:text-error hover:bg-rose-50 border-rose-100 self-end md:self-auto rounded-full font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Wipe all local history? This cannot be undone.",
+                          )
+                        ) {
+                          setHistoryList([]);
+                          toast.success("History cache cleared pristine!");
+                        }
+                      }}
+                    >
+                      <Trash className="w-3.5 h-3.5 mr-1.5" />
+                      Clear
+                    </Button>
+                  </>
                 )}
               </div>
 
@@ -1441,7 +1694,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           className="h-8 w-8 text-muted hover:text-error hover:text-error opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-50 rounded-full"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -1470,7 +1723,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-dashed border-whisper">
                       <span className="text-[10px] text-muted font-mono flex items-center gap-1 font-semibold tracking-widest uppercase hover:text-ink transition-colors">
                         Click details for full inspection and config tool{" "}
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <CaretRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
                   </div>
@@ -1478,7 +1731,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {historyList.length === 0 && (
                   <div className="border border-dashed border-whisper rounded-[2.5rem] p-12 text-center text-steel bg-surface">
-                    <History className="w-12 h-12 text-muted mx-auto mb-4" />
+                    <ClockCounterClockwise className="w-12 h-12 text-muted mx-auto mb-4" />
                     <h4 className="text-sm font-bold text-ink tracking-tight">
                       No prompt history found
                     </h4>
@@ -1499,7 +1752,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="max-w-3xl mx-auto space-y-6"
             >
               <Card className="border border-whisper bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem]">
@@ -1525,7 +1778,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       Own Key Architecture
                     </h4>
                     <p className="text-xs text-muted leading-relaxed font-mono">
-                      By requiring connection to Google AI Studio natively, the
+                      By using your own API key from any supported provider, the
                       optimization pipeline operates client-to-server with
                       standard API access. Keys never hit an intermediary
                       logging database; everything runs entirely inside your
@@ -1534,33 +1787,28 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   </div>
 
                   <h3 className="text-lg font-bold font-display border-b border-whisper pb-3 pt-2 text-ink tracking-tight">
-                    How to setup the BYOK connection
+                    How to configure your API connection
                   </h3>
                   <ol className="list-decimal list-outside ms-4 space-y-4 text-xs text-steel">
                     <li className="pl-4">
-                      Navigate to{" "}
-                      <a
-                        href="https://aistudio.google.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-accent hover:text-accent-hover hover:text-accent hover:text-accent-hover underline inline-flex items-center gap-1 font-semibold ml-1"
-                      >
-                        Google AI Studio <ExternalLink className="w-3 h-3" />
-                      </a>
+                      Click the <strong>Key icon</strong> in the top navigation
+                      bar to open the BYOK Engine settings.
                     </li>
                     <li className="pl-4">
-                      Authenticate using your developer profile.
+                      Select your preferred API provider from the grid:
+                      OpenAI, DeepSeek, Anthropic, or Custom endpoint.
                     </li>
                     <li className="pl-4">
-                      Select the <strong>"Get API Key"</strong> configuration
-                      module on the navigation rail.
+                      Generate and copy your API key from the provider's
+                      developer console (linked for your convenience).
                     </li>
                     <li className="pl-4">
-                      Generate and copy the API key credentials hash.
+                      Optionally override the default endpoint URL or enter
+                      a custom model name.
                     </li>
                     <li className="pl-4">
-                      Provide the hash directly via OpenPrompter's top right
-                      Connection Menu.
+                      Click <strong>Save Configuration</strong> and start
+                      optimizing prompts immediately.
                     </li>
                   </ol>
 
@@ -1568,10 +1816,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     LLM Structuring Framework
                   </h3>
                   <p className="text-xs text-steel leading-relaxed">
-                    Under the hood, OpenPrompter directs Gemini using strict
+                    Under the hood, OpenPrompter directs your configured LLM using strict
                     declarative JSON logic rules defining precise role
                     configurations, specific constraint mapping, structured
-                    iteration schemas, and calculation margins — all to output
+                    iteration schemas, and calculation margins: all to output
                     pristine LLM-ingestible context blocks far superior to
                     standard human draft prose.
                   </p>
@@ -1579,10 +1827,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <CardFooter className="border-t border-whisper p-6 flex justify-between items-center text-xs text-muted font-mono uppercase tracking-widest font-bold">
                   <span>OpenPrompter Version 1.0.0</span>
                   <a
-                    href="https://github.com"
+                    href="https://github.com/Owie6789/OpenPrompter"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-slate-200 underline"
+                    className="hover:text-accent-hover underline transition-colors"
                   >
                     Github Source
                   </a>
@@ -1594,29 +1842,29 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-900/60 bg-slate-950/80 py-8 text-center text-xs text-steel mt-12">
+      <footer className="border-t border-whisper bg-surface py-8 text-center text-xs text-steel mt-12 shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           <div className="flex justify-center gap-6 text-muted flex-wrap">
             <button
-              className="hover:text-white"
+              className="hover:text-ink transition-colors"
               onClick={() => setActiveTab("optimizer")}
             >
               Workspace
             </button>
             <button
-              className="hover:text-white"
+              className="hover:text-ink transition-colors"
               onClick={() => setActiveTab("templates")}
             >
               Presets
             </button>
             <button
-              className="hover:text-white"
+              className="hover:text-ink transition-colors"
               onClick={() => setActiveTab("personas")}
             >
               Personas
             </button>
             <button
-              className="hover:text-white"
+              className="hover:text-ink transition-colors"
               onClick={() => setActiveTab("about")}
             >
               How-to Guide
@@ -1625,13 +1873,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               href="https://www.buymeacoffee.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-400 hover:text-amber-300"
+              className="text-amber-600 hover:text-amber-700 transition-colors"
             >
-              👋 Buy Me a Coffee
+              ☕ Buy Me a Coffee
             </a>
           </div>
-          <p>
-            © {new Date().getFullYear()} OpenPrompter. tools. Privacy first.
+          <p className="text-muted">
+            © {new Date().getFullYear()} OpenPrompter. Privacy first.
             Zero prompt histories saved on server.
           </p>
         </div>
@@ -1639,8 +1887,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
       {/* DIALOG 1: BRING YOUR OWN KEY SETTINGS */}
       <Dialog open={showKeyDialog} onOpenChange={setShowApiKeyDialog}>
-        <DialogContent className="bg-surface border-none text-ink max-w-md shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
-          <div className="p-8">
+        <DialogContent className="bg-surface border-none text-ink sm:max-w-md shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
+          <div className="p-5 sm:p-8">
             <DialogHeader className="mb-6">
               <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
@@ -1656,7 +1904,37 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             </DialogHeader>
 
             <div className="space-y-5">
-              
+              {/* PROVIDER SELECTOR */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                  API Provider
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: "openai", label: "OpenAI", endpoint: "https://api.openai.com/v1" },
+                    { id: "deepseek", label: "DeepSeek", endpoint: "https://api.deepseek.com/v1" },
+                    { id: "anthropic", label: "Anthropic", endpoint: "https://api.anthropic.com/v1" },
+                    { id: "custom", label: "Custom", endpoint: "" },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setProviderInputVal(p.id);
+                        if (p.endpoint) setEndpointInputVal(p.endpoint);
+                      }}
+
+                      className={`text-xs font-semibold py-2.5 px-3 rounded-xl border transition-all ${
+                        providerInputVal === p.id
+                          ? "bg-accent text-white border-accent shadow-sm"
+                          : "bg-surface text-steel border-whisper hover:border-slate-300"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* API Key */}
               <div className="space-y-2">
@@ -1665,12 +1943,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     API Key
                   </label>
                   <a
-                      href="https://platform.openai.com/api-keys"
+                      href={providerInputVal === "openai" ? "https://platform.openai.com/api-keys" : providerInputVal === "deepseek" ? "https://platform.deepseek.com/api_keys" : providerInputVal === "anthropic" ? "https://console.anthropic.com/settings/keys" : "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[10px] text-accent hover:text-accent-hover flex items-center gap-1 font-semibold"
                   >
-                      Get OpenAI Key <ExternalLink className="w-2.5 h-2.5" />
+                      Get {providerInputVal === "openai" ? "OpenAI" : providerInputVal === "deepseek" ? "DeepSeek" : providerInputVal === "anthropic" ? "Anthropic" : "API"} Key <ArrowSquareOut className="w-2.5 h-2.5" />
                   </a>
                 </div>
                 <Input
@@ -1682,9 +1960,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 />
               </div>
 
-              {/* Custom Endpoint URL (Visible if OpenAI Compatible is active) */}
-              {true && (
-                <div className="space-y-2">
+              {/* Custom Endpoint URL */}
+              <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     Custom Endpoint (Base URL)
                   </label>
@@ -1725,50 +2002,77 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </button>
                   </div>
                 </div>
-              )}
 
-              {/* Custom Model Name (Visible if OpenAI Compatible is active) */}
-              {true && (
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                    Custom Model Name
+              {/* Custom Model Name */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
+                    Model Override
                   </label>
-                  <Input
-                    type="text"
-                    placeholder="E.g., deepseek-chat, gpt-4o, etc."
-                    value={customModelInputVal}
-                    onChange={(e) => setCustomModelInputVal(e.target.value)}
-                    className="bg-surface border-whisper font-mono text-xs h-11 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900"
-                  />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setCustomModelInputVal("deepseek-chat")}
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      DeepSeek V3
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCustomModelInputVal("gpt-4o")}
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      GPT-4o
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCustomModelInputVal("deepseek-reasoner")
-                      }
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      DeepSeek R1
-                    </button>
+                  {availableModels.length > 0 && (
+                    <span className="text-[10px] text-muted font-mono">
+                      {availableModels.length} models
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      type="text"
+                      placeholder="Search or type model ID..."
+                      value={customModelInputVal}
+                      onChange={(e) => setCustomModelInputVal(e.target.value)}
+                      className="bg-surface border-whisper font-mono text-xs h-11 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 pl-9"
+                    />
+                    <Cpu className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
                   </div>
                 </div>
-              )}
 
-              <div className="text-[11px] p-4 rounded-[1rem] bg-violet-50/50 border border-violet-100 text-violet-800 leading-relaxed font-medium">
+                {/* Fetched model list — search-filtered, compact scroll */}
+                {availableModels.length > 0 && (
+                  <div className="border border-whisper rounded-[1rem] bg-canvas overflow-hidden">
+                    <div className="max-h-36 overflow-y-auto overscroll-contain divide-y divide-whisper/50">
+                      {availableModels
+                        .filter((m) =>
+                          !customModelInputVal ||
+                          m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
+                          m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
+                        )
+                        .map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              setCustomModelInputVal(m.id);
+                              setCustomModel(m.id);
+                            }}
+                            className={`w-full text-left flex items-center justify-between px-3 py-2 text-[11px] font-mono transition-colors hover:bg-surface ${
+                              customModelInputVal === m.id
+                                ? "bg-accent/5 text-accent font-semibold"
+                                : "text-steel"
+                            }`}
+                          >
+                            <span className="truncate mr-2">{m.name}</span>
+                            {customModelInputVal === m.id && (
+                              <Check className="w-3 h-3 shrink-0 text-accent" />
+                            )}
+                          </button>
+                        ))}
+                      {availableModels.filter((m) =>
+                        !customModelInputVal ||
+                        m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
+                        m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-3 py-4 text-[11px] text-muted text-center">
+                          No models match your filter.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-[11px] p-4 rounded-[1rem] bg-canvas border border-whisper text-steel leading-relaxed font-medium">
                 <span className="font-bold flex items-center gap-1.5 uppercase tracking-widest text-[10px] mb-1">
                   <Info className="w-3 h-3" /> Direct Endpoint Proxy
                 </span>
@@ -1793,10 +2097,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               size="sm"
               className="rounded-full text-error border-rose-200 hover:bg-rose-50 font-semibold"
               onClick={() => {
-                handleSaveApiKey("", "", "");
+                handleSaveApiKey("", "", "openai", "");
                 setApiKeyInputVal("");
                 setEndpointInputVal("");
-                setProviderInputVal("gemini_sdk");
+                setProviderInputVal("openai");
                 setCustomModelInputVal("");
               }}
             >
@@ -1828,8 +2132,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         }}
       >
         {selectedHistoryItem && (
-          <DialogContent className="bg-surface border-none text-ink max-w-4xl max-h-[85vh] overflow-y-auto rounded-[2.5rem] p-0 shadow-2xl">
-            <div className="p-8">
+          <DialogContent className="bg-surface border-none text-ink sm:max-w-4xl max-h-[85vh] overflow-y-auto rounded-[2.5rem] p-0 shadow-2xl">
+            <div className="p-5 sm:p-8">
               <DialogHeader>
                 <div className="flex justify-between items-center flex-wrap gap-2 text-xs mb-2">
                   <Badge

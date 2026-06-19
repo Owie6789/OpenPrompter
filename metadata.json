@@ -2,5 +2,5 @@
   "name": "OpenPrompter",
   "description": "An open-source, unlimited prompt optimizer with Bring-Your-Own-Key (BYOK) support, custom personas, curated templates, and history logs.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_LLM_PROXY"]
 }

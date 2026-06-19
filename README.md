@@ -30,9 +30,10 @@ OpenPrompter is a zero-cost prompt engineering tool. You bring your own API key 
 # Install dependencies
 npm install
 
-# Set your API key
-cp .env.example .env.local
-# Edit .env.local and set GEMINI_API_KEY / OPENAI_API_KEY
+# Set your API key in-app via the BYOK dialog (top-right Key icon), or set server env:
+# For OpenAI: export OPENAI_API_KEY="sk-..."
+# For DeepSeek: export DEEPSEEK_API_KEY="sk-..."
+# For Anthropic: export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Start dev server
 npm run dev
@@ -71,8 +72,9 @@ OpenPrompter/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GEMINI_API_KEY` | No | Gemini API key (AI Studio deployment) |
-| `OPENAI_API_KEY` | No | OpenAI API key (BYOK fallback in server) |
+| `OPENAI_API_KEY` | No | OpenAI API key (server-side BYOK) |
+| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side BYOK) |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side BYOK) |
 | `APP_URL` | No | Public URL for self-referential links |
 
 Users can also configure keys in-app via the Settings dialog (persisted to localStorage under `openprompter_byok_key`).
