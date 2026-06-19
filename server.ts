@@ -68,6 +68,19 @@ const ALLOWED_ENDPOINTS = [
   "api.anthropic.com",
 ];
 
+const PRIVATE_HOSTNAME_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^0\./,
+  /^\[::1\]$/,
+  /\.internal$/i,
+  /\.local$/i,
+];
+
 function assertSafeEndpoint(url: string, prov: string): void {
   if (!url) return; // Will use default endpoint
   const parsed = new URL(url);
@@ -75,6 +88,10 @@ function assertSafeEndpoint(url: string, prov: string): void {
     // For custom endpoints, only allow HTTPS in production
     if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
       throw new Error("Only HTTPS endpoints are allowed in production.");
+    }
+    // Block private/link-local hostnames
+    if (PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(parsed.hostname))) {
+      throw new Error("Custom endpoints cannot point to private or internal addresses.");
     }
     return;
   }
@@ -85,7 +102,7 @@ function assertSafeEndpoint(url: string, prov: string): void {
 }
 
 function isValidModel(model: string): boolean {
-  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || model.includes("/");
+  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || /^[a-zA-Z0-9_]+(?:\/[a-zA-Z0-9._:-]+)?$/.test(model);
 }
 
 function sanitizeControlSequences(text: string): string {
@@ -104,6 +121,18 @@ function resolveProvider(endpoint: string): ProviderConfig {
 // Generate a simple request ID
 function requestId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit & { timeout?: number }): Promise<Response> {
+  const timeout = options.timeout ?? 30_000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Standardised error response format
@@ -165,7 +194,7 @@ app.post("/api/models", async (req, res) => {
       ];
     } else {
       const modelsUrl = `${baseUrl.replace(/\/$/, "")}/models`;
-      const resp = await fetch(modelsUrl, {
+      const resp = await fetchWithTimeout(modelsUrl, {
         headers: { Authorization: `Bearer ${activeKey}` },
       });
       if (resp.ok) {
@@ -220,29 +249,28 @@ function validateLlmResponse(data: unknown): data is LlmResponse {
 function sanitizeLlmResponse(data: unknown): LlmResponse {
   const d = data as Record<string, unknown>;
   return {
-    optimized_prompt: String(d.optimized_prompt ?? ""),
+    optimized_prompt: typeof d.optimized_prompt === "string" ? d.optimized_prompt : "",
     improvements: Array.isArray(d.improvements) ? d.improvements.map(String) : [],
     key_changes: Array.isArray(d.key_changes) ? d.key_changes.map(String) : [],
     confidence_score: typeof d.confidence_score === "number" ? Math.min(100, Math.max(0, d.confidence_score)) : 85,
-    prompt_type: String(d.prompt_type ?? "General"),
+    prompt_type: typeof d.prompt_type === "string" ? d.prompt_type : "General",
   };
 }
 
 function stripJsonFence(text: string): string {
   let cleaned = text.trim();
-  // Handle ```json, ```JSON, ```, and other code fences
   if (cleaned.startsWith("```")) {
     const firstNewline = cleaned.indexOf("\n");
-    if (firstNewline !== -1) {
-      cleaned = cleaned.slice(firstNewline + 1);
-    } else {
-      cleaned = cleaned.slice(3);
-    }
+    cleaned = firstNewline >= 0 ? cleaned.slice(firstNewline + 1) : cleaned.slice(3);
   }
   if (cleaned.endsWith("```")) {
     cleaned = cleaned.slice(0, -3);
   }
   return cleaned.trim();
+}
+
+function sanitizeForLog(s: string, maxLen = 500): string {
+  return s.replace(/[\r\n\t\x1b]/g, " ").slice(0, maxLen);
 }
 
 // API: Optimizer core
@@ -339,7 +367,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
     if (cfg.apiFormat === "anthropic") {
       // Anthropic API format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/messages`;
-      const response = await fetch(endpointUrl, {
+      const response = await fetchWithTimeout(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -357,7 +385,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[${rid}] Anthropic API error:`, errorText.slice(0, 500));
+        console.error(`[${rid}] Anthropic API error: ${sanitizeForLog(errorText)}`);
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
@@ -370,12 +398,12 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       try {
         const parsedData = JSON.parse(cookedText);
         if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] LLM response schema validation failed:`, cookedText.slice(0, 200));
+          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
           return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
         }
         return res.json(sanitizeLlmResponse(parsedData));
       } catch {
-        console.error(`[${rid}] Failed to parse JSON from Anthropic:`, cookedText.slice(0, 200));
+        console.error(`[${rid}] Failed to parse JSON from Anthropic: ${sanitizeForLog(cookedText, 200)}`);
         return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
       }
     } else {
@@ -391,7 +419,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         response_format: { type: "json_object" },
       };
 
-      const response = await fetch(endpointUrl, {
+      const response = await fetchWithTimeout(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -402,7 +430,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[${rid}] API error:`, errorText.slice(0, 500));
+        console.error(`[${rid}] API error: ${sanitizeForLog(errorText)}`);
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
@@ -417,18 +445,18 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       try {
         const parsedData = JSON.parse(cookedText);
         if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] LLM response schema validation failed:`, cookedText.slice(0, 200));
+          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
           return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
         }
         return res.json(sanitizeLlmResponse(parsedData));
       } catch {
-        console.error(`[${rid}] Failed to parse JSON:`, cookedText.slice(0, 200));
+        console.error(`[${rid}] Failed to parse JSON: ${sanitizeForLog(cookedText, 200)}`);
         return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
       }
     }
   } catch (error: any) {
-    console.error(`[${rid}] Endpoint error:`, error);
-    return res.status(500).json(errorResponse("server_error", error.message || "An unexpected error occurred."));
+    console.error(`[${rid}] Endpoint error: ${error?.message || error}`);
+    return res.status(500).json(errorResponse("server_error", "An unexpected error occurred."));
   }
 });
 

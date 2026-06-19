@@ -26,7 +26,7 @@ export function generateShareUrl(
   payload: SharePayload,
 ): { success: true; url: string } | { success: false; error: string } {
   const encoded = encodeSharePayload(payload);
-  const url = `${window.location.origin}/?share=${encoded}`;
+  const url = `${globalThis.location.origin}/?share=${encoded}`;
   if (url.length > MAX_URL_LENGTH) {
     return {
       success: false,

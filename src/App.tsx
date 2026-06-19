@@ -12,7 +12,6 @@ import {
   Eye,
   BookOpen,
   UserCheck,
-  Plus,
   Trash,
   PlusCircle,
   Download,
@@ -27,12 +26,9 @@ import {
   MagicWand,
   Sliders,
   Cpu,
-  Stack,
   ArrowSquareOut,
-  FileCode,
   Layout,
-  Flame,
-  WarningCircle,
+  Coffee,
   ArrowsClockwise,
   Lightbulb,
 } from "@phosphor-icons/react";
@@ -61,7 +57,6 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -77,7 +72,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 function safeJsonParse<T>(json: string | null, fallback: T): T {
@@ -88,7 +82,7 @@ function safeJsonParse<T>(json: string | null, fallback: T): T {
 
 function generateId(prefix: string): string {
   try { return `${prefix}_${crypto.randomUUID().slice(0, 8)}`; }
-  catch { return `${prefix}_${Math.random().toString(36).substr(2, 9)}`; }
+  catch { return `${prefix}_${Math.random().toString(36).slice(2, 11)}`; }
 }
 
 export default function App() {
@@ -102,16 +96,16 @@ export default function App() {
         delayChildren: 0.08,
       },
     },
-  };
+  } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
   const staggerItem = {
-    hidden: { opacity: 0, y: 12 },
+    hidden: { opacity: 0, y: 12 } as const,
     visible: {
       opacity: 1,
       y: 0,
-      transition: { type: "spring", stiffness: 300, damping: 30 },
+      transition: { type: "spring" as const, stiffness: 300, damping: 30 },
     },
-  };
+  } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<
@@ -158,7 +152,6 @@ export default function App() {
   const [editingPersona, setEditingPersona] = useState<CustomPersona | null>(
     null,
   );
-  const [isCreatingPersona, setIsCreatingPersona] = useState(false);
   const [newPersonaName, setNewPersonaName] = useState("");
   const [newPersonaDesc, setNewPersonaDescription] = useState("");
   const [newPersonaPrompt, setNewPersonaPrompt] = useState("");
@@ -186,8 +179,6 @@ export default function App() {
   const [providerInputVal, setProviderInputVal] = useState(activeProvider);
 
   const [showKeyDialog, setShowApiKeyDialog] = useState(false);
-  const [visualComparisonExpanded, setVisualComparisonExpanded] =
-    useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] =
     useState<PromptHistoryItem | null>(null);
   const [sharedLinkCopied, setSharedLinkCopied] = useState(false);
@@ -209,17 +200,25 @@ export default function App() {
 
   // Save changes to localStorage
   useEffect(() => {
-    localStorage.setItem(
-      "openprompter_prompt_history",
-      JSON.stringify(historyList),
-    );
+    try {
+      localStorage.setItem(
+        "openprompter_prompt_history",
+        JSON.stringify(historyList.slice(0, 100)),
+      );
+    } catch {
+      console.warn("Failed to save prompt history to localStorage");
+    }
   }, [historyList]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "openprompter_custom_personas",
-      JSON.stringify(customPersonas),
-    );
+    try {
+      localStorage.setItem(
+        "openprompter_custom_personas",
+        JSON.stringify(customPersonas),
+      );
+    } catch {
+      console.warn("Failed to save custom personas to localStorage");
+    }
   }, [customPersonas]);
 
   // Loading indicator words
@@ -251,7 +250,7 @@ export default function App() {
   // Auto-fetch models when provider or key changes
   useEffect(() => {
     if (apiKey) fetchAvailableModels();
-  }, [activeProvider, apiKey]);
+  }, [activeProvider, apiKey, apiEndpoint]);
 
   // Handle save of Key
   const handleSaveApiKey = (
@@ -368,7 +367,7 @@ export default function App() {
         keyChanges: data.key_changes || [],
         confidenceScore: data.confidence_score || 85,
         promptType: data.prompt_type || "General",
-        createdAt: new Date().toLocaleString(),
+        createdAt: new Date().toISOString(),
         modelUsed: selectedModel,
         personaName: activePersona?.name || "Standard",
         customInstructions: customInstructions || undefined,
@@ -435,7 +434,6 @@ export default function App() {
     setNewPersonaDescription("");
     setNewPersonaPrompt("");
     setEditingPersona(null);
-    setIsCreatingPersona(false);
   };
 
   const handleEditPersona = (pers: CustomPersona) => {
@@ -443,7 +441,6 @@ export default function App() {
     setNewPersonaName(pers.name);
     setNewPersonaDescription(pers.description);
     setNewPersonaPrompt(pers.systemPrompt);
-    setIsCreatingPersona(true);
   };
 
   const handleDeleteHistory = (id: string, e?: React.MouseEvent) => {
@@ -502,6 +499,8 @@ export default function App() {
     const result = generateShareUrl(payload);
     if (result.success) {
       navigator.clipboard.writeText(result.url);
+      setSharedLinkCopied(true);
+      setTimeout(() => setSharedLinkCopied(false), 3000);
       toast.success("Template share link copied!");
     } else {
       toast.error((result as { success: false; error: string }).error);
@@ -522,6 +521,8 @@ export default function App() {
     const result = generateShareUrl(payload);
     if (result.success) {
       navigator.clipboard.writeText(result.url);
+      setSharedLinkCopied(true);
+      setTimeout(() => setSharedLinkCopied(false), 3000);
       toast.success("Persona share link copied!");
     } else {
       toast.error((result as { success: false; error: string }).error);
@@ -568,7 +569,7 @@ export default function App() {
 
   // Detect shared content on page load
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const encoded = params.get("share");
     if (!encoded) return;
     const result = decodeSharePayload(encoded);
@@ -581,9 +582,12 @@ export default function App() {
     } else {
       toast.error((result as { valid: false; error: string }).error);
     }
-    // Clean URL without reload
-    const cleanUrl = window.location.pathname + window.location.search.replace(/(\?|&)share=[^&]+/, "").replace(/^&/, "");
-    window.history.replaceState(null, "", cleanUrl || "/");
+    // Clean URL without reload — use URLSearchParams for correctness
+    const cleanParams = new URLSearchParams(globalThis.location.search);
+    cleanParams.delete("share");
+    const cleanSearch = cleanParams.toString() ? `?${cleanParams.toString()}` : "";
+    const cleanUrl = globalThis.location.pathname + cleanSearch;
+    globalThis.history.replaceState(null, "", cleanUrl || "/");
   }, []);
 
   // Export as Markdown format
@@ -1053,6 +1057,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </label>
                             <Input
                               placeholder="E.g., Keep the sentence length short, emphasize security..."
+                              maxLength={1000}
                               value={customInstructions}
                               onChange={(e) =>
                                 setCustomInstructions(e.target.value)
@@ -1767,7 +1772,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         a.href = url;
                         a.download = "openprompter-history.json";
                         a.click();
-                        URL.revokeObjectURL(url);
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
                         toast.success("History exported as JSON");
                       }}
                     >
@@ -1791,7 +1796,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         a.href = url;
                         a.download = "openprompter-history.md";
                         a.click();
-                        URL.revokeObjectURL(url);
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
                         toast.success("History exported as Markdown");
                       }}
                     >
@@ -2039,9 +2044,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               href="https://www.buymeacoffee.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-600 hover:text-amber-700 transition-colors"
+              className="text-accent hover:text-accent-hover transition-colors"
             >
-              ☕ Buy Me a Coffee
+              <Coffee className="w-3.5 h-3.5 inline -mt-0.5" /> Buy Me a Coffee
             </a>
           </div>
           <p className="text-muted">
@@ -2472,27 +2477,27 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
               <div className="mt-5 space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     Name
-                  </label>
+                  </p>
                   <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-sm font-medium text-ink">
                     {importData.data.name}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     Description
-                  </label>
+                  </p>
                   <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs text-steel leading-relaxed">
                     {importData.data.description || "No description"}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     {importData.type === "template" ? "Prompt Text" : "System Prompt"}
-                  </label>
+                  </p>
                   <div className="p-3 bg-canvas border border-whisper rounded-[1rem] text-xs font-mono text-steel leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap">
                     {"promptText" in importData.data
                       ? (importData.data as TemplateShareData).promptText
@@ -2502,9 +2507,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {importData.type === "template" && "category" in importData.data && (
                   <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                    <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                       Category
-                    </label>
+                    </p>
                     <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs font-medium text-steel">
                       {(importData.data as TemplateShareData).category}
                     </div>
