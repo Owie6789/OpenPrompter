@@ -40,7 +40,16 @@ import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 
 import { PRESET_PERSONAS, PRESET_TEMPLATES } from "./data";
-import { PromptHistoryItem, CustomPersona, PromptTemplate } from "./types";
+import {
+  PromptHistoryItem,
+  CustomPersona,
+  PromptTemplate,
+  OptimizationResult,
+  ShareData,
+  TemplateShareData,
+  PersonaShareData,
+} from "./types";
+import { generateShareUrl, decodeSharePayload, SharePayload } from "./lib/share";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,6 +79,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+function safeJsonParse<T>(json: string | null, fallback: T): T {
+  if (!json) return fallback;
+  try { return JSON.parse(json) as T; }
+  catch { return fallback; }
+}
+
+function generateId(prefix: string): string {
+  try { return `${prefix}_${crypto.randomUUID().slice(0, 8)}`; }
+  catch { return `${prefix}_${Math.random().toString(36).substr(2, 9)}`; }
+}
 
 export default function App() {
   // Animation variants for staggered entry
@@ -111,19 +131,23 @@ export default function App() {
 
   // Local storage lists
   const [historyList, setHistoryList] = useState<PromptHistoryItem[]>(() => {
-    const saved = localStorage.getItem("openprompter_prompt_history");
-    return saved ? JSON.parse(saved) : [];
+    return safeJsonParse<PromptHistoryItem[]>(
+      localStorage.getItem("openprompter_prompt_history"),
+      [],
+    );
   });
 
   const [customPersonas, setCustomPersonas] = useState<CustomPersona[]>(() => {
-    const saved = localStorage.getItem("openprompter_custom_personas");
-    return saved ? JSON.parse(saved) : [];
+    return safeJsonParse<CustomPersona[]>(
+      localStorage.getItem("openprompter_custom_personas"),
+      [],
+    );
   });
 
   // Optimization process states
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progressStep, setProgressStep] = useState<string>("Initializing...");
-  const [optimizedResult, setOptimizedResult] = useState<any | null>(null);
+  const [optimizedResult, setOptimizedResult] = useState<OptimizationResult | null>(null);
 
   // Search queries
   const [templateSearch, setTemplateSearch] = useState("");
@@ -167,6 +191,13 @@ export default function App() {
   const [selectedHistoryItem, setSelectedHistoryItem] =
     useState<PromptHistoryItem | null>(null);
   const [sharedLinkCopied, setSharedLinkCopied] = useState(false);
+
+  // Share/Import state
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importData, setImportData] = useState<{
+    type: "template" | "persona";
+    data: ShareData;
+  } | null>(null);
 
   // Copy-state feedbacks
   const [copiedState, setCopiedState] = useState<
@@ -272,7 +303,7 @@ export default function App() {
       const data = await resp.json();
       if (data.models) setAvailableModels(data.models);
     } catch {
-      // silently fail
+      toast.error("Failed to fetch models from provider.");
     } finally {
       setModelsLoading(false);
     }
@@ -330,7 +361,7 @@ export default function App() {
 
       // Add to our prompt history list
       const newHistoryItem: PromptHistoryItem = {
-        id: "h_" + Math.random().toString(36).substr(2, 9),
+        id: generateId("h"),
         originalPrompt: promptInput,
         optimizedPrompt: data.optimized_prompt,
         improvements: data.improvements || [],
@@ -388,7 +419,7 @@ export default function App() {
     } else {
       // New mode
       const newPersona: CustomPersona = {
-        id: "pers_" + Math.random().toString(36).substr(2, 9),
+        id: generateId("pers"),
         name: newPersonaName,
         description: newPersonaDesc,
         systemPrompt: newPersonaPrompt,
@@ -433,9 +464,12 @@ export default function App() {
       ta.style.position = "fixed";
       ta.style.opacity = "0";
       document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
+      try {
+        ta.select();
+        document.execCommand("copy");
+      } finally {
+        document.body.removeChild(ta);
+      }
     });
     setCopiedState(type);
     toast.success("Copied to clipboard!");
@@ -451,6 +485,106 @@ export default function App() {
     setOptimizedResult(null);
     toast.info("Workspace pristine and reset.");
   };
+
+  // Share a template via URL
+  const handleShareTemplate = (tpl: PromptTemplate) => {
+    const payload: SharePayload = {
+      type: "template",
+      version: 1,
+      data: {
+        name: tpl.name,
+        category: tpl.category,
+        description: tpl.description,
+        promptText: tpl.promptText,
+        iconName: tpl.iconName,
+      },
+    };
+    const result = generateShareUrl(payload);
+    if (result.success) {
+      navigator.clipboard.writeText(result.url);
+      toast.success("Template share link copied!");
+    } else {
+      toast.error((result as { success: false; error: string }).error);
+    }
+  };
+
+  // Share a persona via URL
+  const handleSharePersona = (pers: CustomPersona) => {
+    const payload: SharePayload = {
+      type: "persona",
+      version: 1,
+      data: {
+        name: pers.name,
+        description: pers.description,
+        systemPrompt: pers.systemPrompt,
+      },
+    };
+    const result = generateShareUrl(payload);
+    if (result.success) {
+      navigator.clipboard.writeText(result.url);
+      toast.success("Persona share link copied!");
+    } else {
+      toast.error((result as { success: false; error: string }).error);
+    }
+  };
+
+  // Import a shared resource from URL
+  const handleConfirmImport = () => {
+    if (!importData) return;
+    if (importData.type === "template") {
+      const tpl = importData.data as TemplateShareData;
+      const newTemplate: PromptTemplate = {
+        name: tpl.name,
+        category: tpl.category,
+        description: tpl.description,
+        promptText: tpl.promptText,
+        iconName: tpl.iconName,
+      };
+      // Add to templates by loading into workspace
+      setPromptInput(newTemplate.promptText);
+      setActiveTab("optimizer");
+      toast.success(`Imported template: "${newTemplate.name}"`);
+    } else {
+      const pers = importData.data as PersonaShareData;
+      const newPersona: CustomPersona = {
+        id: generateId("pers"),
+        name: pers.name,
+        description: pers.description,
+        systemPrompt: pers.systemPrompt,
+        isPreset: false,
+      };
+      setCustomPersonas((prev) => [newPersona, ...prev]);
+      setActiveTab("personas");
+      toast.success(`Imported persona: "${newPersona.name}"`);
+    }
+    setShowImportDialog(false);
+    setImportData(null);
+  };
+
+  const handleCancelImport = () => {
+    setShowImportDialog(false);
+    setImportData(null);
+  };
+
+  // Detect shared content on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get("share");
+    if (!encoded) return;
+    const result = decodeSharePayload(encoded);
+    if (result.valid) {
+      setImportData({
+        type: result.payload.type,
+        data: result.payload.data,
+      });
+      setShowImportDialog(true);
+    } else {
+      toast.error((result as { valid: false; error: string }).error);
+    }
+    // Clean URL without reload
+    const cleanUrl = window.location.pathname + window.location.search.replace(/(\?|&)share=[^&]+/, "").replace(/^&/, "");
+    window.history.replaceState(null, "", cleanUrl || "/");
+  }, []);
 
   // Export as Markdown format
   const getMarkdownText = (pr: any) => {
@@ -1315,7 +1449,16 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
                     </CardContent>
 
-                    <CardFooter className="py-3 px-5 border-t border-whisper/40 bg-canvas/50 flex justify-end rounded-b-[1.5rem]">
+                    <CardFooter className="py-3 px-5 border-t border-whisper/40 bg-canvas/50 flex justify-between rounded-b-[1.5rem]">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-muted hover:text-accent font-semibold rounded-full hover:bg-surface border border-transparent hover:border-accent/20"
+                        onClick={() => handleShareTemplate(tpl)}
+                      >
+                        <ShareNetwork className="w-3.5 h-3.5 mr-1" />
+                        Share
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1544,7 +1687,19 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </div>
                             </CardContent>
 
-                            <CardFooter className="py-3 px-5 border-t border-whisper bg-surface flex justify-end rounded-b-2xl">
+                            <CardFooter className="py-3 px-5 border-t border-whisper bg-surface flex justify-between items-center rounded-b-2xl">
+                              {!isPreset && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs text-muted hover:text-accent font-semibold rounded-full hover:bg-surface border border-transparent hover:border-accent/20"
+                                  onClick={() => handleSharePersona(pers)}
+                                >
+                                  <ShareNetwork className="w-3.5 h-3.5 mr-1" />
+                                  Share
+                                </Button>
+                              )}
+                              {isPreset && <div />}
                               <Button
                                 size="sm"
                                 variant={
@@ -2299,6 +2454,93 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
           </DialogContent>
         )}
       </Dialog>
+
+      {/* DIALOG 3: SHARE IMPORT */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        {importData && (
+          <DialogContent className="bg-surface border-none text-ink sm:max-w-md rounded-[2.5rem] p-0 shadow-2xl">
+            <div className="p-6 sm:p-8">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
+                  <ShareNetwork className="w-5 h-5" />
+                  Import Shared {importData.type === "template" ? "Template" : "Persona"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-steel mt-3 p-4 bg-canvas rounded-[1.5rem] border border-whisper leading-relaxed">
+                  Someone shared a {importData.type} with you. Review the details below and confirm to add it to your workspace.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="mt-5 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                    Name
+                  </label>
+                  <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-sm font-medium text-ink">
+                    {importData.data.name}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                    Description
+                  </label>
+                  <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs text-steel leading-relaxed">
+                    {importData.data.description || "No description"}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                    {importData.type === "template" ? "Prompt Text" : "System Prompt"}
+                  </label>
+                  <div className="p-3 bg-canvas border border-whisper rounded-[1rem] text-xs font-mono text-steel leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap">
+                    {"promptText" in importData.data
+                      ? (importData.data as TemplateShareData).promptText
+                      : (importData.data as PersonaShareData).systemPrompt}
+                  </div>
+                </div>
+
+                {importData.type === "template" && "category" in importData.data && (
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                      Category
+                    </label>
+                    <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs font-medium text-steel">
+                      {(importData.data as TemplateShareData).category}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 bg-canvas p-6 border-t border-whisper shadow-inner">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelImport}
+                className="rounded-full font-semibold text-steel"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="bg-accent text-white hover:bg-accent-hover text-xs text-white shadow-md rounded-full px-6 font-semibold"
+                onClick={handleConfirmImport}
+              >
+                Import {importData.type === "template" ? "Template" : "Persona"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* SHARED LINK FAB */}
+      {sharedLinkCopied && (
+        <div className="fixed bottom-6 right-6 z-50 bg-accent text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <Check className="w-3.5 h-3.5 mr-1.5 inline" />
+          Share link copied!
+        </div>
+      )}
     </div>
   );
 }

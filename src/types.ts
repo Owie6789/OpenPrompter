@@ -27,3 +27,29 @@ export interface PromptTemplate {
   promptText: string;
   iconName: string;
 }
+
+export interface OptimizationResult {
+  optimized_prompt: string;
+  improvements: string[];
+  key_changes: string[];
+  confidence_score: number;
+  prompt_type: string;
+}
+
+export type SharePayloadType = "template" | "persona";
+
+export interface TemplateShareData {
+  name: string;
+  category: string;
+  description: string;
+  promptText: string;
+  iconName: string;
+}
+
+export interface PersonaShareData {
+  name: string;
+  description: string;
+  systemPrompt: string;
+}
+
+export type ShareData = TemplateShareData | PersonaShareData;
