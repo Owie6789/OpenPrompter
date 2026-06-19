@@ -13,7 +13,7 @@
 <img src="https://www.shieldcn.dev/badge/Telemetry-Zero-EF4444.svg?theme=stone&font=geist-mono" alt="Zero Telemetry" />
 </p>
 
-<img src="assets/openpromptereadmeherobanner.png" alt="OpenPrompter Hero" width="85%" style="border-radius: 16px; border: 1px solid #292524;" />
+<img src="assets/openpromptereadmeherobanner.png" alt="OpenPrompter Hero" width="85%" />
 
 </div>
 
@@ -46,7 +46,7 @@ Your key. Your data. Your prompts. That's it.
 
 ### <img src="https://api.iconify.design/ph:brain.svg?color=%232563eb" width="24" height="24" align="center" /> Prompt Optimization Workspace
 <p align="center">
-<img src="assets/opfeature1.png" alt="Prompt Optimizer" width="85%" style="border-radius: 16px; border: 1px solid #292524;" />
+<img src="assets/opfeature1.png" alt="Prompt Optimizer" width="85%" />
 </p>
 
 Paste any rough draft — a story idea, a code request, a marketing brief. Select an expert persona, pick your model, add optional constraints, and hit **Optimize** (or `Ctrl + Enter`).
@@ -61,7 +61,7 @@ The engine deconstructs your input and outputs a structured, high-clarity prompt
 
 ### <img src="https://api.iconify.design/ph:key.svg?color=%232563eb" width="24" height="24" align="center" /> BYOK — Bring Your Own Key
 <p align="center">
-<img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" style="border-radius: 16px; border: 1px solid #292524;" />
+<img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" />
 </p>
 
 Plug in your own API key from any supported provider. OpenPrompter routes your prompt directly from browser → your key → provider API. No intermediary, no logging.
@@ -79,7 +79,7 @@ Plug in your own API key from any supported provider. OpenPrompter routes your p
 
 ### <img src="https://api.iconify.design/ph:clipboard-text.svg?color=%232563eb" width="24" height="24" align="center" /> Curated Prompt Templates
 <p align="center">
-<img src="assets/opfeature3.png" alt="Prompt History" width="85%" style="border-radius: 16px; border: 1px solid #292524;" />
+<img src="assets/opfeature3.png" alt="Prompt History" width="85%" />
 </p>
 
 6 high-fidelity starter templates spanning:
