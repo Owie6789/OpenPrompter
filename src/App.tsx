@@ -1275,21 +1275,24 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {filteredTemplates.map((tpl, i) => (
                   <motion.div key={i} variants={staggerItem}>
                     <Card
-                      className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem]"
+                      className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem] ring-1 ring-inset ring-whisper/20"
                     >
-                    <CardHeader className="pb-3 pt-5 px-5">
+                    <CardHeader className="pb-3 pt-5 px-5 border-b border-whisper/40">
                       <div className="flex justify-between items-start">
                         <span className="text-[10px] font-mono tracking-widest uppercase font-bold text-muted">
                           {tpl.category}
                         </span>
                         <Badge
                           variant="outline"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity border-whisper text-steel text-[10px] bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                          className="opacity-0 group-hover:opacity-100 transition-all duration-200 border-accent/30 text-accent text-[10px] bg-accent/5 shadow-none"
                         >
-                          Click to Use
+                          Quick Use
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg font-bold mt-2 font-display text-ink tracking-tight group-hover:text-accent hover:text-accent-hover transition-colors">
+                      <CardTitle
+                        className="text-lg font-bold mt-2 font-display text-ink tracking-tight cursor-pointer group-hover:text-accent transition-colors"
+                        onClick={() => handleApplyTemplate(tpl)}
+                      >
                         {tpl.name}
                       </CardTitle>
                       <CardDescription className="text-xs text-steel leading-relaxed mt-1">
@@ -1297,14 +1300,22 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="pb-4 px-5">
-                      {/* Short excerpt */}
-                      <div className="p-4 bg-canvas border border-whisper rounded-[1rem] text-[11px] font-mono leading-relaxed text-steel line-clamp-3 select-none">
+                    <CardContent className="pb-4 px-5 pt-4">
+                      {/* Double-bezel: inner nested surface with its own depth */}
+                      <div
+                        className="p-4 bg-canvas border border-whisper/70 rounded-[1rem] text-[11px] font-mono leading-relaxed text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-all duration-300 select-none cursor-pointer hover:bg-canvas/80 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]"
+                        onClick={() => handleApplyTemplate(tpl)}
+                      >
                         {tpl.promptText}
+                      </div>
+                      <div className="flex justify-end mt-2">
+                        <span className="text-[10px] text-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          click excerpt or title to load
+                        </span>
                       </div>
                     </CardContent>
 
-                    <CardFooter className="py-3 px-5 border-t border-whisper bg-canvas flex justify-end rounded-b-[1.5rem]">
+                    <CardFooter className="py-3 px-5 border-t border-whisper/40 bg-canvas/50 flex justify-end rounded-b-[1.5rem]">
                       <Button
                         variant="ghost"
                         size="sm"
