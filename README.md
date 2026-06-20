@@ -96,13 +96,22 @@ Plug in your own API key from any supported provider. OpenPrompter routes your p
 * **Personas:** Design your own expert AI roles (e.g., *"Python Refactoring Ninja"*). Personas persist across sessions via localStorage and apply as system-level instructions. 5 presets included.
 * **History:** Every optimization is saved locally with full metadata (score, type, timestamp, model). Export your session as JSON/Markdown, or wipe it clean in one click.
 
+### In-App States
+
+| State | Preview |
+|-------|---------|
+| **Empty State** — No history yet | <img src="assets/op-appasset-emptyhistorystate.png" alt="Empty history" width="250"/> |
+| **Loading State** — During generation | <img src="assets/op-appasset-aigenerating-loadstate.png" alt="Loading state" width="250"/> |
+| **Success State** — Optimized result | <img src="assets/op-appasset-success-optimized%20state.png" alt="Success state" width="250"/> |
+| **BYOK Onboarding** — Setup card | <img src="assets/op-appasset-%20BYOK%20Key%20Setup%20%28in-app%20onboarding%20card%29.png" alt="BYOK onboarding" width="250"/> |
+
 <br>
 
 ## <img src="https://api.iconify.design/ph:terminal.svg?color=%232563eb" width="28" height="28" align="center" /> Quick Start
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/Owie6789/OpenPrompter.git](https://github.com/Owie6789/OpenPrompter.git)
+git clone https://github.com/Owie6789/OpenPrompter.git
 cd OpenPrompter
 
 # 2. Install dependencies
@@ -110,3 +119,95 @@ npm install
 
 # 3. Start the development server
 npm run dev
+```
+
+Open **http://localhost:3000** — configure your API key via the Settings panel (top-right key icon).
+
+---
+
+## Production Build
+
+```bash
+npm run build
+npm start
+```
+
+Serves the SPA from `dist/` with the Express backend on port 3000.
+
+---
+
+## Project Structure
+
+```
+OpenPrompter/
+├── src/                   # React app (Vite SPA)
+│   ├── App.tsx            # Main application
+│   ├── main.tsx           # Entry point (ErrorBoundary wrapper)
+│   ├── types.ts           # TypeScript interfaces
+│   ├── data.ts            # Preset personas & templates
+│   └── index.css          # Tailwind v4 theme & globals
+├── components/            # Reusable UI components
+│   ├── ui/                # shadcn/ui components (base-nova style)
+│   ├── ByokDialog.tsx     # BYOK settings dialog
+│   ├── HistoryDetailDialog.tsx  # History inspection modal
+│   └── ImportShareDialog.tsx    # Share import dialog
+├── lib/                   # Utility modules (share, etc.)
+├── server.ts              # Express backend
+├── assets/                # Brand assets, screenshots, OG card
+│   ├── openpromptericon.png
+│   ├── openprompterfavicon.png
+│   ├── openpromptereadmeherobanner.png
+│   ├── opfeature1-4.png         # Feature screenshots
+│   ├── op-appasset-*.png        # In-app state illustrations
+│   └── op-Open_Graph-_Social_Share_Card_86.png
+├── vite.config.ts
+├── tsconfig.json
+└── .env.example
+```
+
+---
+
+## Configuration
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | No | OpenAI API key (server-side BYOK) |
+| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side BYOK) |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side BYOK) |
+| `APP_URL` | No | Public URL for self-referential links |
+
+Users can also configure keys in-app via the Settings dialog (persisted to `localStorage` under `openprompter_byok_key`).
+
+---
+
+## Architecture
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
+│   Browser   │────▶│  Express Proxy    │────▶│  LLM API    │
+│   (SPA)     │◀────│  (sanitize/fwd)   │◀────│ (OpenAI-    │
+│             │     │                   │     │  compatible)│
+│ localStorage│     │ fetchWithTimeout  │     │             │
+│ (history,   │     │ SSRF blocklist    │     │             │
+│  keys,      │     │ log sanitization  │     │             │
+│  personas)  │     └──────────────────┘     └─────────────┘
+└─────────────┘
+```
+
+- **Client-side**: All history, persona configs, API keys stored in `localStorage`
+- **Server proxy**: Stateless, sanitizes prompts and LLM responses, enforces timeouts (30s) and SSRF protection
+- **Privacy**: No telemetry, no cloud persistence, no third-party analytics
+
+---
+
+## Social Card
+
+<div align="center">
+  <img src="assets/op-Open_Graph-_Social_Share_Card_86.png" alt="OpenGraph Share Card" width="600"/>
+</div>
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

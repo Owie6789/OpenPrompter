@@ -9,15 +9,12 @@ import {
   Check,
   ArrowCounterClockwise,
   FileText,
-  Eye,
-  BookOpen,
   UserCheck,
   Trash,
   PlusCircle,
   Download,
   ShareNetwork,
   Question,
-  Info,
   Lock,
   ShieldCheck,
   List,
@@ -26,7 +23,6 @@ import {
   MagicWand,
   Sliders,
   Cpu,
-  ArrowSquareOut,
   Layout,
   Coffee,
   ArrowsClockwise,
@@ -65,14 +61,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
+import ByokDialog from "@/components/ByokDialog";
+import HistoryDetailDialog from "@/components/HistoryDetailDialog";
+import ImportShareDialog from "@/components/ImportShareDialog";
 
 function safeJsonParse<T>(json: string | null, fallback: T): T {
   if (!json) return fallback;
@@ -625,11 +617,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
       {/* HEADER — Fluid Island */}
       <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-3 sticky top-3 z-50">
-        <div className="bg-surface backdrop-blur-3xl rounded-[2rem] border border-whisper shadow-[0_20px_60px_-20px_rgba(0,0,0,0.08)] px-4 sm:px-6">
+        <div className="bg-surface backdrop-blur-3xl rounded-xl border border-whisper shadow-[0_20px_60px_-20px_rgba(0,0,0,0.08)] px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[1rem] bg-accent text-white flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div className="w-10 h-10 rounded-md bg-accent text-white flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -661,7 +653,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             >
               <Button
                 variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("optimizer")}
                 id="tab-optimizer"
               >
@@ -670,7 +662,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "templates" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all ${activeTab === "templates" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "templates" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("templates")}
                 id="tab-templates"
               >
@@ -679,7 +671,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "personas" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all ${activeTab === "personas" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "personas" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("personas")}
                 id="tab-personas"
               >
@@ -688,7 +680,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "history" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all ${activeTab === "history" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "history" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("history")}
                 id="tab-history"
               >
@@ -705,7 +697,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "about" ? "secondary" : "ghost"}
-                className={`text-sm rounded-full px-5 transition-all ${activeTab === "about" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "about" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("about")}
                 id="tab-about"
               >
@@ -718,7 +710,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             <div className="flex items-center gap-3">
               <Button
                 variant={apiKey ? "outline" : "default"}
-                className={`h-9 text-xs rounded-full transition-all active:scale-95 ${apiKey ? "border-slate-300 text-steel hover:bg-slate-100" : "bg-accent text-white shadow-sm hover:bg-accent-hover"}`}
+                className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-slate-300 text-steel hover:bg-slate-100" : "bg-accent text-white shadow-sm hover:bg-accent-hover"}`}
                 onClick={() => {
                   setApiKeyInputVal(apiKey);
                   setShowApiKeyDialog(true);
@@ -836,7 +828,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {/* LEFT: WORKSPACE INPUTS & CONFIG */}
                 <div className="flex-1 lg:w-1/2 space-y-6">
                   {/* WORKSPACE CARD */}
-                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] relative overflow-hidden">
+                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl relative overflow-hidden">
                     <CardHeader className="pb-4 pt-6 px-6">
                       <div className="flex justify-between items-start">
                         <div>
@@ -875,7 +867,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           </div>
                           <Textarea
                             placeholder="E.g., Write a draft story about a lost robot... OR Refactor this python class..."
-                            className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-relaxed text-ink placeholder:text-muted focus-visible:ring-slate-900 focus-visible:ring-offset-2 transition-all focus:border-slate-900 rounded-[1rem] resize-none shadow-inner"
+                            className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-slate-900 focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-slate-900 rounded-md resize-none shadow-inner"
                             value={promptInput}
                             onChange={(e) =>
                               setPromptInput(e.target.value.slice(0, 5000))
@@ -925,10 +917,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   }
                                 }}
                               >
-                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
+                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
                                   <SelectValue placeholder="Standard Prompt Engineer" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-[1rem] shadow-xl">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
                                   {allPersonas.map((persona) => (
                                     <SelectItem
                                       key={persona.id}
@@ -978,10 +970,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   setCustomModelInputVal(val);
                                 }}
                               >
-                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
+                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
                                   <SelectValue placeholder={selectedModel || "Select model"} />
                                 </SelectTrigger>
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-[1rem] shadow-xl max-h-60">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] max-h-60">
                                   {availableModels.length > 0 ? (
                                     availableModels.map((m) => (
                                       <SelectItem
@@ -1016,7 +1008,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           {/* MODEL MARQUEE */}
                           {availableModels.length > 0 && (
-                            <div className="relative overflow-hidden rounded-[1rem] bg-canvas border border-whisper py-2.5 px-4 shadow-inner">
+                            <div className="relative overflow-hidden rounded-md bg-canvas border border-whisper py-2.5 px-4 shadow-inner">
                               <div className="flex items-center gap-2 text-[11px] text-muted mb-1.5">
                                 <Cpu className="w-3 h-3 text-accent" />
                                 <span className="font-semibold uppercase tracking-wider">Available Models</span>
@@ -1068,7 +1060,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   handleOptimizePrompt();
                                 }
                               }}
-                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus-visible:ring-slate-900 focus-visible:ring-offset-1 placeholder:text-muted"
+                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus-visible:ring-slate-900 focus-visible:ring-offset-1 placeholder:text-muted"
                             />
                           </div>
 
@@ -1100,15 +1092,15 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </Card>
 
                   {/* BYOK ENCOURAGEMENT CARD */}
-                  <div className="border border-whisper rounded-[1.5rem] p-5 bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-[1rem] bg-canvas border border-whisper flex items-center justify-center shrink-0">
+                  <div className="border border-whisper rounded-lg p-5 bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-md bg-canvas border border-whisper flex items-center justify-center shrink-0">
                       <Lock className="w-5 h-5 text-steel" />
                     </div>
                     <div>
                       <h5 className="text-sm font-bold text-ink gap-1.5 tracking-tight">
                         BYOK Privacy Architecture
                       </h5>
-                      <p className="text-xs text-steel mt-1 leading-relaxed max-w-md">
+                      <p className="text-xs text-steel mt-1 leading-snug max-w-md">
                         Keys are kept on-device, fully bypassing server
                         throttling or limits. Your ideas and intellectual
                         property never hit any middleman database.
@@ -1121,11 +1113,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <div className="flex flex-col gap-6 lg:w-1/2">
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
-                    <div className="border border-whisper rounded-[2.5rem] bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transform transition-all">
+                    <div className="border border-whisper rounded-xl bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transform transition-colors,shadow,ring">
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
                         <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-lg" />
-                        <div className="skeleton-shimmer h-32 w-full border-none rounded-[1.5rem]" />
+                        <div className="skeleton-shimmer h-32 w-full border-none rounded-lg" />
                       </div>
 
                       <div className="space-y-3 max-w-sm">
@@ -1135,7 +1127,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <p className="text-xs font-mono text-steel uppercase tracking-widest bg-canvas py-1.5 px-3 rounded-full inline-block">
                           {progressStep}
                         </p>
-                        <p className="text-sm text-steel leading-relaxed pt-2">
+                        <p className="text-sm text-steel leading-snug pt-2">
                           The AI is restructuring sections, polishing language
                           constraints, and framing target outputs based on elite
                           prompt engineer frameworks...
@@ -1146,7 +1138,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                   {/* IDLE (NO RESULT) VIEW */}
                   {!isOptimizing && !optimizedResult && (
-                    <div className="border border-dashed border-whisper rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center text-steel bg-canvas min-h-[480px]">
+                    <div className="border border-dashed border-whisper rounded-xl p-12 flex flex-col items-center justify-center text-center text-steel bg-canvas min-h-[480px]">
                       <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
                         <div className="absolute inset-0 bg-accent/5 rounded-full animate-pulse" />
                         <div
@@ -1163,7 +1155,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <h3 className="text-xl font-bold text-ink mb-2 font-display tracking-tight">
                         Workspace Ready
                       </h3>
-                      <p className="text-sm text-steel max-w-sm leading-relaxed mb-8">
+                      <p className="text-sm text-steel max-w-sm leading-snug mb-8">
                         Paste your rough prompt on the left and click{" "}
                         <strong>Optimize Prompt</strong> to let our logic engine
                         restructure and refine it.
@@ -1172,7 +1164,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       {/* Curated Templates Link Quick Hack */}
                       <Button
                         variant="outline"
-                        className="text-steel hover:text-ink text-xs gap-1 rounded-full border-whisper bg-surface active:-translate-y-px transition-all"
+                        className="text-steel hover:text-ink text-xs gap-1 rounded-full border-whisper bg-surface active:-translate-y-px transition-colors,shadow,ring"
                         onClick={() => setActiveTab("templates")}
                       >
                         Browse professional presets{" "}
@@ -1189,7 +1181,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       className="space-y-6"
                     >
                       {/* ACCREDITATIONS & SCORE */}
-                      <div className="bg-surface rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper overflow-hidden">
+                      <div className="bg-surface rounded-xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper overflow-hidden">
                         <div className="p-6 border-b border-whisper">
                           <div className="flex justify-between items-center flex-wrap gap-4">
                             <div className="flex items-center gap-3">
@@ -1201,7 +1193,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </CardTitle>
                             </div>
 
-                            <div className="flex items-center gap-2 bg-canvas px-4 py-2 rounded-[1rem] shadow-inner border border-whisper">
+                            <div className="flex items-center gap-2 bg-canvas px-4 py-2 rounded-md shadow-inner border border-whisper">
                               <span className="text-[10px] text-steel uppercase font-mono tracking-widest font-semibold">
                                 Confidence
                               </span>
@@ -1227,7 +1219,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 (imp: string, i: number) => (
                                   <div
                                     key={i}
-                                    className="text-sm p-4 rounded-[1.5rem] bg-surface border border-whisper text-steel leading-relaxed flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
+                                    className="text-sm p-4 rounded-lg bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
                                   >
                                     <span className="text-muted shrink-0 font-bold font-mono text-xs mt-0.5">
                                       {(i + 1).toString().padStart(2, "0")}
@@ -1266,8 +1258,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
 
                       {/* OPTIMIZED PROMPT OUTPUT CARD */}
-                      <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] relative overflow-hidden p-2">
-                        <div className="bg-surface rounded-[calc(2rem-0.5rem)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
+                      <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl relative overflow-hidden p-2">
+                        <div className="bg-surface rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
                           <CardHeader className="pb-4 pt-6 px-6 border-b border-whisper flex flex-row items-center justify-between">
                             <div>
                               <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display tracking-tight text-ink">
@@ -1301,7 +1293,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               {/* Export selectors */}
                               <div className="flex rounded-full py-0.5 px-1 bg-surface divide-x divide-slate-100 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shrink-0 items-center">
                                 <button
-                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-all font-mono font-semibold"
+                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
                                   onClick={() =>
                                     handleCopyToClipboard(
                                       getMarkdownText(optimizedResult),
@@ -1313,7 +1305,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   {copiedState === "markdown" ? "✓ MD" : "MD"}
                                 </button>
                                 <button
-                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-all font-mono font-semibold"
+                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
                                   onClick={() =>
                                     handleCopyToClipboard(
                                       JSON.stringify(optimizedResult, null, 2),
@@ -1330,7 +1322,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           <CardContent className="p-0">
                             {/* OUTPUT COPY CONTAINER */}
-                            <div className="bg-canvas p-6 font-mono text-sm leading-relaxed text-ink border-b border-whisper max-h-[380px] overflow-y-auto whitespace-pre-wrap selection:bg-slate-200">
+                            <div className="bg-canvas p-6 font-mono text-sm leading-snug text-ink border-b border-whisper max-h-[380px] overflow-y-auto whitespace-pre-wrap selection:bg-slate-200">
                               {optimizedResult.optimized_prompt}
                             </div>
                           </CardContent>
@@ -1362,7 +1354,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               className="space-y-6"
             >
               {/* FILTER TOOLBAR */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-[1.5rem] border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-lg border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
                 <div>
                   <h3 className="text-xl font-bold font-display tracking-tight text-ink">
                     Prompt Presets Gallery
@@ -1375,7 +1367,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Category Filter */}
-                  <div className="flex gap-1 border border-whisper p-1 bg-canvas rounded-[1rem]">
+                  <div className="flex gap-1 border border-whisper p-1 bg-canvas rounded-md">
                     {[
                       "All",
                       "Coding",
@@ -1386,7 +1378,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     ].map((cat) => (
                       <button
                         key={cat}
-                        className={`text-[11px] px-3 py-1.5 rounded-lg font-semibold tracking-wide uppercase transition-all ${categoryFilter === cat ? "bg-surface text-ink shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]" : "text-muted hover:text-steel"}`}
+                        className={`text-[11px] px-3 py-1.5 rounded-lg font-semibold tracking-wide uppercase transition-colors,shadow,ring ${categoryFilter === cat ? "bg-surface text-ink shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]" : "text-muted hover:text-steel"}`}
                         onClick={() => setCategoryFilter(cat)}
                       >
                         {cat}
@@ -1409,12 +1401,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 variants={staggerContainer}
                 initial="hidden"
                 animate="visible"
-                className="grid grid-cols-1 md:grid-cols-3 gap-5"
+                className="grid grid-cols-1 md:grid-cols-2 gap-5"
               >
                 {filteredTemplates.map((tpl, i) => (
                   <motion.div key={i} variants={staggerItem}>
                     <Card
-                      className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem] ring-1 ring-inset ring-whisper/20"
+                      className="border-whisper bg-surface hover:shadow-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:border-whisper flex flex-col justify-between group rounded-lg ring-1 ring-inset ring-whisper/20"
                     >
                     <CardHeader className="pb-3 pt-5 px-5 border-b border-whisper/40">
                       <div className="flex justify-between items-start">
@@ -1423,7 +1415,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         </span>
                         <Badge
                           variant="outline"
-                          className="opacity-0 group-hover:opacity-100 transition-all duration-200 border-accent/30 text-accent text-[10px] bg-accent/5 shadow-none"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 border-accent/30 text-accent text-[10px] bg-accent/5 shadow-none"
                         >
                           Quick Use
                         </Badge>
@@ -1434,7 +1426,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       >
                         {tpl.name}
                       </CardTitle>
-                      <CardDescription className="text-xs text-steel leading-relaxed mt-1">
+                      <CardDescription className="text-xs text-steel leading-snug mt-1">
                         {tpl.description}
                       </CardDescription>
                     </CardHeader>
@@ -1442,7 +1434,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <CardContent className="pb-4 px-5 pt-4">
                       {/* Double-bezel: inner nested surface with its own depth */}
                       <div
-                        className="p-4 bg-canvas border border-whisper/70 rounded-[1rem] text-[11px] font-mono leading-relaxed text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-all duration-300 select-none cursor-pointer hover:bg-canvas/80 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]"
+                        className="p-4 bg-canvas border border-whisper/70 rounded-md text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-colors,shadow,ring duration-300 select-none cursor-pointer hover:bg-canvas/80 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]"
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         {tpl.promptText}
@@ -1499,8 +1491,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* LEFT: EDIT / CREATE FORM */}
                 <div className="lg:w-1/3">
-                  <Card className="border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] sticky top-24 p-1.5">
-                    <div className="bg-surface rounded-[calc(2rem-0.375rem)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
+                  <Card className="border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl sticky top-24 p-1.5">
+                    <div className="bg-surface rounded-[calc(0.75rem-0.375rem)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
                       <CardHeader className="px-6 pt-6">
                         <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight">
                           {editingPersona ? (
@@ -1512,7 +1504,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             ? "Modify Custom Persona"
                             : "Create Custom Persona"}
                         </CardTitle>
-                        <CardDescription className="text-xs text-steel leading-relaxed mt-1">
+                        <CardDescription className="text-xs text-steel leading-snug mt-1">
                           Design specific expert role plays (system cues) for
                           custom tailored outputs.
                         </CardDescription>
@@ -1532,7 +1524,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaName(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-[1rem] focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
                             />
                           </div>
 
@@ -1547,7 +1539,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaDescription(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-[1rem] focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
                             />
                           </div>
 
@@ -1564,7 +1556,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaPrompt(e.target.value)
                               }
-                              className="bg-surface border-whisper text-xs font-mono rounded-[1rem] focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] resize-none"
+                              className="bg-surface border-whisper text-xs font-mono rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] resize-none"
                             />
                           </div>
                         </CardContent>
@@ -1601,7 +1593,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {/* RIGHT: PERSONAS LIST GRID */}
                 <div className="flex-1 space-y-4">
-                  <div className="bg-surface p-5 border border-whisper rounded-[1.5rem] flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+                  <div className="bg-surface p-5 border border-whisper rounded-lg flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
                     <div>
                       <h3 className="text-base font-bold font-display text-ink tracking-tight">
                         Durable Persona Registry
@@ -1616,7 +1608,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       placeholder="Keyword filter..."
                       value={personaSearch}
                       onChange={(e) => setPersonaSearch(e.target.value)}
-                      className="max-w-[180px] h-9 text-xs bg-canvas border-whisper rounded-[1rem]"
+                      className="max-w-[180px] h-9 text-xs bg-canvas border-whisper rounded-md"
                     />
                   </div>
 
@@ -1632,7 +1624,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         return (
                           <Card
                             key={pers.id}
-                            className={`border-whisper flex flex-col justify-between relative group rounded-[1.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
+                            className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
                           >
                             <CardHeader className="pb-3 pt-5 px-5">
                               <div className="flex justify-between items-start">
@@ -1681,13 +1673,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               <CardTitle className="text-base font-bold font-display mt-3 text-ink tracking-tight">
                                 {pers.name}
                               </CardTitle>
-                              <CardDescription className="text-xs text-steel min-h-[32px] leading-relaxed mt-1">
+                              <CardDescription className="text-xs text-steel min-h-[32px] leading-snug mt-1">
                                 {pers.description || "No description provided."}
                               </CardDescription>
                             </CardHeader>
 
-                            <CardContent className="pb-4 px-5 text-[11px] font-mono leading-relaxed text-steel max-h-[100px] overflow-y-auto">
-                              <div className="bg-canvas p-3 rounded-[1rem] border border-whisper">
+                            <CardContent className="pb-4 px-5 text-[11px] font-mono leading-snug text-steel max-h-[100px] overflow-y-auto">
+                              <div className="bg-canvas p-3 rounded-md border border-whisper">
                                 {pers.systemPrompt}
                               </div>
                             </CardContent>
@@ -1712,7 +1704,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     ? "secondary"
                                     : "ghost"
                                 }
-                                className={`text-xs font-semibold rounded-full px-5 transition-all ${selectedPersona === pers.id ? "bg-accent text-white shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-slate-100 hover:text-ink"}`}
+                                className={`text-xs font-semibold rounded-full px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-white shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-slate-100 hover:text-ink"}`}
                                 onClick={() => {
                                   setSelectedPersona(pers.id);
                                   toast.success(
@@ -1744,7 +1736,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
-              <div className="bg-surface p-6 border border-whisper rounded-[1.5rem] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div className="bg-surface p-6 border border-whisper rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
                 <div>
                   <h3 className="text-xl font-bold font-display tracking-tight text-ink">
                     Prompt Engineering Logs
@@ -1760,7 +1752,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-steel hover:text-ink rounded-full font-semibold"
+                      className="text-xs text-steel hover:text-ink rounded-full font-semibold cursor-pointer"
                       onClick={() => {
                         // Download as JSON
                         const blob = new Blob(
@@ -1782,7 +1774,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-steel hover:text-ink rounded-full font-semibold"
+                      className="text-xs text-steel hover:text-ink rounded-full font-semibold cursor-pointer"
                       onClick={() => {
                         const md = historyList
                           .map(
@@ -1830,7 +1822,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {historyList.map((item) => (
                   <div
                     key={item.id}
-                    className="border border-whisper rounded-[1.5rem] bg-surface p-6 hover:shadow-md transition-all cursor-pointer group"
+                    className="border border-whisper rounded-lg bg-surface p-6 hover:shadow-md transition-colors,shadow,ring cursor-pointer group"
                     onClick={() => setSelectedHistoryItem(item)}
                   >
                     {/* Upper Metadata */}
@@ -1862,7 +1854,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted hover:text-error hover:text-error opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-50 rounded-full"
+                          className="h-8 w-8 text-muted hover:text-error hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-rose-50 rounded-full"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash className="w-4 h-4" />
@@ -1876,7 +1868,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <span className="text-[10px] font-mono text-muted font-bold tracking-widest uppercase block mb-1">
                           Original Draft Excerpt
                         </span>
-                        <div className="p-4 bg-canvas rounded-[1rem] text-xs font-mono text-steel line-clamp-2 select-none border border-whisper shadow-inner leading-relaxed">
+                        <div className="p-4 bg-canvas rounded-md text-xs font-mono text-steel line-clamp-2 select-none border border-whisper shadow-inner leading-snug">
                           {item.originalPrompt}
                         </div>
                       </div>
@@ -1885,7 +1877,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <span className="text-[10px] font-mono text-ink font-bold tracking-widest uppercase block mb-1">
                           Engineered Prompt Excerpt
                         </span>
-                        <div className="p-4 bg-accent text-white rounded-[1rem] text-xs font-mono text-slate-100 line-clamp-2 select-none border border-slate-800 shadow-md leading-relaxed selection:bg-slate-700">
+                        <div className="p-4 bg-accent text-white rounded-md text-xs font-mono text-slate-100 line-clamp-2 select-none border border-slate-800 shadow-md leading-snug selection:bg-slate-700">
                           {item.optimizedPrompt}
                         </div>
                       </div>
@@ -1901,12 +1893,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 ))}
 
                 {historyList.length === 0 && (
-                  <div className="border border-dashed border-whisper rounded-[2.5rem] p-12 text-center text-steel bg-surface">
+                  <div className="border border-dashed border-whisper rounded-xl p-12 text-center text-steel bg-surface">
                     <ClockCounterClockwise className="w-12 h-12 text-muted mx-auto mb-4" />
                     <h4 className="text-sm font-bold text-ink tracking-tight">
                       No prompt history found
                     </h4>
-                    <p className="text-xs text-steel max-w-sm mx-auto mt-1 leading-relaxed">
+                    <p className="text-xs text-steel max-w-sm mx-auto mt-1 leading-snug">
                       Once you optimize prompts, they will be saved securely in
                       this view so you do not lose any modifications.
                     </p>
@@ -1926,7 +1918,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="max-w-3xl mx-auto space-y-6"
             >
-              <Card className="border border-whisper bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem]">
+              <Card className="border border-whisper bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl">
                 <CardHeader className="p-8 border-b border-whisper pb-6">
                   <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
                     About OpenPrompter
@@ -1935,7 +1927,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     Zero Limits. Zero Telemetry. 100% Free.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-8 py-6 space-y-8 text-sm text-steel leading-relaxed">
+                <CardContent className="px-8 py-6 space-y-8 text-sm text-steel leading-snug">
                   <p className="text-base text-ink font-medium tracking-tight">
                     OpenPrompter was constructed specifically to circumvent
                     artificial limitations and paywalls present in consumer
@@ -1943,12 +1935,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     architectural transparency.
                   </p>
 
-                  <div className="p-6 bg-accent text-white border border-slate-800 rounded-[1.5rem] space-y-3 shadow-lg">
+                  <div className="p-6 bg-accent text-white border border-slate-800 rounded-lg space-y-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
                     <h4 className="text-xs font-bold text-white flex items-center gap-2 uppercase font-mono tracking-widest">
                       <Lock className="w-4 h-4 text-emerald-400" /> Bring Your
                       Own Key Architecture
                     </h4>
-                    <p className="text-xs text-muted leading-relaxed font-mono">
+                    <p className="text-xs text-muted leading-snug font-mono">
                       By using your own API key from any supported provider, the
                       optimization pipeline operates client-to-server with
                       standard API access. Keys never hit an intermediary
@@ -1986,7 +1978,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   <h3 className="text-lg font-bold font-display border-b border-whisper pb-3 mt-4 pt-2 text-ink tracking-tight">
                     LLM Structuring Framework
                   </h3>
-                  <p className="text-xs text-steel leading-relaxed">
+                  <p className="text-xs text-steel leading-snug">
                     Under the hood, OpenPrompter directs your configured LLM using strict
                     declarative JSON logic rules defining precise role
                     configurations, specific constraint mapping, structured
@@ -2057,491 +2049,41 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       </footer>
 
       {/* DIALOG 1: BRING YOUR OWN KEY SETTINGS */}
-      <Dialog open={showKeyDialog} onOpenChange={setShowApiKeyDialog}>
-        <DialogContent className="bg-surface border-none text-ink sm:max-w-md shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
-          <div className="p-5 sm:p-8">
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  <Key className="w-4 h-4 text-ink" />
-                </div>
-                BYOK Engine & Keys
-              </DialogTitle>
-              <DialogDescription className="text-xs text-steel leading-relaxed mt-2 p-4 bg-canvas rounded-[1.5rem] border border-whisper">
-                Supply your own API connection. All keys and config properties
-                are saved safely inside your local browser cache (localStorage)
-                and never hit intermediate middleman servers.
-              </DialogDescription>
-            </DialogHeader>
+      <ByokDialog
+        open={showKeyDialog}
+        onOpenChange={setShowApiKeyDialog}
+        apiKeyInputVal={apiKeyInputVal}
+        setApiKeyInputVal={setApiKeyInputVal}
+        endpointInputVal={endpointInputVal}
+        setEndpointInputVal={setEndpointInputVal}
+        providerInputVal={providerInputVal}
+        setProviderInputVal={setProviderInputVal}
+        customModelInputVal={customModelInputVal}
+        setCustomModelInputVal={setCustomModelInputVal}
+        setCustomModel={setCustomModel}
+        availableModels={availableModels}
+        />
 
-            <div className="space-y-5">
-              {/* PROVIDER SELECTOR */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                  API Provider
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: "openai", label: "OpenAI", endpoint: "https://api.openai.com/v1" },
-                    { id: "deepseek", label: "DeepSeek", endpoint: "https://api.deepseek.com/v1" },
-                    { id: "anthropic", label: "Anthropic", endpoint: "https://api.anthropic.com/v1" },
-                    { id: "custom", label: "Custom", endpoint: "" },
-                  ].map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        setProviderInputVal(p.id);
-                        if (p.endpoint) setEndpointInputVal(p.endpoint);
-                      }}
-
-                      className={`text-xs font-semibold py-2.5 px-3 rounded-xl border transition-all ${
-                        providerInputVal === p.id
-                          ? "bg-accent text-white border-accent shadow-sm"
-                          : "bg-surface text-steel border-whisper hover:border-slate-300"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* API Key */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
-                    API Key
-                  </label>
-                  <a
-                      href={providerInputVal === "openai" ? "https://platform.openai.com/api-keys" : providerInputVal === "deepseek" ? "https://platform.deepseek.com/api_keys" : providerInputVal === "anthropic" ? "https://console.anthropic.com/settings/keys" : "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] text-accent hover:text-accent-hover flex items-center gap-1 font-semibold"
-                  >
-                      Get {providerInputVal === "openai" ? "OpenAI" : providerInputVal === "deepseek" ? "DeepSeek" : providerInputVal === "anthropic" ? "Anthropic" : "API"} Key <ArrowSquareOut className="w-2.5 h-2.5" />
-                  </a>
-                </div>
-                <Input
-                  type="password"
-                  placeholder="sk-..."
-                  value={apiKeyInputVal}
-                  onChange={(e) => setApiKeyInputVal(e.target.value)}
-                  className="bg-surface border-whisper font-mono text-sm leading-none h-12 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900"
-                />
-              </div>
-
-              {/* Custom Endpoint URL */}
-              <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                    Custom Endpoint (Base URL)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="E.g., https://api.deepseek.com/v1"
-                    value={endpointInputVal}
-                    onChange={(e) => setEndpointInputVal(e.target.value)}
-                    className="bg-surface border-whisper font-mono text-xs h-11 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900"
-                  />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEndpointInputVal("https://api.deepseek.com/v1")
-                      }
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      DeepSeek Preset
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEndpointInputVal("https://api.openai.com/v1")
-                      }
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      OpenAI Preset
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEndpointInputVal("http://localhost:1234/v1")
-                      }
-                      className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-lg text-steel hover:bg-slate-100 transition-colors"
-                    >
-                      Local Host
-                    </button>
-                  </div>
-                </div>
-
-              {/* Custom Model Name */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
-                    Model Override
-                  </label>
-                  {availableModels.length > 0 && (
-                    <span className="text-[10px] text-muted font-mono">
-                      {availableModels.length} models
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      type="text"
-                      placeholder="Search or type model ID..."
-                      value={customModelInputVal}
-                      onChange={(e) => setCustomModelInputVal(e.target.value)}
-                      className="bg-surface border-whisper font-mono text-xs h-11 rounded-[1rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 pl-9"
-                    />
-                    <Cpu className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Fetched model list — search-filtered, compact scroll */}
-                {availableModels.length > 0 && (
-                  <div className="border border-whisper rounded-[1rem] bg-canvas overflow-hidden">
-                    <div className="max-h-36 overflow-y-auto overscroll-contain divide-y divide-whisper/50">
-                      {availableModels
-                        .filter((m) =>
-                          !customModelInputVal ||
-                          m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
-                          m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
-                        )
-                        .map((m) => (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => {
-                              setCustomModelInputVal(m.id);
-                              setCustomModel(m.id);
-                            }}
-                            className={`w-full text-left flex items-center justify-between px-3 py-2 text-[11px] font-mono transition-colors hover:bg-surface ${
-                              customModelInputVal === m.id
-                                ? "bg-accent/5 text-accent font-semibold"
-                                : "text-steel"
-                            }`}
-                          >
-                            <span className="truncate mr-2">{m.name}</span>
-                            {customModelInputVal === m.id && (
-                              <Check className="w-3 h-3 shrink-0 text-accent" />
-                            )}
-                          </button>
-                        ))}
-                      {availableModels.filter((m) =>
-                        !customModelInputVal ||
-                        m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
-                        m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
-                      ).length === 0 && (
-                        <div className="px-3 py-4 text-[11px] text-muted text-center">
-                          No models match your filter.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-[11px] p-4 rounded-[1rem] bg-canvas border border-whisper text-steel leading-relaxed font-medium">
-                <span className="font-bold flex items-center gap-1.5 uppercase tracking-widest text-[10px] mb-1">
-                  <Info className="w-3 h-3" /> Direct Endpoint Proxy
-                </span>
-                Keys and preferences are sent securely to our stateless backend
-                proxy to optimize prompt structures without client-side
-                exposure. Evaluates using standard REST flows.
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 bg-canvas p-6 border-t border-whisper sm:justify-end flex-col sm:flex-row shadow-inner">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowApiKeyDialog(false)}
-              className="rounded-full font-semibold text-steel"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full text-error border-rose-200 hover:bg-rose-50 font-semibold"
-              onClick={() => {
-                handleSaveApiKey("", "", "openai", "");
-                setApiKeyInputVal("");
-                setEndpointInputVal("");
-                setProviderInputVal("openai");
-                setCustomModelInputVal("");
-              }}
-            >
-              Clear Config
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-full bg-accent text-white hover:bg-accent-hover text-white font-semibold shadow-md px-6"
-              onClick={() =>
-                handleSaveApiKey(
-                  apiKeyInputVal,
-                  endpointInputVal,
-                  providerInputVal,
-                  customModelInputVal,
-                )
-              }
-            >
-              Save Configuration
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* DIALOG 2: DETAIL INSPECTION MODAL FOR LOGS */}
-      <Dialog
-        open={!!selectedHistoryItem}
-        onOpenChange={(open) => {
+        {/* DIALOG 2: DETAIL INSPECTION MODAL FOR LOGS */}
+      <HistoryDetailDialog
+        selectedHistoryItem={selectedHistoryItem}
+        onOpenChange={(open: any) => {
           if (!open) setSelectedHistoryItem(null);
         }}
-      >
-        {selectedHistoryItem && (
-          <DialogContent className="bg-surface border-none text-ink sm:max-w-4xl max-h-[85vh] overflow-y-auto rounded-[2.5rem] p-0 shadow-2xl">
-            <div className="p-5 sm:p-8">
-              <DialogHeader>
-                <div className="flex justify-between items-center flex-wrap gap-2 text-xs mb-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-slate-100 text-steel border-none px-3 py-1 uppercase tracking-widest font-mono font-semibold"
-                  >
-                    {selectedHistoryItem.promptType}
-                  </Badge>
-                  <span className="text-muted font-mono tracking-widest uppercase font-semibold">
-                    Engineered {selectedHistoryItem.createdAt}
-                  </span>
+        handleDeleteHistory={handleDeleteHistory}
+        />
 
-                  <div className="flex items-center gap-1.5 bg-canvas border border-whisper px-3 py-1.5 rounded-lg shadow-inner">
-                    <span className="text-[10px] text-steel uppercase font-mono font-bold tracking-widest">
-                      Confidence Score
-                    </span>
-                    <span className="text-sm font-black font-mono text-ink">
-                      {selectedHistoryItem.confidenceScore}%
-                    </span>
-                  </div>
-                </div>
+        {/* DIALOG 3: SHARE IMPORT */}
+        <ImportShareDialog
+          importData={importData}
+          onOpenChange={setShowImportDialog}
+          handleCancelImport={handleCancelImport}
+          handleConfirmImport={handleConfirmImport}
+        />
 
-                <DialogTitle className="text-2xl font-bold font-display mt-4 tracking-tight text-ink">
-                  Prompt Audit Details
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6 my-6">
-                {/* Splitted view comparison */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* original */}
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest font-mono block">
-                      Original Draft
-                    </span>
-                    <div className="p-5 rounded-[1.5rem] bg-canvas border border-whisper text-xs font-mono leading-relaxed max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all text-steel shadow-inner">
-                      {selectedHistoryItem.originalPrompt}
-                    </div>
-                  </div>
-
-                  {/* optimized */}
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-ink uppercase tracking-widest font-mono block">
-                      Optimized Framework
-                    </span>
-                    <div className="p-5 rounded-[1.5rem] bg-accent text-white border border-slate-800 text-xs font-mono leading-relaxed max-h-[220px] overflow-y-auto whitespace-pre-wrap text-slate-100 select-all selection:bg-slate-700 shadow-xl">
-                      {selectedHistoryItem.optimizedPrompt}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Improvements details */}
-                <div className="space-y-3 pt-2">
-                  <span className="text-[10px] font-bold text-steel uppercase tracking-widest font-mono">
-                    Improvements Applied
-                  </span>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedHistoryItem.improvements.map((imp, i) => (
-                      <li
-                        key={i}
-                        className="text-xs p-4 rounded-[1rem] bg-surface border border-whisper text-steel leading-relaxed flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
-                      >
-                        <span className="text-muted shrink-0 font-bold font-mono">
-                          {(i + 1).toString().padStart(2, "0")}.
-                        </span>
-                        <span>{imp}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Key Changes check */}
-                {selectedHistoryItem.keyChanges &&
-                  selectedHistoryItem.keyChanges.length > 0 && (
-                    <div className="space-y-3 pt-2">
-                      <span className="text-[10px] font-bold text-steel uppercase tracking-widest font-mono">
-                        Changes Confirmation
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedHistoryItem.keyChanges.map((ch, i) => (
-                          <Badge
-                            key={i}
-                            variant="outline"
-                            className="bg-surface text-[11px] text-steel border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] px-3 py-1 font-mono"
-                          >
-                            <Check className="w-3 h-3 mr-1 text-emerald-500" />{" "}
-                            {ch}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Advanced Parameters Metadata */}
-                {(selectedHistoryItem.personaName ||
-                  selectedHistoryItem.customInstructions) && (
-                  <div className="text-[10px] font-mono border-t border-dashed border-whisper pt-4 text-steel flex flex-wrap gap-5 font-semibold tracking-widest uppercase">
-                    {selectedHistoryItem.personaName && (
-                      <span className="flex items-center gap-1.5">
-                        <UserCheck className="w-3 h-3" /> Adopted Persona:{" "}
-                        {selectedHistoryItem.personaName}
-                      </span>
-                    )}
-                    {selectedHistoryItem.customInstructions && (
-                      <span className="flex items-center gap-1.5">
-                        <Sliders className="w-3 h-3" /> Custom Constraints
-                        Applied
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2 border-t border-whisper bg-canvas p-6 flex flex-col sm:flex-row items-center justify-between shadow-inner">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs text-error hover:text-error border-rose-200 hover:bg-rose-50 font-semibold rounded-full"
-                onClick={() => {
-                  handleDeleteHistory(selectedHistoryItem.id);
-                  setSelectedHistoryItem(null);
-                }}
-              >
-                Delete from Logs
-              </Button>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedHistoryItem(null)}
-                  className="rounded-full font-semibold text-steel"
-                >
-                  Close
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-accent text-white hover:bg-accent-hover text-xs text-white shadow-md rounded-full px-6 font-semibold"
-                  onClick={() =>
-                    handleCopyToClipboard(
-                      selectedHistoryItem.optimizedPrompt,
-                      "optimized",
-                    )
-                  }
-                >
-                  <Copy className="w-3 h-3 mr-1.5" />
-                  Copy Optimized Prompt
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* DIALOG 3: SHARE IMPORT */}
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        {importData && (
-          <DialogContent className="bg-surface border-none text-ink sm:max-w-md rounded-[2.5rem] p-0 shadow-2xl">
-            <div className="p-6 sm:p-8">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
-                  <ShareNetwork className="w-5 h-5" />
-                  Import Shared {importData.type === "template" ? "Template" : "Persona"}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-steel mt-3 p-4 bg-canvas rounded-[1.5rem] border border-whisper leading-relaxed">
-                  Someone shared a {importData.type} with you. Review the details below and confirm to add it to your workspace.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="mt-5 space-y-4">
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                    Name
-                  </p>
-                  <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-sm font-medium text-ink">
-                    {importData.data.name}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                    Description
-                  </p>
-                  <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs text-steel leading-relaxed">
-                    {importData.data.description || "No description"}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                    {importData.type === "template" ? "Prompt Text" : "System Prompt"}
-                  </p>
-                  <div className="p-3 bg-canvas border border-whisper rounded-[1rem] text-xs font-mono text-steel leading-relaxed max-h-[200px] overflow-y-auto whitespace-pre-wrap">
-                    {"promptText" in importData.data
-                      ? (importData.data as TemplateShareData).promptText
-                      : (importData.data as PersonaShareData).systemPrompt}
-                  </div>
-                </div>
-
-                {importData.type === "template" && "category" in importData.data && (
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
-                      Category
-                    </p>
-                    <div className="p-3 bg-surface border border-whisper rounded-[1rem] text-xs font-medium text-steel">
-                      {(importData.data as TemplateShareData).category}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2 bg-canvas p-6 border-t border-whisper shadow-inner">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancelImport}
-                className="rounded-full font-semibold text-steel"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="bg-accent text-white hover:bg-accent-hover text-xs text-white shadow-md rounded-full px-6 font-semibold"
-                onClick={handleConfirmImport}
-              >
-                Import {importData.type === "template" ? "Template" : "Persona"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* SHARED LINK FAB */}
+        {/* SHARED LINK FAB */}
       {sharedLinkCopied && (
-        <div className="fixed bottom-6 right-6 z-50 bg-accent text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 right-6 z-50 bg-accent text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-bottom-4 duration-300">
           <Check className="w-3.5 h-3.5 mr-1.5 inline" />
           Share link copied!
         </div>
