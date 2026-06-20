@@ -10,13 +10,15 @@ import {
 } from "@/components/ui/dialog";
 import type { TemplateShareData, PersonaShareData } from "@/src/types";
 
-interface ImportData {
-  type: "template";
-  data: TemplateShareData;
-} | {
-  type: "persona";
-  data: PersonaShareData;
-}
+type ImportData =
+  | {
+      type: "template";
+      data: TemplateShareData;
+    }
+  | {
+      type: "persona";
+      data: PersonaShareData;
+    };
 
 interface Props {
   importData: ImportData | null;

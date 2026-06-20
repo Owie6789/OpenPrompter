@@ -1,8 +1,9 @@
 import express from "express";
-import path from "path";
+import path from "node:path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { existsSync, randomBytes } from "fs";
+import { existsSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -17,10 +18,19 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 
 // Security middleware stack
 app.use(helmet());
+const configuredOrigins = process.env.APP_URL
+  ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
+  : [];
+
 app.use(cors({
-  origin: process.env.APP_URL
-    ? process.env.APP_URL.split(",").map((s) => s.trim())
-    : true,
+  origin:
+    process.env.NODE_ENV === "production"
+      ? configuredOrigins.length > 0
+        ? configuredOrigins
+        : (() => { throw new Error("APP_URL must be configured in production for CORS."); })()
+      : configuredOrigins.length > 0
+        ? configuredOrigins
+        : true,
 }));
 app.use(express.json({ limit: "50kb" }));
 
@@ -68,6 +78,19 @@ const ALLOWED_ENDPOINTS = [
   "api.anthropic.com",
 ];
 
+const PRIVATE_IP_PATTERNS = [
+  /^127\./,
+  /^10\./,
+  /^172\.(?:1[6-9]|2\d|3[01])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^0\./,
+  /^::1$/,
+  /^fe80:/i,
+  /^fc00:/i,
+  /^fd00:/i,
+];
+
 const PRIVATE_HOSTNAME_PATTERNS = [
   /^localhost$/i,
   /^127\./,
@@ -82,13 +105,25 @@ const PRIVATE_HOSTNAME_PATTERNS = [
 ];
 
 function assertSafeEndpoint(url: string, prov: string): void {
-  if (!url) return; // Will use default endpoint
+  if (!url) return;
   const parsed = new URL(url);
   if (prov === "custom") {
-    const isLocalhost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-    if (!isLocalhost && parsed.protocol !== "https:") {
+    const isLocalhost =
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1" ||
+      parsed.hostname === "::1";
+
+    if (isLocalhost) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("Localhost endpoints are not allowed in production.");
+      }
+      return;
+    }
+
+    if (parsed.protocol !== "https:") {
       throw new Error("Only HTTPS endpoints are allowed.");
     }
+
     // Block private/link-local hostnames
     if (PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(parsed.hostname))) {
       throw new Error("Custom endpoints cannot point to private or internal addresses.");
@@ -102,7 +137,7 @@ function assertSafeEndpoint(url: string, prov: string): void {
 }
 
 function isValidModel(model: string): boolean {
-  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || /^\w+(?:\/[\w._:-]+)?$/.test(model);
+  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || /^\w+(?:\/[\w.:-]+)?$/.test(model);
 }
 
 function sanitizeControlSequences(text: string): string {
@@ -274,7 +309,8 @@ function stripJsonFence(text: string): string {
 }
 
 function sanitizeForLog(s: string, maxLen = 500): string {
-  return s.replace(/[\r\n\t\u001B]/g, " ").slice(0, maxLen);
+  const ESC = String.fromCharCode(27);
+  return s.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
 
 // API: Optimizer core

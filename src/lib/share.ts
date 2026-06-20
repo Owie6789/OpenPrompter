@@ -107,17 +107,19 @@ function sanitizeData(type: SharePayloadType, raw: Record<string, unknown>): Sha
   if (!trimmed.name) return null;
 
   if (type === "template") {
-    return {
+    const result: TemplateShareData = {
       ...trimmed,
       category: (raw.category as string).trim(),
       promptText: (raw.promptText as string).trim(),
       iconName: (raw.iconName as string).trim(),
-    } as TemplateShareData;
+    };
+    return result;
   }
-  return {
+  const result: PersonaShareData = {
     ...trimmed,
     systemPrompt: (raw.systemPrompt as string).trim(),
-  } as PersonaShareData;
+  };
+  return result;
 }
 
 export function decodeSharePayload(encoded: string): ShareValidationResult {

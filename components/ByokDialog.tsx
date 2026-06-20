@@ -259,9 +259,11 @@ export default function ByokDialog({
                 <Info className="w-3 h-3" />
                 <span>Direct Endpoint Proxy</span>
               </span>
-              Keys and preferences are sent securely to our stateless backend
-              proxy to optimize prompt structures without client-side
-              exposure. Evaluates using standard REST flows.
+              <p className="text-[11px] p-4 rounded-md bg-canvas border border-whisper text-steel leading-snug font-medium">
+                Keys and preferences are sent securely to our stateless backend
+                proxy to optimize prompt structures without client-side
+                exposure. Evaluates using standard REST flows.
+              </p>
             </div>
           </div>
         </div>

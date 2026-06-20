@@ -37,7 +37,6 @@ import {
   CustomPersona,
   PromptTemplate,
   OptimizationResult,
-  ShareData,
   TemplateShareData,
   PersonaShareData,
 } from "./types";
@@ -79,6 +78,11 @@ import ImportShareDialog from "@/components/ImportShareDialog";
 function safeJsonParse<T>(json: string | null, fallback: T): T {
   if (!json) return fallback;
   try { return JSON.parse(json) as T; }
+  catch { return fallback; }
+}
+
+function safeLocalStorageGet(key: string, fallback = ""): string {
+  try { return localStorage.getItem(key) ?? fallback; }
   catch { return fallback; }
 }
 
@@ -130,9 +134,7 @@ export default function App() {
     catch { return "gpt-4o"; }
   });
   const [selectedPersona, setSelectedPersona] = useState<string>("p1"); // Ref to CustomPersona.id
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem("openprompter_byok_key") || "";
-  });
+  const [apiKey, setApiKey] = useState(() => safeLocalStorageGet("openprompter_byok_key"));
 
   // Local storage lists
   const [historyList, setHistoryList] = useState<PromptHistoryItem[]>(() => {
@@ -168,17 +170,11 @@ export default function App() {
   const [newPersonaPrompt, setNewPersonaPrompt] = useState("");
 
   // Dialog & View State helpers
-  const [apiEndpoint, setApiEndpoint] = useState(
-    () => localStorage.getItem("openprompter_endpoint") || "",
-  );
-  
-  const [customModel, setCustomModel] = useState(
-    () => localStorage.getItem("openprompter_custom_model") || "",
-  );
+  const [apiEndpoint, setApiEndpoint] = useState(() => safeLocalStorageGet("openprompter_endpoint"));
 
-  const [activeProvider, setActiveProvider] = useState(
-    () => localStorage.getItem("openprompter_provider") || "openai",
-  );
+  const [customModel, setCustomModel] = useState(() => safeLocalStorageGet("openprompter_custom_model"));
+
+  const [activeProvider, setActiveProvider] = useState(() => safeLocalStorageGet("openprompter_provider", "openai"));
 
   const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
@@ -302,41 +298,66 @@ export default function App() {
       modelToSave !== undefined ? modelToSave : customModelInputVal
     ).trim();
 
+    // Write storage first, then update state
+    try {
+      localStorage.setItem("openprompter_byok_key", cleanedKey);
+      localStorage.setItem("openprompter_endpoint", cleanedEndpoint);
+      localStorage.setItem("openprompter_custom_model", cleanedCustomModel);
+      localStorage.setItem("openprompter_provider", cleanedProvider);
+    } catch {
+      toast.error("Could not save BYOK configuration. Storage may be blocked or full.");
+      return;
+    }
+
     setApiKey(cleanedKey);
     setApiEndpoint(cleanedEndpoint);
     setCustomModel(cleanedCustomModel);
     setActiveProvider(cleanedProvider);
 
-    localStorage.setItem("openprompter_byok_key", cleanedKey);
-    localStorage.setItem("openprompter_endpoint", cleanedEndpoint);
-    localStorage.setItem("openprompter_custom_model", cleanedCustomModel);
-    localStorage.setItem("openprompter_provider", cleanedProvider);
-
     toast.success("BYOK Engine configuration saved successfully.");
     setShowApiKeyDialog(false);
-    fetchAvailableModels();
+    fetchAvailableModels({
+      apiKey: cleanedKey,
+      apiEndpoint: cleanedEndpoint,
+      provider: cleanedProvider,
+    });
   };
 
+  const modelFetchSeq = React.useRef(0);
+
   // Fetch available models from the configured provider
-  const fetchAvailableModels = async () => {
-    if (!apiKey) return;
+  const fetchAvailableModels = async (
+    override?: { apiKey?: string; apiEndpoint?: string; provider?: string }
+  ) => {
+    const key = override?.apiKey ?? apiKey;
+    const endpoint = override?.apiEndpoint ?? apiEndpoint;
+    const provider = override?.provider ?? activeProvider;
+
+    if (!key) return;
+    const seq = ++modelFetchSeq.current;
     setModelsLoading(true);
     try {
       const resp = await fetch("/api/models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          apiKey,
-          apiEndpoint,
-          provider: activeProvider,
+          apiKey: key,
+          apiEndpoint: endpoint,
+          provider,
         }),
       });
       const data = await resp.json();
-      if (data.models) setAvailableModels(data.models);
+      if (seq === modelFetchSeq.current && data.models) {
+        setAvailableModels(data.models);
+      }
     } catch {
-      toast.error("Failed to fetch models from provider.");
+      if (seq === modelFetchSeq.current) {
+        toast.error("Failed to fetch models from provider.");
+      }
     } finally {
-      setModelsLoading(false);
+      if (seq === modelFetchSeq.current) {
+        setModelsLoading(false);
+      }
     }
   };
 
@@ -482,11 +503,13 @@ export default function App() {
   };
 
   // Copy utility supporting inline transition indicator
-  const handleCopyToClipboard = (
+  const handleCopyToClipboard = async (
     text: string,
     type: "original" | "optimized" | "markdown" | "json",
   ) => {
-    navigator.clipboard.writeText(text).catch(() => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
       // Fallback: try execCommand
       const ta = document.createElement("textarea");
       ta.value = text;
@@ -495,16 +518,18 @@ export default function App() {
       document.body.appendChild(ta);
       try {
         ta.select();
-        document.execCommand("copy");
+        const copied = document.execCommand("copy");
+        if (!copied) throw new Error("Fallback copy failed");
+      } catch {
+        toast.error("Could not copy to clipboard.");
+        return;
       } finally {
         document.body.removeChild(ta);
       }
-    });
+    }
     setCopiedState(type);
     toast.success("Copied to clipboard!");
-    setTimeout(() => {
-      setCopiedState(null);
-    }, 2000);
+    setTimeout(() => setCopiedState(null), 2000);
   };
 
   // Clear workspace input
@@ -539,7 +564,7 @@ export default function App() {
         toast.error("Clipboard write failed — please copy the URL manually.");
       }
     } else {
-      toast.error((result as { success: false; error: string }).error);
+      toast.error(result.error);
     }
   };
 
@@ -565,7 +590,7 @@ export default function App() {
         toast.error("Clipboard write failed — please copy the URL manually.");
       }
     } else {
-      toast.error((result as { success: false; error: string }).error);
+      toast.error(result.error);
     }
   };
 
@@ -573,7 +598,7 @@ export default function App() {
   const handleConfirmImport = () => {
     if (!importData) return;
     if (importData.type === "template") {
-      const tpl = importData.data as TemplateShareData;
+      const tpl = importData.data;
       const newTemplate: PromptTemplate = {
         name: tpl.name,
         category: tpl.category,
@@ -586,7 +611,7 @@ export default function App() {
       setActiveTab("optimizer");
       toast.success(`Imported template: "${newTemplate.name}"`);
     } else {
-      const pers = importData.data as PersonaShareData;
+      const pers = importData.data;
       const newPersona: CustomPersona = {
         id: generateId("pers"),
         name: pers.name,
@@ -617,7 +642,7 @@ export default function App() {
         data: result.payload.data,
       });
     } else {
-      toast.error((result as { valid: false; error: string }).error);
+      toast.error(result.error);
     }
     // Clean URL without reload — use URLSearchParams for correctness
     const cleanParams = new URLSearchParams(globalThis.location.search);
@@ -1267,7 +1292,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               {optimizedResult.improvements?.map(
                                 (imp: string, i: number) => (
                                   <div
-                                    key={i}
+                                    key={`${imp.slice(0, 60)}-${i}`}
                                     className="text-sm p-4 rounded-lg bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
                                   >
                                     <span className="text-muted shrink-0 font-bold font-mono text-xs mt-0.5">
@@ -1291,7 +1316,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   {optimizedResult.key_changes.map(
                                     (ch: string, i: number) => (
                                       <Badge
-                                        key={i}
+                                        key={`${ch.slice(0, 60)}-${i}`}
                                         variant="outline"
                                         className="bg-surface border-whisper text-[11px] px-3 py-1 font-mono text-steel shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
                                       >
@@ -1453,7 +1478,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 className="grid grid-cols-1 md:grid-cols-2 gap-5"
               >
                 {filteredTemplates.map((tpl, i) => (
-                  <motion.div key={i} variants={staggerItem}>
+                  <motion.div key={`${tpl.category}-${tpl.name}`} variants={staggerItem}>
                     <Card
                       className="border-whisper bg-surface hover:shadow-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:border-whisper flex flex-col justify-between group rounded-lg ring-1 ring-inset ring-whisper/20"
                     >

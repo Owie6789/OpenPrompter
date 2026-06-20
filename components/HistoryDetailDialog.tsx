@@ -99,7 +99,7 @@ export default function HistoryDetailDialog({
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {selectedHistoryItem.improvements.map((imp, i) => (
                   <li
-                    key={imp.slice(0, 40)}
+                    key={`${imp.slice(0, 80)}-${i}`}
                     className="text-xs p-4 rounded-md bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
                   >
                     <span className="text-muted shrink-0 font-bold font-mono">
@@ -119,9 +119,9 @@ export default function HistoryDetailDialog({
                     Changes Confirmation
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {selectedHistoryItem.keyChanges.map((ch) => (
+                    {selectedHistoryItem.keyChanges.map((ch, i) => (
                       <Badge
-                        key={ch.slice(0, 40)}
+                        key={`${ch.slice(0, 80)}-${i}`}
                         variant="outline"
                         className="bg-surface text-[11px] text-steel border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] px-3 py-1 font-mono"
                       >
