@@ -974,6 +974,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     );
                                   }
                                 }}
+                                options={allPersonas.map((p) => ({ value: p.id, label: p.name }))}
                               >
                                 <SelectTrigger
                                   icon={undefined}
@@ -1031,6 +1032,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   setSelectedModel(val);
                                   setCustomModelInputVal(val);
                                 }}
+                                options={availableModels.length > 0
+                                  ? availableModels.map((m) => ({ value: m.id, label: m.name }))
+                                  : [{ value: "gpt-4o", label: "gpt-4o (default)" }]}
                               >
                                 <SelectTrigger
                                   icon={undefined}

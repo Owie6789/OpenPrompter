@@ -11,15 +11,99 @@
   --font-display: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
 
-  --color-canvas: #f5f5f4;
+  /* shadcn/ui standard color system - Light (Onyx-Silver inspired) */
+  --color-background: #fafafa;
+  --color-foreground: #1a1a1a;
+  --color-muted: #a1a1a1;
+  --color-muted-foreground: #737373;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-ring: #3b82f6;
+  --color-primary: #1a1a1a;
+  --color-primary-foreground: #fafafa;
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #1a1a1a;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fafafa;
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #1a1a1a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+
+  /* Custom semantic colors */
+  --color-canvas: #f5f5f5;
   --color-surface: #ffffff;
-  --color-ink: #0c0a09;
-  --color-steel: #57534e;
-  --color-muted: #a8a29e;
-  --color-whisper: rgba(214, 211, 209, 0.5);
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-error: #be123c;
+  --color-ink: #1a1a1a;
+  --color-steel: #737373;
+  --color-whisper: rgba(0, 0, 0, 0.06);
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-error: #dc2626;
+}
+
+/* Dark mode - Onyx Silver */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0d0d0d;
+    --color-foreground: #e5e5e5;
+    --color-muted: #525252;
+    --color-muted-foreground: #a3a3a3;
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-ring: #60a5fa;
+    --color-primary: #e5e5e5;
+    --color-primary-foreground: #0d0d0d;
+    --color-secondary: #1a1a1a;
+    --color-secondary-foreground: #e5e5e5;
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #0d0d0d;
+    --color-accent: #1a1a1a;
+    --color-accent-foreground: #e5e5e5;
+    --color-popover: #0d0d0d;
+    --color-popover-foreground: #e5e5e5;
+    --color-card: #141414;
+    --color-card-foreground: #e5e5e5;
+
+    --color-canvas: #0d0d0d;
+    --color-surface: #141414;
+    --color-ink: #e5e5e5;
+    --color-steel: #a3a3a3;
+    --color-whisper: rgba(255, 255, 255, 0.06);
+    --color-accent: #60a5fa;
+    --color-accent-hover: #93c5fd;
+    --color-error: #ef4444;
+  }
+}
+
+/* Explicit .dark class support for manual toggle */
+.dark {
+  --color-background: #0d0d0d;
+  --color-foreground: #e5e5e5;
+  --color-muted: #525252;
+  --color-muted-foreground: #a3a3a3;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-ring: #60a5fa;
+  --color-primary: #e5e5e5;
+  --color-primary-foreground: #0d0d0d;
+  --color-secondary: #1a1a1a;
+  --color-secondary-foreground: #e5e5e5;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #0d0d0d;
+  --color-accent: #1a1a1a;
+  --color-accent-foreground: #e5e5e5;
+  --color-popover: #0d0d0d;
+  --color-popover-foreground: #e5e5e5;
+  --color-card: #141414;
+  --color-card-foreground: #e5e5e5;
+
+  --color-canvas: #0d0d0d;
+  --color-surface: #141414;
+  --color-ink: #e5e5e5;
+  --color-steel: #a3a3a3;
+  --color-whisper: rgba(255, 255, 255, 0.06);
+  --color-accent: #60a5fa;
+  --color-accent-hover: #93c5fd;
+  --color-error: #ef4444;
 }
 
 ::-webkit-scrollbar {

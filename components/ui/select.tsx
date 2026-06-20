@@ -58,6 +58,11 @@ const SelectContentContext =
 // Select (root)
 // ---------------------------------------------------------------------------
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 interface SelectProps {
   children: ReactNode;
   value?: string;
@@ -67,6 +72,7 @@ interface SelectProps {
   name?: string;
   required?: boolean;
   id?: string;
+  options?: SelectOption[];
 }
 
 function Select({
@@ -78,12 +84,18 @@ function Select({
   name,
   required,
   id,
+  options = [],
 }: SelectProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
   const [open, setOpen] = useState(false);
   const currentValue = value !== undefined ? value : internalValue;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const labelMap = useRef(new Map<string, string>());
+
+  // Pre-populate labelMap from options for immediate label availability
+  useEffect(() => {
+    options.forEach((opt) => labelMap.current.set(opt.value, opt.label));
+  }, [options]);
 
   const onChange = useCallback(
     (v: string) => {
