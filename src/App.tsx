@@ -57,7 +57,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -509,27 +508,12 @@ export default function App() {
   ) => {
     try {
       await navigator.clipboard.writeText(text);
+      setCopiedState(type);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopiedState(null), 2000);
     } catch {
-      // Fallback: try execCommand
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      try {
-        ta.select();
-        const copied = document.execCommand("copy");
-        if (!copied) throw new Error("Fallback copy failed");
-      } catch {
-        toast.error("Could not copy to clipboard.");
-        return;
-      } finally {
-        document.body.removeChild(ta);
-      }
+      toast.error("Clipboard access denied. Please copy manually.");
     }
-    setCopiedState(type);
-    toast.success("Copied to clipboard!");
-    setTimeout(() => setCopiedState(null), 2000);
   };
 
   // Clear workspace input

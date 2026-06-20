@@ -22,16 +22,15 @@ const configuredOrigins = process.env.APP_URL
   ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
 
-app.use(cors({
-  origin:
-    process.env.NODE_ENV === "production"
-      ? configuredOrigins.length > 0
-        ? configuredOrigins
-        : (() => { throw new Error("APP_URL must be configured in production for CORS."); })()
-      : configuredOrigins.length > 0
-        ? configuredOrigins
-        : true,
-}));
+const corsOrigin = process.env.NODE_ENV === "production"
+  ? configuredOrigins.length > 0
+    ? configuredOrigins
+    : (() => { throw new Error("APP_URL must be configured in production for CORS."); })()
+  : configuredOrigins.length > 0
+    ? configuredOrigins
+    : true;
+
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "50kb" }));
 
 // Rate limiting
@@ -309,7 +308,7 @@ function stripJsonFence(text: string): string {
 }
 
 function sanitizeForLog(s: string, maxLen = 500): string {
-  const ESC = String.fromCharCode(27);
+  const ESC = String.fromCodePoint(27);
   return s.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
 
