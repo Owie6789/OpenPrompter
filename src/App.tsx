@@ -105,7 +105,7 @@ export default function App() {
         delayChildren: 0.08,
       },
     },
-  } satisfies React.ComponentProps<typeof motion.div>["variants"];
+  } as const;
 
   const staggerItem = {
     hidden: { opacity: 0, y: 12 } as const,
@@ -114,7 +114,7 @@ export default function App() {
       y: 0,
       transition: { type: "spring" as const, stiffness: 300, damping: 30 },
     },
-  } satisfies React.ComponentProps<typeof motion.div>["variants"];
+  } as const;
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<
