@@ -50,7 +50,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h2>
           <p className="text-sm text-steel max-w-md leading-relaxed mb-6">
-            {import.meta.env.DEV
+            {process.env.NODE_ENV === "development"
               ? this.state.error?.message
               : "An unexpected error occurred. Please try again."}
           </p>

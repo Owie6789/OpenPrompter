@@ -33,6 +33,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         solid: "",
+        secondary: "bg-accent text-secondary-foreground",
+        outline: "border border-border text-foreground",
         dot: "border border-border text-foreground",
       },
       size: {

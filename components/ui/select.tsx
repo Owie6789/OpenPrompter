@@ -66,6 +66,7 @@ interface SelectProps {
   disabled?: boolean;
   name?: string;
   required?: boolean;
+  id?: string;
 }
 
 function Select({
@@ -76,6 +77,7 @@ function Select({
   disabled = false,
   name,
   required,
+  id,
 }: SelectProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
   const [open, setOpen] = useState(false);
@@ -112,6 +114,7 @@ function Select({
           name={name}
           value={currentValue}
           required={required}
+          id={id}
         />
       )}
     </SelectContext.Provider>
@@ -148,7 +151,7 @@ const triggerVariants = cva(
 );
 
 interface SelectTriggerProps
-  extends Omit<HTMLAttributes<HTMLButtonElement>, "children">,
+  extends HTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof triggerVariants> {
   icon?: IconComponent;
   placeholder?: string;
@@ -764,6 +767,24 @@ const SelectSeparator = forwardRef<
 SelectSeparator.displayName = "SelectSeparator";
 
 // ---------------------------------------------------------------------------
+// SelectValue — renders children or placeholder text inside SelectTrigger
+// ---------------------------------------------------------------------------
+
+function SelectValue({
+  placeholder,
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { placeholder?: string }) {
+  return (
+    <span className={className} {...props}>
+      {props.children || placeholder}
+    </span>
+  );
+}
+
+SelectValue.displayName = "SelectValue";
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -775,6 +796,7 @@ export {
   SelectGroup,
   SelectLabel,
   SelectSeparator,
+  SelectValue,
   triggerVariants,
 };
 

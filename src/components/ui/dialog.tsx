@@ -77,28 +77,49 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 
     return (
       <DialogPrimitive.Portal forceMount container={container ?? undefined}>
-        <DialogPrimitive.Overlay forceMount render={<motion.div className={cn(
-                          container ? "absolute" : "fixed",
-                          "inset-0 z-50 bg-black/40 dark:bg-black/80"
-                        )} initial={{ opacity: 0 }} animate={{ opacity: open ? 1 : 0 }} transition={open ? spring.slow : spring.slow.exit} />}></DialogPrimitive.Overlay>
-        <DialogPrimitive.Content ref={ref} forceMount {...props} render={<motion.div className={cn(
-                          container ? "absolute" : "fixed",
-                          "left-1/2 top-1/2 z-50 w-[calc(100%-2rem)]",
-                          surfaceClasses(dialogLevel),
-                          "p-6 focus:outline-none",
-                          size === "sm" && "max-w-[400px]",
-                          size === "lg" && "max-w-[540px]",
-                          shape.container,
-                          className
-                        )} initial={{ opacity: 0, scale: 0.97, x: "-50%", y: "-50%" }} animate={{
-                          opacity: open ? 1 : 0,
-                          scale: open ? 1 : 0.97,
-                          x: "-50%",
-                          y: "-50%",
-                        }} transition={open ? spring.slow : spring.slow.exit} onAnimationComplete={handleExitComplete} />}><SurfaceProvider value={dialogLevel}>
-                          {children}
-                          <DialogPrimitive.Close render={<Button variant="ghost" size="icon-sm" className="absolute right-3 top-3" />}><XIcon /><span className="sr-only">Close</span></DialogPrimitive.Close>
-                        </SurfaceProvider></DialogPrimitive.Content>
+        <DialogPrimitive.Overlay forceMount asChild>
+          <motion.div
+            className={cn(
+              container ? "absolute" : "fixed",
+              "inset-0 z-50 bg-black/40 dark:bg-black/80"
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: open ? 1 : 0 }}
+            transition={open ? spring.slow : spring.slow.exit}
+          />
+        </DialogPrimitive.Overlay>
+        <DialogPrimitive.Content ref={ref} forceMount {...props} asChild>
+          <motion.div
+            className={cn(
+              container ? "absolute" : "fixed",
+              "left-1/2 top-1/2 z-50 w-[calc(100%-2rem)]",
+              surfaceClasses(dialogLevel),
+              "p-6 focus:outline-none",
+              size === "sm" && "max-w-[400px]",
+              size === "lg" && "max-w-[540px]",
+              shape.container,
+              className
+            )}
+            initial={{ opacity: 0, scale: 0.97, x: "-50%", y: "-50%" }}
+            animate={{
+              opacity: open ? 1 : 0,
+              scale: open ? 1 : 0.97,
+              x: "-50%",
+              y: "-50%",
+            }}
+            transition={open ? spring.slow : spring.slow.exit}
+            onAnimationComplete={handleExitComplete}
+          >
+            <SurfaceProvider value={dialogLevel}>
+              {children}
+              <DialogPrimitive.Close asChild>
+                <Button variant="ghost" size="icon-sm" className="absolute right-3 top-3">
+                  <XIcon /><span className="sr-only">Close</span>
+                </Button>
+              </DialogPrimitive.Close>
+            </SurfaceProvider>
+          </motion.div>
+        </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     );
   }

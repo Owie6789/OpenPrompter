@@ -554,7 +554,7 @@ export default function App() {
       },
     };
     const result = generateShareUrl(payload);
-    if (result.success) {
+    if (result.success === true) {
       try {
         await navigator.clipboard.writeText(result.url);
         setSharedLinkCopied(true);
@@ -580,7 +580,7 @@ export default function App() {
       },
     };
     const result = generateShareUrl(payload);
-    if (result.success) {
+    if (result.success === true) {
       try {
         await navigator.clipboard.writeText(result.url);
         setSharedLinkCopied(true);
@@ -636,11 +636,13 @@ export default function App() {
     const encoded = params.get("share");
     if (!encoded) return;
     const result = decodeSharePayload(encoded);
-    if (result.valid) {
-      setImportData({
-        type: result.payload.type,
-        data: result.payload.data,
-      });
+    if (result.valid === true) {
+      const { type, data } = result.payload;
+      if (type === "template") {
+        setImportData({ type: "template", data: data as TemplateShareData });
+      } else {
+        setImportData({ type: "persona", data: data as PersonaShareData });
+      }
     } else {
       toast.error(result.error);
     }
@@ -989,14 +991,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   }
                                 }}
                               >
-                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
-                                  <SelectValue placeholder="Standard Prompt Engineer" />
-                                </SelectTrigger>
+                                <SelectTrigger
+                                  icon={undefined}
+                                  placeholder="Standard Prompt Engineer"
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1"
+                                />
                                 <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
-                                  {allPersonas.map((persona) => (
+                                  {allPersonas.map((persona, i) => (
                                     <SelectItem
                                       key={persona.id}
                                       value={persona.id}
+                                      index={i}
                                       className="text-xs py-2 focus:bg-canvas focus:text-ink"
                                     >
                                       {persona.name}
@@ -1043,22 +1048,25 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   setCustomModelInputVal(val);
                                 }}
                               >
-                                <SelectTrigger className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1">
-                                  <SelectValue placeholder={selectedModel || "Select model"} />
-                                </SelectTrigger>
+                                <SelectTrigger
+                                  icon={undefined}
+                                  placeholder={selectedModel || "Select model"}
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1"
+                                />
                                 <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] max-h-60">
                                   {availableModels.length > 0 ? (
-                                    availableModels.map((m) => (
+                                    availableModels.map((m, i) => (
                                       <SelectItem
                                         key={m.id}
                                         value={m.id}
+                                        index={i}
                                         className="text-xs py-2 focus:bg-canvas focus:text-ink"
                                       >
                                         {m.name}
                                       </SelectItem>
                                     ))
                                   ) : (
-                                    <SelectItem value="gpt-4o" className="text-xs">
+                                    <SelectItem value="gpt-4o" index={0} className="text-xs">
                                       gpt-4o (default)
                                     </SelectItem>
                                   )}
@@ -1066,7 +1074,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </Select>
                               <div className="flex items-center gap-1.5">
                                 <button
-                                  onClick={fetchAvailableModels}
+                                  onClick={() => fetchAvailableModels()}
                                   className="text-[10px] text-accent hover:text-accent-hover font-medium flex items-center gap-1 transition-colors"
                                 >
                                   <ArrowsClockwise className={`w-3 h-3 ${modelsLoading ? "animate-spin" : ""}`} />
