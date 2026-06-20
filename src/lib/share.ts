@@ -36,108 +36,124 @@ export function generateShareUrl(
   return { success: true, url };
 }
 
-export function decodeSharePayload(encoded: string): ShareValidationResult {
-  // Stage 1 — Decompression
-  const decompressed = decompressFromEncodedURIComponent(encoded);
-  if (decompressed === null || decompressed === "") {
-    return { valid: false, error: "Unable to decompress share data" };
-  }
+// --- decodeSharePayload helpers ---
 
-  // Stage 2 — JSON Parsing
-  let parsed: unknown;
+function parseDecompressed(encoded: string): { ok: true; raw: string } | { ok: false; error: string } {
+  const raw = decompressFromEncodedURIComponent(encoded);
+  if (!raw) return { ok: false, error: "Unable to decompress share data" };
+  return { ok: true, raw };
+}
+
+function parseJson(raw: string): { ok: true; obj: Record<string, unknown> } | { ok: false; error: string } {
   try {
-    parsed = JSON.parse(decompressed);
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) {
+      return { ok: false, error: "Invalid share data format" };
+    }
+    return { ok: true, obj: parsed as Record<string, unknown> };
   } catch {
-    return { valid: false, error: "Invalid share data format" };
+    return { ok: false, error: "Invalid share data format" };
   }
+}
 
-  if (typeof parsed !== "object" || parsed === null) {
-    return { valid: false, error: "Invalid share data format" };
-  }
-
-  const obj = parsed as Record<string, unknown>;
-
-  // Stage 3 — Schema Version Check
-  if (typeof obj.version !== "number") {
-    return { valid: false, error: "Invalid share data version" };
+function validateVersion(obj: Record<string, unknown>): string | null {
+  if (typeof obj.version !== "number" || obj.version < 1 || !Number.isInteger(obj.version)) {
+    return "Invalid share data version";
   }
   if (obj.version > CURRENT_SHARE_VERSION) {
-    return {
-      valid: false,
-      error: "This share link requires a newer version of OpenPrompter",
-    };
+    return "This share link requires a newer version of OpenPrompter";
   }
-  if (obj.version < 1 || !Number.isInteger(obj.version)) {
-    return { valid: false, error: "Invalid share data version" };
+  return null;
+}
+
+function validateType(obj: Record<string, unknown>): SharePayloadType | null {
+  if (obj.type === "template") return "template";
+  if (obj.type === "persona") return "persona";
+  return null;
+}
+
+function validateDataFields(type: SharePayloadType, dataObj: unknown): string | null {
+  if (typeof dataObj !== "object" || dataObj === null) {
+    return "Share data is missing required fields";
   }
-
-  // Stage 4 — Type Field Validation
-  if (obj.type !== "template" && obj.type !== "persona") {
-    return { valid: false, error: "Unknown share type" };
-  }
-
-  // Stage 5 — Data Field Validation
-  if (typeof obj.data !== "object" || obj.data === null) {
-    return { valid: false, error: "Share data is missing required fields" };
-  }
-
-  const data = obj.data as Record<string, unknown>;
-
-  if (obj.type === "template") {
-    const required = ["name", "category", "description", "promptText", "iconName"] as const;
-    for (const field of required) {
-      if (typeof data[field] !== "string") {
-        return { valid: false, error: "Share data is missing required fields" };
-      }
-    }
-  } else {
-    const required = ["name", "description", "systemPrompt"] as const;
-    for (const field of required) {
-      if (typeof data[field] !== "string") {
-        return { valid: false, error: "Share data is missing required fields" };
-      }
+  const data = dataObj as Record<string, unknown>;
+  const required = type === "template"
+    ? ["name", "category", "description", "promptText", "iconName"]
+    : ["name", "description", "systemPrompt"];
+  for (const field of required) {
+    if (typeof data[field] !== "string") {
+      return "Share data is missing required fields";
     }
   }
+  return null;
+}
 
-  // Stage 6 — Length Limit Enforcement
+function validateLengths(type: SharePayloadType, data: Record<string, unknown>): string | null {
   if (
     (data.name as string).length > MAX_NAME_LENGTH ||
     (data.description as string).length > MAX_DESCRIPTION_LENGTH
   ) {
-    return { valid: false, error: "Share data exceeds allowed size limits" };
+    return "Share data exceeds allowed size limits";
+  }
+  const promptField = type === "template" ? "promptText" : "systemPrompt";
+  if ((data[promptField] as string).length > MAX_PROMPT_LENGTH) {
+    return "Share data exceeds allowed size limits";
+  }
+  return null;
+}
+
+function sanitizeData(type: SharePayloadType, raw: Record<string, unknown>): ShareData | null {
+  const trimmed = { name: (raw.name as string).trim(), description: (raw.description as string).trim() };
+  if (!trimmed.name) return null;
+
+  if (type === "template") {
+    return {
+      ...trimmed,
+      category: (raw.category as string).trim(),
+      promptText: (raw.promptText as string).trim(),
+      iconName: (raw.iconName as string).trim(),
+    } as TemplateShareData;
+  }
+  return {
+    ...trimmed,
+    systemPrompt: (raw.systemPrompt as string).trim(),
+  } as PersonaShareData;
+}
+
+export function decodeSharePayload(encoded: string): ShareValidationResult {
+  const decomp = parseDecompressed(encoded);
+  if (!decomp.ok) {
+    const err: string = (decomp as { ok: false; error: string }).error;
+    return { valid: false, error: err };
   }
 
-  if (obj.type === "template" && (data.promptText as string).length > MAX_PROMPT_LENGTH) {
-    return { valid: false, error: "Share data exceeds allowed size limits" };
-  }
-  if (obj.type === "persona" && (data.systemPrompt as string).length > MAX_PROMPT_LENGTH) {
-    return { valid: false, error: "Share data exceeds allowed size limits" };
-  }
-
-  // Stage 7 — Sanitization
-  const sanitized: ShareData = {
-    ...data,
-    name: (data.name as string).trim(),
-    description: (data.description as string).trim(),
-  } as ShareData;
-
-  if (obj.type === "template") {
-    (sanitized as TemplateShareData).category = (data.category as string).trim();
-    (sanitized as TemplateShareData).promptText = (data.promptText as string).trim();
-    (sanitized as TemplateShareData).iconName = (data.iconName as string).trim();
-  } else {
-    (sanitized as PersonaShareData).systemPrompt = (data.systemPrompt as string).trim();
+  const parsed = parseJson(decomp.raw);
+  if (!parsed.ok) {
+    const err: string = (parsed as { ok: false; error: string }).error;
+    return { valid: false, error: err };
   }
 
-  if (!sanitized.name) {
-    return { valid: false, error: "Share data has invalid name" };
-  }
+  const versionError = validateVersion(parsed.obj);
+  if (versionError) return { valid: false, error: versionError };
 
-  const payload: SharePayload = {
-    type: obj.type,
-    version: obj.version,
-    data: sanitized,
+  const shareType = validateType(parsed.obj);
+  if (!shareType) return { valid: false, error: "Unknown share type" };
+
+  const fieldError = validateDataFields(shareType, parsed.obj.data);
+  if (fieldError) return { valid: false, error: fieldError };
+
+  const lengthError = validateLengths(shareType, parsed.obj.data as Record<string, unknown>);
+  if (lengthError) return { valid: false, error: lengthError };
+
+  const sanitized = sanitizeData(shareType, parsed.obj.data as Record<string, unknown>);
+  if (!sanitized) return { valid: false, error: "Share data has invalid name" };
+
+  return {
+    valid: true,
+    payload: {
+      type: shareType,
+      version: parsed.obj.version as number,
+      data: sanitized,
+    },
   };
-
-  return { valid: true, payload };
 }

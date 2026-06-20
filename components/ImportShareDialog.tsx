@@ -8,10 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ShareData, TemplateShareData, PersonaShareData } from "@/types";
+import type { ShareData, TemplateShareData, PersonaShareData } from "@/src/types";
+
+interface ImportData {
+  type: "template" | "persona";
+  data: ShareData;
+}
 
 interface Props {
-  importData: ShareData | null;
+  importData: ImportData | null;
   onOpenChange: (open: boolean) => void;
   handleCancelImport: () => void;
   handleConfirmImport: () => void;

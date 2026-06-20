@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { PromptHistoryItem } from "@/types";
+import type { PromptHistoryItem } from "@/src/types";
 
 interface Props {
   selectedHistoryItem: PromptHistoryItem | null;

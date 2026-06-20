@@ -61,6 +61,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import ByokDialog from "@/components/ByokDialog";
 import HistoryDetailDialog from "@/components/HistoryDetailDialog";
@@ -107,9 +117,14 @@ export default function App() {
 
   // App core state
   const [promptInput, setPromptInput] = useState("");
-  const [customInstructions, setCustomInstructions] = useState("");
-  const [selectedModel, setSelectedModel] =
-    useState<string>("gpt-4o");
+  const [customInstructions, setCustomInstructions] = useState(() => {
+    try { return localStorage.getItem("openprompter_custom_instructions") || ""; }
+    catch { return ""; }
+  });
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    try { return localStorage.getItem("openprompter_selected_model") || "gpt-4o"; }
+    catch { return "gpt-4o"; }
+  });
   const [selectedPersona, setSelectedPersona] = useState<string>("p1"); // Ref to CustomPersona.id
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem("openprompter_byok_key") || "";
@@ -174,6 +189,7 @@ export default function App() {
   const [selectedHistoryItem, setSelectedHistoryItem] =
     useState<PromptHistoryItem | null>(null);
   const [sharedLinkCopied, setSharedLinkCopied] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Share/Import state
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -199,6 +215,7 @@ export default function App() {
       );
     } catch {
       console.warn("Failed to save prompt history to localStorage");
+      toast.warning("History storage full — older entries may not be saved.");
     }
   }, [historyList]);
 
@@ -210,10 +227,29 @@ export default function App() {
       );
     } catch {
       console.warn("Failed to save custom personas to localStorage");
+      toast.warning("Persona storage full — changes may not persist.");
     }
   }, [customPersonas]);
 
-  // Loading indicator words
+  // Persist selected model to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("openprompter_selected_model", selectedModel);
+    } catch {
+      // quota full — acceptable to skip
+    }
+  }, [selectedModel]);
+
+  // Persist custom instructions to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("openprompter_custom_instructions", customInstructions);
+    } catch {
+      // quota full — acceptable to skip
+    }
+  }, [customInstructions]);
+
+  // Restore model + instructions from localStorage on mount
   useEffect(() => {
     if (!isOptimizing) return;
     const steps = [
@@ -476,7 +512,7 @@ export default function App() {
   };
 
   // Share a template via URL
-  const handleShareTemplate = (tpl: PromptTemplate) => {
+  const handleShareTemplate = async (tpl: PromptTemplate) => {
     const payload: SharePayload = {
       type: "template",
       version: 1,
@@ -490,17 +526,21 @@ export default function App() {
     };
     const result = generateShareUrl(payload);
     if (result.success) {
-      navigator.clipboard.writeText(result.url);
-      setSharedLinkCopied(true);
-      setTimeout(() => setSharedLinkCopied(false), 3000);
-      toast.success("Template share link copied!");
+      try {
+        await navigator.clipboard.writeText(result.url);
+        setSharedLinkCopied(true);
+        setTimeout(() => setSharedLinkCopied(false), 3000);
+        toast.success("Template share link copied!");
+      } catch {
+        toast.error("Clipboard write failed — please copy the URL manually.");
+      }
     } else {
       toast.error((result as { success: false; error: string }).error);
     }
   };
 
   // Share a persona via URL
-  const handleSharePersona = (pers: CustomPersona) => {
+  const handleSharePersona = async (pers: CustomPersona) => {
     const payload: SharePayload = {
       type: "persona",
       version: 1,
@@ -512,10 +552,14 @@ export default function App() {
     };
     const result = generateShareUrl(payload);
     if (result.success) {
-      navigator.clipboard.writeText(result.url);
-      setSharedLinkCopied(true);
-      setTimeout(() => setSharedLinkCopied(false), 3000);
-      toast.success("Persona share link copied!");
+      try {
+        await navigator.clipboard.writeText(result.url);
+        setSharedLinkCopied(true);
+        setTimeout(() => setSharedLinkCopied(false), 3000);
+        toast.success("Persona share link copied!");
+      } catch {
+        toast.error("Clipboard write failed — please copy the URL manually.");
+      }
     } else {
       toast.error((result as { success: false; error: string }).error);
     }
@@ -858,7 +902,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         {/* INPUT AREA */}
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm font-semibold text-steel tracking-tight">
+                            <label htmlFor="prompt-input" className="text-sm font-semibold text-steel tracking-tight">
                               Paste Your Prompt
                             </label>
                             <span className="text-[10px] text-muted font-mono tracking-wider">
@@ -866,6 +910,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </span>
                           </div>
                           <Textarea
+                            id="prompt-input"
                             placeholder="E.g., Write a draft story about a lost robot... OR Refactor this python class..."
                             className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-slate-900 focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-slate-900 rounded-md resize-none shadow-inner"
                             value={promptInput}
@@ -900,10 +945,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             {/* Pick Custom Persona */}
                             <div className="space-y-2">
-                              <label className="text-[11px] font-semibold text-steel uppercase tracking-wider block">
+                              <label htmlFor="persona-role" className="text-[11px] font-semibold text-steel uppercase tracking-wider block">
                                 Expert Persona Role
                               </label>
                               <Select
+                                id="persona-role"
                                 value={selectedPersona}
                                 onValueChange={(val) => {
                                   setSelectedPersona(val);
@@ -937,7 +983,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             {/* Model Selector */}
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
-                                <label className="text-[11px] font-semibold text-steel uppercase tracking-wider">
+                                <label htmlFor="model-select" className="text-[11px] font-semibold text-steel uppercase tracking-wider">
                                   Model
                                 </label>
                                 {modelsLoading ? (
@@ -964,6 +1010,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 )}
                               </div>
                               <Select
+                                id="model-select"
                                 value={selectedModel}
                                 onValueChange={(val) => {
                                   setSelectedModel(val);
@@ -1044,10 +1091,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           {/* Additional Instructions */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold text-steel uppercase tracking-wider block">
+                            <label htmlFor="custom-instructions" className="text-[11px] font-semibold text-steel uppercase tracking-wider block">
                               Additional Custom Instructions
                             </label>
                             <Input
+                              id="custom-instructions"
                               placeholder="E.g., Keep the sentence length short, emphasize security..."
                               maxLength={1000}
                               value={customInstructions}
@@ -1514,10 +1562,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <CardContent className="space-y-5 px-6">
                           {/* NAME */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                            <label htmlFor="persona-name" className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                               Persona Name
                             </label>
                             <Input
+                              id="persona-name"
                               placeholder="E.g., Python Refactoring Ninja"
                               required
                               value={newPersonaName}
@@ -1530,10 +1579,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           {/* DESCRIPTION */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                            <label htmlFor="persona-desc" className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                               Short Description
                             </label>
                             <Input
+                              id="persona-desc"
                               placeholder="E.g., Optimizes for clean architectures"
                               value={newPersonaDesc}
                               onChange={(e) =>
@@ -1545,10 +1595,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           {/* SYSTEM PROMPT */}
                           <div className="space-y-2">
-                            <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                            <label htmlFor="persona-prompt" className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                               System Instruction / Prompt Cues
                             </label>
                             <Textarea
+                              id="persona-prompt"
                               placeholder="E.g., Act as a Python programmer..."
                               required
                               rows={5}
@@ -1795,24 +1846,39 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <FileText className="w-3.5 h-3.5 mr-1.5" />
                       MD
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs text-error hover:text-error hover:bg-rose-50 border-rose-100 self-end md:self-auto rounded-full font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            "Wipe all local history? This cannot be undone.",
-                          )
-                        ) {
-                          setHistoryList([]);
-                          toast.success("History cache cleared pristine!");
-                        }
-                      }}
-                    >
-                      <Trash className="w-3.5 h-3.5 mr-1.5" />
-                      Clear
-                    </Button>
+                    <>
+                      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+                        <AlertDialogContent className="bg-surface border-none">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-ink font-display tracking-tight">Clear History</AlertDialogTitle>
+                            <AlertDialogDescription className="text-steel text-sm leading-snug">
+                              Wipe all local prompt history? This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-full font-semibold text-steel">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="rounded-full font-semibold bg-error text-white hover:bg-red-600"
+                              onClick={() => {
+                                setHistoryList([]);
+                                toast.success("History cache cleared pristine!");
+                              }}
+                            >
+                              Yes, Clear Everything
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs text-error hover:text-error hover:bg-rose-50 border-rose-100 self-end md:self-auto rounded-full font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                        onClick={() => setShowClearConfirm(true)}
+                      >
+                        <Trash className="w-3.5 h-3.5 mr-1.5" />
+                        Clear
+                      </Button>
+                    </>
                   </>
                 )}
               </div>
@@ -2062,15 +2128,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         setCustomModelInputVal={setCustomModelInputVal}
         setCustomModel={setCustomModel}
         availableModels={availableModels}
-        />
+        handleSaveApiKey={handleSaveApiKey}
+      />
 
-        {/* DIALOG 2: DETAIL INSPECTION MODAL FOR LOGS */}
+      {/* DIALOG 2: DETAIL INSPECTION MODAL FOR LOGS */}
       <HistoryDetailDialog
         selectedHistoryItem={selectedHistoryItem}
         onOpenChange={(open: any) => {
           if (!open) setSelectedHistoryItem(null);
         }}
         handleDeleteHistory={handleDeleteHistory}
+        handleCopyToClipboard={handleCopyToClipboard}
         />
 
         {/* DIALOG 3: SHARE IMPORT */}

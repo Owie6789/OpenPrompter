@@ -120,7 +120,11 @@ function resolveProvider(endpoint: string): ProviderConfig {
 
 // Generate a simple request ID
 function requestId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  try {
+    return `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
 }
 
 async function fetchWithTimeout(url: string, options: RequestInit & { timeout?: number }): Promise<Response> {
