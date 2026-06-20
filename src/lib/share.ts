@@ -123,14 +123,12 @@ function sanitizeData(type: SharePayloadType, raw: Record<string, unknown>): Sha
 export function decodeSharePayload(encoded: string): ShareValidationResult {
   const decomp = parseDecompressed(encoded);
   if (!decomp.ok) {
-    const err: string = (decomp as { ok: false; error: string }).error;
-    return { valid: false, error: err };
+    return { valid: false, error: decomp.error };
   }
 
   const parsed = parseJson(decomp.raw);
   if (!parsed.ok) {
-    const err: string = (parsed as { ok: false; error: string }).error;
-    return { valid: false, error: err };
+    return { valid: false, error: parsed.error };
   }
 
   const versionError = validateVersion(parsed.obj);

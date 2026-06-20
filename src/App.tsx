@@ -84,7 +84,11 @@ function safeJsonParse<T>(json: string | null, fallback: T): T {
 
 function generateId(prefix: string): string {
   try { return `${prefix}_${crypto.randomUUID().slice(0, 8)}`; }
-  catch { return `${prefix}_${Math.random().toString(36).slice(2, 11)}`; }
+  catch {
+    const arr = new Uint32Array(2);
+    globalThis.crypto.getRandomValues(arr);
+    return `${prefix}_${arr[0].toString(36)}${arr[1].toString(36)}`.slice(0, prefix.length + 9);
+  }
 }
 
 export default function App() {
@@ -192,10 +196,12 @@ export default function App() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Share/Import state
-  const [showImportDialog, setShowImportDialog] = useState(false);
   const [importData, setImportData] = useState<{
-    type: "template" | "persona";
-    data: ShareData;
+    type: "template";
+    data: TemplateShareData;
+  } | {
+    type: "persona";
+    data: PersonaShareData;
   } | null>(null);
 
   // Copy-state feedbacks
@@ -214,8 +220,7 @@ export default function App() {
         JSON.stringify(historyList.slice(0, 100)),
       );
     } catch {
-      console.warn("Failed to save prompt history to localStorage");
-      toast.warning("History storage full — older entries may not be saved.");
+      toast.warning("Storage limit reached — old history may not save.");
     }
   }, [historyList]);
 
@@ -226,7 +231,6 @@ export default function App() {
         JSON.stringify(customPersonas),
       );
     } catch {
-      console.warn("Failed to save custom personas to localStorage");
       toast.warning("Persona storage full — changes may not persist.");
     }
   }, [customPersonas]);
@@ -594,12 +598,10 @@ export default function App() {
       setActiveTab("personas");
       toast.success(`Imported persona: "${newPersona.name}"`);
     }
-    setShowImportDialog(false);
     setImportData(null);
   };
 
   const handleCancelImport = () => {
-    setShowImportDialog(false);
     setImportData(null);
   };
 
@@ -614,7 +616,6 @@ export default function App() {
         type: result.payload.type,
         data: result.payload.data,
       });
-      setShowImportDialog(true);
     } else {
       toast.error((result as { valid: false; error: string }).error);
     }
@@ -2144,7 +2145,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         {/* DIALOG 3: SHARE IMPORT */}
         <ImportShareDialog
           importData={importData}
-          onOpenChange={setShowImportDialog}
+          onOpenChange={(open) => { if (!open) setImportData(null); }}
           handleCancelImport={handleCancelImport}
           handleConfirmImport={handleConfirmImport}
         />

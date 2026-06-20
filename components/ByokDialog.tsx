@@ -31,6 +31,25 @@ interface ByokDialogProps {
   ) => void;
 }
 
+const PROVIDER_OPTIONS = [
+  { id: "openai", label: "OpenAI", endpoint: "https://api.openai.com/v1" },
+  { id: "deepseek", label: "DeepSeek", endpoint: "https://api.deepseek.com/v1" },
+  { id: "anthropic", label: "Anthropic", endpoint: "https://api.anthropic.com/v1" },
+  { id: "custom", label: "Custom", endpoint: "" },
+] as const;
+
+const providerKeyUrls: Record<string, string> = {
+  openai: "https://platform.openai.com/api-keys",
+  deepseek: "https://platform.deepseek.com/api_keys",
+  anthropic: "https://console.anthropic.com/settings/keys",
+};
+
+const providerDisplayNames: Record<string, string> = {
+  openai: "OpenAI",
+  deepseek: "DeepSeek",
+  anthropic: "Anthropic",
+};
+
 export default function ByokDialog({
   open,
   onOpenChange,
@@ -45,7 +64,10 @@ export default function ByokDialog({
   setCustomModel,
   availableModels,
   handleSaveApiKey,
-}: ByokDialogProps) {
+}: Readonly<ByokDialogProps>) {
+  const providerKeyUrl = providerKeyUrls[providerInputVal] ?? null;
+  const providerLabel = providerDisplayNames[providerInputVal] ?? "API";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-none text-ink sm:max-w-md shadow-2xl rounded-xl p-0 overflow-hidden">
@@ -67,16 +89,11 @@ export default function ByokDialog({
           <div className="space-y-5">
             {/* PROVIDER SELECTOR */}
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+              <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                 API Provider
-              </label>
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: "openai", label: "OpenAI", endpoint: "https://api.openai.com/v1" },
-                  { id: "deepseek", label: "DeepSeek", endpoint: "https://api.deepseek.com/v1" },
-                  { id: "anthropic", label: "Anthropic", endpoint: "https://api.anthropic.com/v1" },
-                  { id: "custom", label: "Custom", endpoint: "" },
-                ].map((p) => (
+                {PROVIDER_OPTIONS.map((p) => (
                   <button
                     key={p.id}
                     type="button"
@@ -99,19 +116,22 @@ export default function ByokDialog({
             {/* API Key */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
+                <label htmlFor="byok-api-key" className="text-[11px] font-semibold text-steel uppercase tracking-widest">
                   API Key
                 </label>
-                <a
-                    href={providerInputVal === "openai" ? "https://platform.openai.com/api-keys" : providerInputVal === "deepseek" ? "https://platform.deepseek.com/api_keys" : providerInputVal === "anthropic" ? "https://console.anthropic.com/settings/keys" : "#"}
+                {providerKeyUrl ? (
+                  <a
+                    href={providerKeyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] text-accent hover:text-accent-hover flex items-center gap-1 font-semibold"
-                >
-                    Get {providerInputVal === "openai" ? "OpenAI" : providerInputVal === "deepseek" ? "DeepSeek" : providerInputVal === "anthropic" ? "Anthropic" : "API"} Key <ArrowSquareOut className="w-2.5 h-2.5" />
-                </a>
+                  >
+                    Get {providerLabel} Key <ArrowSquareOut className="w-2.5 h-2.5" />
+                  </a>
+                ) : null}
               </div>
               <Input
+                id="byok-api-key"
                 type="password"
                 placeholder="sk-..."
                 value={apiKeyInputVal}
@@ -122,10 +142,11 @@ export default function ByokDialog({
 
             {/* Custom Endpoint URL */}
             <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                <label htmlFor="byok-endpoint" className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                   Custom Endpoint (Base URL)
                 </label>
                 <Input
+                  id="byok-endpoint"
                   type="text"
                   placeholder="E.g., https://api.deepseek.com/v1"
                   value={endpointInputVal}
@@ -166,7 +187,7 @@ export default function ByokDialog({
             {/* Custom Model Name */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
+                <label htmlFor="byok-model" className="text-[11px] font-semibold text-steel uppercase tracking-widest">
                   Model Override
                 </label>
                 {availableModels.length > 0 && (
@@ -178,6 +199,7 @@ export default function ByokDialog({
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Input
+                    id="byok-model"
                     type="text"
                     placeholder="Search or type model ID..."
                     value={customModelInputVal}
@@ -234,7 +256,8 @@ export default function ByokDialog({
 
             <div className="text-[11px] p-4 rounded-md bg-canvas border border-whisper text-steel leading-snug font-medium">
               <span className="font-bold flex items-center gap-1.5 uppercase tracking-widest text-[10px] mb-1">
-                <Info className="w-3 h-3" /> Direct Endpoint Proxy
+                <Info className="w-3 h-3" />
+                <span>Direct Endpoint Proxy</span>
               </span>
               Keys and preferences are sent securely to our stateless backend
               proxy to optimize prompt structures without client-side

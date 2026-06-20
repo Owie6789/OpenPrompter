@@ -8,11 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ShareData, TemplateShareData, PersonaShareData } from "@/src/types";
+import type { TemplateShareData, PersonaShareData } from "@/src/types";
 
 interface ImportData {
-  type: "template" | "persona";
-  data: ShareData;
+  type: "template";
+  data: TemplateShareData;
+} | {
+  type: "persona";
+  data: PersonaShareData;
 }
 
 interface Props {
@@ -27,7 +30,7 @@ export default function ImportShareDialog({
   onOpenChange,
   handleCancelImport,
   handleConfirmImport,
-}: Props) {
+}: Readonly<Props>) {
   return (
     <Dialog open={!!importData} onOpenChange={onOpenChange}>
       {importData && (
@@ -67,19 +70,19 @@ export default function ImportShareDialog({
                   {importData.type === "template" ? "Prompt Text" : "System Prompt"}
                 </p>
                 <div className="p-3 bg-canvas border border-whisper rounded-md text-xs font-mono text-steel leading-snug max-h-[200px] overflow-y-auto whitespace-pre-wrap">
-                  {"promptText" in importData.data
-                    ? (importData.data as TemplateShareData).promptText
-                    : (importData.data as PersonaShareData).systemPrompt}
+                  {importData.type === "template"
+                    ? importData.data.promptText
+                    : importData.data.systemPrompt}
                 </div>
               </div>
 
-              {importData.type === "template" && "category" in importData.data && (
+              {importData.type === "template" && importData.data.category && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     Category
                   </p>
                   <div className="p-3 bg-surface border border-whisper rounded-md text-xs font-medium text-steel">
-                    {(importData.data as TemplateShareData).category}
+                    {importData.data.category}
                   </div>
                 </div>
               )}

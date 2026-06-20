@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { existsSync } from "fs";
+import { existsSync, randomBytes } from "fs";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -85,9 +85,9 @@ function assertSafeEndpoint(url: string, prov: string): void {
   if (!url) return; // Will use default endpoint
   const parsed = new URL(url);
   if (prov === "custom") {
-    // For custom endpoints, only allow HTTPS in production
-    if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
-      throw new Error("Only HTTPS endpoints are allowed in production.");
+    const isLocalhost = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    if (!isLocalhost && parsed.protocol !== "https:") {
+      throw new Error("Only HTTPS endpoints are allowed.");
     }
     // Block private/link-local hostnames
     if (PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(parsed.hostname))) {
@@ -102,7 +102,7 @@ function assertSafeEndpoint(url: string, prov: string): void {
 }
 
 function isValidModel(model: string): boolean {
-  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || /^[a-zA-Z0-9_]+(?:\/[a-zA-Z0-9._:-]+)?$/.test(model);
+  return KNOWN_MODEL_PATTERNS.some((re) => re.test(model)) || /^\w+(?:\/[\w._:-]+)?$/.test(model);
 }
 
 function sanitizeControlSequences(text: string): string {
@@ -123,7 +123,7 @@ function requestId(): string {
   try {
     return `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
   } catch {
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    return `${Date.now().toString(36)}-${randomBytes(4).toString("hex")}`;
   }
 }
 
@@ -274,7 +274,7 @@ function stripJsonFence(text: string): string {
 }
 
 function sanitizeForLog(s: string, maxLen = 500): string {
-  return s.replace(/[\r\n\t\x1b]/g, " ").slice(0, maxLen);
+  return s.replace(/[\r\n\t\u001B]/g, " ").slice(0, maxLen);
 }
 
 // API: Optimizer core
