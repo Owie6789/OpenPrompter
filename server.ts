@@ -15,6 +15,7 @@ if (existsSync(".env.local")) {
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "3000", 10);
+const AUTO_PORT = PORT === 0;
 
 // Security middleware stack
 app.use(helmet());
@@ -515,8 +516,21 @@ async function run() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`OpenPrompter running on http://localhost:${PORT}`);
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    const addr = server.address();
+    const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
+    console.log(`OpenPrompter running on http://localhost:${actualPort}`);
+  }).on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`\n❌ Port ${PORT} is already in use.`);
+      console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
+      console.error(`\n   Options:`);
+      console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
+      console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
+      console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
+      process.exit(1);
+    }
+    throw err;
   });
 }
 
