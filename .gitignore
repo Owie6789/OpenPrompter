@@ -6,3 +6,24 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Editor & IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+Thumbs.db
+Desktop.ini
+
+# Hermes agent (personal)
+.hermes/
+
+# Cleanup utilities (not project code)
+clean_nm.cjs
+clean_nm_v2.cjs
+
+# Generated / transient
+*.tsbuildinfo
