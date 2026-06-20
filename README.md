@@ -1,84 +1,112 @@
 <div align="center">
-  <h1>OpenPrompter</h1>
-  <p><strong>Open-source, unlimited prompt optimizer — BYOK (Bring Your Own Key)</strong></p>
-  <p>
-    <a href="https://github.com/Owie6789/OpenPrompter/actions"><img src="https://img.shields.io/github/actions/workflow/status/Owie6789/OpenPrompter/ci.yml?branch=main&style=flat-square" alt="CI Status"/></a>
-    <a href="https://github.com/Owie6789/OpenPrompter/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Owie6789/OpenPrompter?style=flat-square" alt="License"/></a>
-    <a href="https://github.com/Owie6789/OpenPrompter/releases"><img src="https://img.shields.io/github/v/release/Owie6789/OpenPrompter?style=flat-square" alt="Release"/></a>
-  </p>
+
+<img src="assets/openpromptericon.png" alt="OpenPrompter Icon" width="96" height="96" />
+
+# OpenPrompter
+
+**Open-source AI prompt optimizer. Bring your own key. Zero limits. Zero middlemen.**
+
+<p align="center">
+<a href="https://github.com/Owie6789/OpenPrompter/blob/main/LICENSE"><img src="https://www.shieldcn.dev/badge/License-MIT-18181B.svg?theme=stone&font=geist-mono" alt="License" /></a>
+<a href="https://github.com/Owie6789/OpenPrompter/releases"><img src="https://www.shieldcn.dev/badge/Version-1.0.0-18181B.svg?theme=stone&font=geist-mono" alt="Version" /></a>
+<img src="https://www.shieldcn.dev/badge/Status-Privacy_First-10B981.svg?theme=stone&font=geist-mono" alt="Privacy First" />
+<img src="https://www.shieldcn.dev/badge/Telemetry-Zero-EF4444.svg?theme=stone&font=geist-mono" alt="Zero Telemetry" />
+</p>
+
+<img src="assets/openpromptereadmeherobanner.png" alt="OpenPrompter Hero" width="85%" />
+
 </div>
 
-## Overview
+<br>
 
-OpenPrompter is a zero-cost prompt engineering tool. You bring your own API key (BYOK) — no subscriptions, no usage limits, no data leaving your endpoint.
+## <img src="https://api.iconify.design/ph:info.svg?color=%232563eb" width="28" height="28" align="center" /> What is OpenPrompter?
 
-**Stack**: React 19 + Vite 6 + Tailwind CSS v4 + TypeScript 5.8 (strict)  
-**Backend**: Express 4 + esbuild (production) / tsx (dev)
+Most prompt optimizer tools are paywalled, rate-limited, or quietly logging your ideas. **OpenPrompter is none of those things.**
 
-## Features
+You paste a rough prompt. OpenPrompter — using **your own API key** from OpenAI, DeepSeek, Anthropic, or any compatible provider — deconstructs it, restructures it into a framework of Role / Task / Context / Constraints / Output, and hands you back something an LLM actually parses well.
 
-- **Prompt Optimizer** — deconstructs and restructures prompts with Role/Task/Context/Constraints/Output
-- **Custom Personas** — 5 presets + unlimited custom persona definitions (persisted to localStorage)
-- **Curated Templates** — 6 starter templates covering code, marketing, analysis, education, product, sales
-- **BYOK + Custom Endpoints** — use your own OpenAI-compatible API key and endpoint
-- **Prompt History** — full local history with export to clipboard (text / JSON / markdown)
-- **Works Anywhere** — no backend required running as static SPA; optional Node server for proxy
+Your key. Your data. Your prompts. That's it.
 
-## Quick Start
+> **<img src="https://api.iconify.design/ph:lock-key.svg?color=%232563eb" width="18" height="18" align="center" /> Privacy Guarantee:** No accounts. No subscriptions. No server-side prompt logging. Keys live in your browser's local storage only.
+
+<br>
+
+## <img src="https://api.iconify.design/ph:stack.svg?color=%232563eb" width="28" height="28" align="center" /> Built With
+
+<p align="left">
+<img src="https://www.shieldcn.dev/badge/-React_19-61DAFB.svg?logo=react&variant=branded&theme=stone&font=geist-mono" alt="React 19" />
+<img src="https://www.shieldcn.dev/badge/-TypeScript_5.8-3178C6.svg?logo=typescript&variant=branded&theme=stone&font=geist-mono" alt="TypeScript" />
+<img src="https://www.shieldcn.dev/badge/-Vite_6-646CFF.svg?logo=vite&variant=branded&theme=stone&font=geist-mono" alt="Vite 6" />
+<img src="https://www.shieldcn.dev/badge/-Tailwind_v4-06B6D4.svg?logo=tailwindcss&variant=branded&theme=stone&font=geist-mono" alt="Tailwind CSS" />
+</p>
+
+<br>
+
+## <img src="https://api.iconify.design/ph:sparkle.svg?color=%232563eb" width="28" height="28" align="center" /> Core Features
+
+### <img src="https://api.iconify.design/ph:brain.svg?color=%232563eb" width="24" height="24" align="center" /> Prompt Optimization Workspace
+<p align="center">
+<img src="assets/opfeature1.png" alt="Prompt Optimizer" width="85%" />
+</p>
+
+Paste any rough draft — a story idea, a code request, a marketing brief. Select an expert persona, pick your model, add optional constraints, and hit **Optimize** (or `Ctrl + Enter`).
+
+The engine deconstructs your input and outputs a structured, high-clarity prompt with:
+* **Confidence Score:** How well-formed the output is.
+* **Structural Improvements:** What changed and why.
+* **Applied Architectures:** Labelled techniques used.
+* **Export Options:** Copy as plain text, Markdown, or raw JSON.
+
+---
+
+### <img src="https://api.iconify.design/ph:key.svg?color=%232563eb" width="24" height="24" align="center" /> BYOK — Bring Your Own Key
+<p align="center">
+<img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" />
+</p>
+
+Plug in your own API key from any supported provider. OpenPrompter routes your prompt directly from browser → your key → provider API. No intermediary, no logging.
+
+| Provider | Default Endpoint | Key Format |
+|---|---|---|
+| **OpenAI** | `https://api.openai.com/v1` | `sk-...` |
+| **DeepSeek** | `https://api.deepseek.com/v1` | `sk-...` |
+| **Anthropic** | `https://api.anthropic.com/v1` | `sk-ant-...` |
+| **Custom** | Any OpenAI-compatible URL | Your format |
+
+*After saving, OpenPrompter **auto-fetches your available models** and displays them in a live-scrolling marquee.*
+
+---
+
+### <img src="https://api.iconify.design/ph:clipboard-text.svg?color=%232563eb" width="24" height="24" align="center" /> Curated Prompt Templates
+<p align="center">
+<img src="assets/opfeature3.png" alt="Prompt History" width="85%" />
+</p>
+
+6 high-fidelity starter templates spanning:
+* **Coding:** Refactor, review, architect.
+* **Marketing:** Copy, campaigns, positioning.
+* **Analysis:** Research synthesis, data breakdowns.
+* **Sales:** Outreach, objection handling.
+* **Education:** Lesson plans, explanations.
+* **Product:** PRDs, user stories, roadmaps.
+
+---
+
+### <img src="https://api.iconify.design/ph:mask-happy.svg?color=%232563eb" width="24" height="24" align="center" /> Custom Personas & <img src="https://api.iconify.design/ph:clock-counter-clockwise.svg?color=%232563eb" width="24" height="24" align="center" /> Local History
+* **Personas:** Design your own expert AI roles (e.g., *"Python Refactoring Ninja"*). Personas persist across sessions via localStorage and apply as system-level instructions. 5 presets included.
+* **History:** Every optimization is saved locally with full metadata (score, type, timestamp, model). Export your session as JSON/Markdown, or wipe it clean in one click.
+
+<br>
+
+## <img src="https://api.iconify.design/ph:terminal.svg?color=%232563eb" width="28" height="28" align="center" /> Quick Start
 
 ```bash
-# Install dependencies
+# 1. Clone the repository
+git clone [https://github.com/Owie6789/OpenPrompter.git](https://github.com/Owie6789/OpenPrompter.git)
+cd OpenPrompter
+
+# 2. Install dependencies
 npm install
 
-# Set your API key in-app via the BYOK dialog (top-right Key icon), or set server env:
-# For OpenAI: export OPENAI_API_KEY="sk-..."
-# For DeepSeek: export DEEPSEEK_API_KEY="sk-..."
-# For Anthropic: export ANTHROPIC_API_KEY="sk-ant-..."
-
-# Start dev server
+# 3. Start the development server
 npm run dev
-```
-
-Open http://localhost:3000 — configure your API key via the Settings panel (top-right gear icon).
-
-## Production Build
-
-```bash
-npm run build
-npm start
-```
-
-Serves the SPA from `dist/` with the Express backend on port 3000.
-
-## Project Structure
-
-```
-OpenPrompter/
-├── src/                  # React app (Vite SPA)
-│   ├── App.tsx           # Main application component
-│   ├── main.tsx          # Entry point
-│   ├── types.ts          # TypeScript interfaces
-│   ├── data.ts           # Preset personas & templates
-│   └── index.css         # Tailwind v4 theme & globals
-├── components/ui/        # shadcn/ui components (base-nova style)
-├── lib/                  # Utility modules
-├── server.ts             # Express backend (dev & production)
-├── vite.config.ts        # Vite config
-├── tsconfig.json         # TypeScript configuration
-└── .env.example          # Environment variables template
-```
-
-## Configuration
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OPENAI_API_KEY` | No | OpenAI API key (server-side BYOK) |
-| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side BYOK) |
-| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side BYOK) |
-| `APP_URL` | No | Public URL for self-referential links |
-
-Users can also configure keys in-app via the Settings dialog (persisted to localStorage under `openprompter_byok_key`).
-
-## License
-
-MIT
