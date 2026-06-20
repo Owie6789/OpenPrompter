@@ -82,7 +82,7 @@ export default function App() {
         delayChildren: 0.08,
       },
     },
-  };
+  } as const;
 
   const staggerItem = {
     hidden: { opacity: 0, y: 12 },
@@ -91,7 +91,7 @@ export default function App() {
       y: 0,
       transition: { type: "spring", stiffness: 300, damping: 30 },
     },
-  };
+  } as const;
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<
@@ -1273,7 +1273,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 className="grid grid-cols-1 md:grid-cols-3 gap-5"
               >
                 {filteredTemplates.map((tpl, i) => (
-                  <motion.div key={i} variants={staggerItem}>
+                  <motion.div key={`${tpl.category}-${tpl.name}`} variants={staggerItem}>
                     <Card
                       className="border-whisper bg-surface hover:shadow-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all hover:border-whisper flex flex-col justify-between group rounded-[1.5rem] ring-1 ring-inset ring-whisper/20"
                     >
