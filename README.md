@@ -19,7 +19,7 @@
 
 <br>
 
-## <img src="https://api.iconify.design/ph:info.svg?color=%232563eb" width="28" height="28" align="center" /> What is OpenPrompter?
+## <img src="https://api.iconify.design/ph:info.svg?color=%232563eb" width="28" height="28" align="center" /> **What is OpenPrompter?**
 
 Most prompt optimizer tools are paywalled, rate-limited, or quietly logging your ideas. **OpenPrompter is none of those things.**
 
@@ -31,7 +31,7 @@ Your key. Your data. Your prompts. That's it.
 
 <br>
 
-## <img src="https://api.iconify.design/ph:stack.svg?color=%232563eb" width="28" height="28" align="center" /> Built With
+## <img src="https://api.iconify.design/ph:stack.svg?color=%232563eb" width="28" height="28" align="center" /> **Built With**
 
 <p align="left">
 <img src="https://www.shieldcn.dev/badge/-React_19-61DAFB.svg?logo=react&variant=branded&theme=stone&font=geist-mono" alt="React 19" />
@@ -42,9 +42,10 @@ Your key. Your data. Your prompts. That's it.
 
 <br>
 
-## <img src="https://api.iconify.design/ph:sparkle.svg?color=%232563eb" width="28" height="28" align="center" /> Core Features
+## <img src="https://api.iconify.design/ph:sparkle.svg?color=%232563eb" width="28" height="28" align="center" /> **Core Features**
 
-### <img src="https://api.iconify.design/ph:brain.svg?color=%232563eb" width="24" height="24" align="center" /> Prompt Optimization Workspace
+### <img src="https://api.iconify.design/ph:brain.svg?color=%232563eb" width="24" height="24" align="center" /> **Prompt Optimization Workspace**
+
 <p align="center">
 <img src="assets/opfeature1.png" alt="Prompt Optimizer" width="85%" />
 </p>
@@ -59,27 +60,33 @@ The engine deconstructs your input and outputs a structured, high-clarity prompt
 
 ---
 
-### <img src="https://api.iconify.design/ph:key.svg?color=%232563eb" width="24" height="24" align="center" /> BYOK — Bring Your Own Key
+### <img src="https://api.iconify.design/ph:key.svg?color=%232563eb" width="24" height="24" align="center" /> **BYOK — Bring Your Own Key**
+
 <p align="center">
 <img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" />
 </p>
 
 Plug in your own API key from any supported provider. OpenPrompter routes your prompt directly from browser → your key → provider API. No intermediary, no logging.
 
+<div align="center">
+
 | Provider | Default Endpoint | Key Format |
-|---|---|---|
+|:---:|:---:|:---:|
 | **OpenAI** | `https://api.openai.com/v1` | `sk-...` |
 | **DeepSeek** | `https://api.deepseek.com/v1` | `sk-...` |
 | **Anthropic** | `https://api.anthropic.com/v1` | `sk-ant-...` |
 | **Custom** | Any OpenAI-compatible URL | Your format |
 
+</div>
+
 *After saving, OpenPrompter **auto-fetches your available models** and displays them in a live-scrolling marquee.*
 
 ---
 
-### <img src="https://api.iconify.design/ph:clipboard-text.svg?color=%232563eb" width="24" height="24" align="center" /> Curated Prompt Templates
+### <img src="https://api.iconify.design/ph:clipboard-text.svg?color=%232563eb" width="24" height="24" align="center" /> **Curated Prompt Templates**
+
 <p align="center">
-<img src="assets/opfeature3.png" alt="Prompt History" width="85%" />
+<img src="assets/opfeature3.png" alt="Prompt Templates" width="85%" />
 </p>
 
 6 high-fidelity starter templates spanning:
@@ -90,9 +97,16 @@ Plug in your own API key from any supported provider. OpenPrompter routes your p
 * **Education:** Lesson plans, explanations.
 * **Product:** PRDs, user stories, roadmaps.
 
+Filter by category or search by keyword. One click loads any template directly into the workspace.
+
 ---
 
-### <img src="https://api.iconify.design/ph:mask-happy.svg?color=%232563eb" width="24" height="24" align="center" /> Custom Personas & <img src="https://api.iconify.design/ph:clock-counter-clockwise.svg?color=%232563eb" width="24" height="24" align="center" /> Local History
+### <img src="https://api.iconify.design/ph:mask-happy.svg?color=%232563eb" width="24" height="24" align="center" /> **Custom Personas** & <img src="https://api.iconify.design/ph:clock-counter-clockwise.svg?color=%232563eb" width="24" height="24" align="center" /> **Local History**
+
+<p align="center">
+<img src="assets/op-feature4.png" alt="Custom Personas and History" width="85%" />
+</p>
+
 * **Personas:** Design your own expert AI roles (e.g., *"Python Refactoring Ninja"*). Personas persist across sessions via localStorage and apply as system-level instructions. 5 presets included.
 * **History:** Every optimization is saved locally with full metadata (score, type, timestamp, model). Export your session as JSON/Markdown, or wipe it clean in one click.
 
@@ -107,7 +121,7 @@ Plug in your own API key from any supported provider. OpenPrompter routes your p
 
 <br>
 
-## <img src="https://api.iconify.design/ph:terminal.svg?color=%232563eb" width="28" height="28" align="center" /> Quick Start
+## <img src="https://api.iconify.design/ph:terminal.svg?color=%232563eb" width="28" height="28" align="center" /> **Quick Start**
 
 ```bash
 # 1. Clone the repository
