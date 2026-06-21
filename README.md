@@ -75,7 +75,7 @@ Plug in your own API key from any supported provider. OpenPrompter sends your pr
 | **OpenAI** | `https://api.openai.com/v1` | `sk-...` |
 | **DeepSeek** | `https://api.deepseek.com/v1` | `sk-...` |
 | **Anthropic** | `https://api.anthropic.com/v1` | `sk-ant-...` |
-| **Custom** | Any OpenAI-compatible URL | Your format |
+| **Custom** | Development-only OpenAI-compatible URL (disabled in production) | Your format |
 
 </div>
 

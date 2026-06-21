@@ -141,14 +141,14 @@ const PRIVATE_HOSTNAME_PATTERNS = [
 ];
 
 function assertSafeEndpoint(url: string, prov: string): void {
-  if (!url) return;
-  const parsed = new URL(url);
   if (prov === "custom") {
-    // Block custom endpoints entirely in production — no DNS/redirect SSRF risk
     if (process.env.NODE_ENV === "production") {
       throw new Error("Custom endpoints are not allowed in production.");
     }
-
+    if (!url) {
+      throw new Error("Custom endpoint URL is required.");
+    }
+    const parsed = new URL(url);
     const isLocalhost =
       parsed.hostname === "localhost" ||
       parsed.hostname === "127.0.0.1" ||
@@ -162,12 +162,14 @@ function assertSafeEndpoint(url: string, prov: string): void {
       throw new Error("Only HTTPS endpoints are allowed.");
     }
 
-    // Block private/link-local hostnames
     if (PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(parsed.hostname))) {
       throw new Error("Custom endpoints cannot point to private or internal addresses.");
     }
     return;
   }
+
+  if (!url) return;
+  const parsed = new URL(url);
   const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname.endsWith(h));
   if (!allowed) {
     throw new Error("Endpoint not permitted.");
@@ -195,6 +197,16 @@ async function assertSafeResolvedEndpoint(url: string, prov: string): Promise<vo
     }
     // DNS lookup failed — still block to be safe
     throw new Error("Could not resolve custom endpoint hostname.");
+  }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Unknown error";
   }
 }
 
@@ -301,26 +313,31 @@ app.post("/api/models", async (req, res) => {
       if (resp.ok) {
         const data = (await resp.json()) as ProviderModelsResponse;
         const models: ProviderModel[] = data.data || data.models || [];
-        modelList = models
-          .filter((m) => {
-            const id = (m.id || m.name || "").toLowerCase();
-            if (id.includes("embedding") || id.includes("tts") || id.includes("whisper") || id.includes("moderation") || id.includes("dall-e") || id.includes("davinci") || id.includes("babbage") || id.includes("curie")) return false;
-            return true;
-          })
-          .map((m) => ({
-            id: m.id || m.name || "",
-            name: m.id || m.name || "",
-          }))
-          .slice(0, 50);
+        modelList = models.filter(isChatModel).map(toModelOption).slice(0, 50);
       }
     }
 
     return res.json({ models: modelList });
   } catch (error: unknown) {
-    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(String(error instanceof Error ? error.message : error))}`);
+    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(errorMessage(error))}`);
     return res.json({ models: [] });
   }
 });
+
+const EXCLUDED_MODEL_SUBSTRINGS = [
+  "embedding", "tts", "whisper", "moderation",
+  "dall-e", "davinci", "babbage", "curie",
+];
+
+function isChatModel(model: ProviderModel): boolean {
+  const id = (model.id || model.name || "").toLowerCase();
+  return !EXCLUDED_MODEL_SUBSTRINGS.some((part) => id.includes(part));
+}
+
+function toModelOption(model: ProviderModel): { id: string; name: string } {
+  const value = model.id || model.name || "";
+  return { id: value, name: value };
+}
 
 // LLM response schema
 interface LlmResponse {
@@ -480,8 +497,7 @@ app.post("/api/optimize", async (req, res) => {
     try {
       await assertSafeResolvedEndpoint(activeEndpoint, prov);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Invalid endpoint";
-      return res.status(400).json(errorResponse("validation_error", msg));
+      return res.status(400).json(errorResponse("validation_error", errorMessage(e)));
     }
 
     // Validate model
@@ -633,7 +649,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       }
     }
   } catch (error: unknown) {
-    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(String(error instanceof Error ? error.message : error))}`);
+    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(errorMessage(error))}`);
     return res.status(500).json(errorResponse("server_error", "An unexpected error occurred."));
   }
 });

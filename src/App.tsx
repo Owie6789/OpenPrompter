@@ -1182,9 +1182,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         BYOK Privacy Architecture
                       </h5>
                       <p className="text-xs text-steel mt-1 leading-snug max-w-md">
-                        Keys are kept on-device, fully bypassing server
-                        throttling or limits. Your ideas and intellectual
-                        property never hit any middleman database.
+                        Keys are stored locally and sent to the stateless
+                        backend proxy only when optimizing. The proxy
+                        forwards requests without persisting keys, prompts,
+                        or responses.
                       </p>
                     </div>
                   </div>
@@ -2056,10 +2057,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </h4>
                     <p className="text-xs text-muted leading-snug font-mono">
                       By using your own API key from any supported provider, the
-                      optimization pipeline operates client-to-server with
-                      standard API access. Keys never hit an intermediary
-                      logging database; everything runs entirely inside your
-                      browser's execution context.
+                      optimization pipeline runs through a stateless backend proxy
+                      that forwards requests without storing keys or prompt data.
                     </p>
                   </div>
 

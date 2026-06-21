@@ -15,19 +15,19 @@ export default defineConfig(() => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes("node_modules")) {
-              if (id.includes("react-dom") || id.includes("react/jsx") || id.includes("scheduler")) {
-                return "vendor-react";
-              }
-              if (id.includes("motion") || id.includes("framer-motion")) {
-                return "vendor-motion";
-              }
-              if (id.includes("hugeicons")) {
-                return "vendor-icons";
-              }
-              if (id.includes("@radix-ui")) {
-                return "vendor-radix";
-              }
+            if (!id.includes("node_modules")) return;
+            const n = id.replaceAll("\\", "/");
+            if (n.includes("/node_modules/react/") || n.includes("/node_modules/react-dom/") || n.includes("/node_modules/scheduler/") || n.includes("/node_modules/react/jsx")) {
+              return "vendor-react";
+            }
+            if (n.includes("/node_modules/motion/") || n.includes("/node_modules/framer-motion/") || n.includes("/node_modules/motion-dom/")) {
+              return "vendor-motion";
+            }
+            if (n.includes("/node_modules/@hugeicons/")) {
+              return "vendor-icons";
+            }
+            if (n.includes("/node_modules/@radix-ui/")) {
+              return "vendor-radix";
             }
           },
         },
