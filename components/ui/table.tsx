@@ -3,6 +3,9 @@
 import {
   useRef,
   useEffect,
+  useMemo,
+  useCallback,
+  useState,
   createContext,
   useContext,
   forwardRef,
@@ -22,6 +25,8 @@ import { useProximityHover } from "@/hooks/use-proximity-hover";
 interface TableContextValue {
   registerItem: (index: number, element: HTMLElement | null) => void;
   activeIndex: number | null;
+  handleFocus: (index: number) => void;
+  handleBlur: () => void;
 }
 
 const TableContext = createContext<TableContextValue | null>(null);
@@ -43,22 +48,62 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
       handlers,
       registerItem,
       measureItems,
+      setActiveIndex,
     } = useProximityHover(containerRef);
 
     useEffect(() => {
       measureItems();
     }, [measureItems, children]);
 
-    const activeRect = activeIndex !== null ? itemRects[activeIndex] : null;
+    const handleFocus = useCallback((index: number) => {
+      setActiveIndex(index);
+    }, [setActiveIndex]);
+
+    const handleBlur = useCallback(() => {
+      setActiveIndex(null);
+    }, [setActiveIndex]);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+      const touch = e.touches[0];
+      const syntheticEvent = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as React.MouseEvent;
+      handlers.onMouseEnter();
+      handlers.onMouseMove(syntheticEvent);
+    }, [handlers]);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+      const touch = e.touches[0];
+      const syntheticEvent = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as React.MouseEvent;
+      handlers.onMouseMove(syntheticEvent);
+    }, [handlers]);
+
+    const handleTouchEnd = useCallback(() => {
+      handlers.onMouseLeave();
+    }, [handlers]);
+
+    const tableContextValue = useMemo(
+      () => ({ registerItem, activeIndex, handleFocus, handleBlur }),
+      [registerItem, activeIndex, handleFocus, handleBlur]
+    );
+
+    const activeRect = activeIndex === null ? null : itemRects[activeIndex];
 
     return (
-      <TableContext.Provider value={{ registerItem, activeIndex }}>
+      <TableContext.Provider value={tableContextValue}>
         <div
           ref={containerRef}
           className="relative"
-          onMouseEnter={handlers.onMouseEnter}
-          onMouseMove={handlers.onMouseMove}
-          onMouseLeave={handlers.onMouseLeave}
+          onPointerEnter={handlers.onMouseEnter}
+          onPointerMove={handlers.onMouseMove}
+          onPointerLeave={handlers.onMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Hover background */}
           <AnimatePresence>
@@ -66,6 +111,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
               <motion.div
                 key={sessionRef.current}
                 className="absolute bg-hover pointer-events-none"
+                aria-hidden="true"
                 initial={{
                   opacity: 0,
                   top: activeRect.top,
@@ -141,7 +187,7 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
       if (index === undefined || !ctx) return;
       ctx.registerItem(index, internalRef.current);
       return () => ctx.registerItem(index, null);
-    }, [index, ctx]);
+    }, [index, ctx?.registerItem]);
 
     const isBodyRow = index !== undefined;
     const activeIdx = ctx?.activeIndex ?? null;
@@ -149,6 +195,14 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
       (isBodyRow && (index === activeIdx || index === activeIdx - 1)) ||
       (!isBodyRow && activeIdx === 0)
     );
+
+    const handleFocus = useCallback(() => {
+      if (index !== undefined && ctx) ctx.handleFocus(index);
+    }, [index, ctx]);
+
+    const handleBlur = useCallback(() => {
+      if (ctx) ctx.handleBlur();
+    }, [ctx]);
 
     return (
       <tr
@@ -170,6 +224,9 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
             ? fontWeights.normal
             : fontWeights.semibold,
         }}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        tabIndex={0}
         {...props}
       />
     );

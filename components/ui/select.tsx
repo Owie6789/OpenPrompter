@@ -94,6 +94,7 @@ function Select({
 
   // Pre-populate labelMap from options for immediate label availability
   useEffect(() => {
+    labelMap.current.clear();
     options.forEach((opt) => labelMap.current.set(opt.value, opt.label));
   }, [options]);
 

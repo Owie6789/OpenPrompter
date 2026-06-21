@@ -10,10 +10,6 @@ import {
   type HTMLAttributes,
 } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import {
-  Portal as DialogPortal,
-  Overlay as DialogOverlay,
-} from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIcon } from "@/lib/icon-context";
@@ -76,7 +72,7 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 
     return (
       <DialogPrimitive.Portal forceMount container={container ?? undefined}>
-        <DialogOverlay asChild forceMount>
+        <DialogPrimitive.Overlay asChild forceMount>
           <motion.div
             className={cn(
               container ? "absolute" : "fixed",
@@ -86,7 +82,7 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
             animate={{ opacity: open ? 1 : 0 }}
             transition={open ? spring.slow : spring.slow.exit}
           />
-        </DialogOverlay>
+        </DialogPrimitive.Overlay>
         <DialogPrimitive.Content ref={ref} asChild forceMount {...props}>
           <motion.div
             className={cn(
@@ -179,9 +175,7 @@ function DialogBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 export {
   Dialog,
   DialogTrigger,
-  DialogPortal,
   DialogClose,
-  DialogOverlay,
   DialogContent,
   DialogHeader,
   DialogFooter,
@@ -189,3 +183,5 @@ export {
   DialogDescription,
   DialogBody,
 };
+
+export { Portal as DialogPortal, Overlay as DialogOverlay } from "@radix-ui/react-dialog";

@@ -14,8 +14,12 @@ if (existsSync(".env.local")) {
 }
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "3000", 10);
-const AUTO_PORT = PORT === 0;
+const rawPort = process.env.PORT ?? "3000";
+const parsedPort = Number.parseInt(rawPort, 10);
+if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
+  throw new Error(`Invalid PORT value "${rawPort}". Expected an integer from 0 to 65535.`);
+}
+const PORT = parsedPort;
 
 // Security middleware stack
 app.use(helmet());

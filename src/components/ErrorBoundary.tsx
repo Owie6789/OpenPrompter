@@ -20,7 +20,9 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string }) {
-    console.error("[ErrorBoundary]", error.message, info.componentStack);
+    if (process.env.NODE_ENV === "development") {
+      console.error("[ErrorBoundary]", error.message, info.componentStack);
+    }
   }
 
   handleReset = () => {

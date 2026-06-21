@@ -80,6 +80,14 @@ function safeJsonParse<T>(json: string | null, fallback: T): T {
   catch { return fallback; }
 }
 
+function safeLocalStorageJsonGet<T>(key: string, fallback: T): T {
+  try {
+    return safeJsonParse<T>(localStorage.getItem(key), fallback);
+  } catch {
+    return fallback;
+  }
+}
+
 function safeLocalStorageGet(key: string, fallback = ""): string {
   try { return localStorage.getItem(key) ?? fallback; }
   catch { return fallback; }
@@ -108,11 +116,11 @@ export default function App() {
   } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
   const staggerItem = {
-    hidden: { opacity: 0, y: 12 } as const,
+    hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { type: "spring" as const, stiffness: 300, damping: 30 },
+      transition: { type: "spring", stiffness: 300, damping: 30 },
     },
   } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
@@ -124,31 +132,23 @@ export default function App() {
 
   // App core state
   const [promptInput, setPromptInput] = useState("");
-  const [customInstructions, setCustomInstructions] = useState(() => {
-    try { return localStorage.getItem("openprompter_custom_instructions") || ""; }
-    catch { return ""; }
-  });
-  const [selectedModel, setSelectedModel] = useState<string>(() => {
-    try { return localStorage.getItem("openprompter_selected_model") || "gpt-4o"; }
-    catch { return "gpt-4o"; }
-  });
+  const [customInstructions, setCustomInstructions] = useState(() =>
+    safeLocalStorageJsonGet("openprompter_custom_instructions", "")
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(() =>
+    safeLocalStorageJsonGet("openprompter_selected_model", "gpt-4o")
+  );
   const [selectedPersona, setSelectedPersona] = useState<string>("p1"); // Ref to CustomPersona.id
   const [apiKey, setApiKey] = useState(() => safeLocalStorageGet("openprompter_byok_key"));
 
   // Local storage lists
-  const [historyList, setHistoryList] = useState<PromptHistoryItem[]>(() => {
-    return safeJsonParse<PromptHistoryItem[]>(
-      localStorage.getItem("openprompter_prompt_history"),
-      [],
-    );
-  });
+  const [historyList, setHistoryList] = useState<PromptHistoryItem[]>(() =>
+    safeLocalStorageJsonGet<PromptHistoryItem[]>("openprompter_prompt_history", [])
+  );
 
-  const [customPersonas, setCustomPersonas] = useState<CustomPersona[]>(() => {
-    return safeJsonParse<CustomPersona[]>(
-      localStorage.getItem("openprompter_custom_personas"),
-      [],
-    );
-  });
+  const [customPersonas, setCustomPersonas] = useState<CustomPersona[]>(() =>
+    safeLocalStorageJsonGet<CustomPersona[]>("openprompter_custom_personas", [])
+  );
 
   // Optimization process states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -331,9 +331,14 @@ export default function App() {
     const key = override?.apiKey ?? apiKey;
     const endpoint = override?.apiEndpoint ?? apiEndpoint;
     const provider = override?.provider ?? activeProvider;
-
-    if (!key) return;
     const seq = ++modelFetchSeq.current;
+
+    if (!key) {
+      setAvailableModels([]);
+      setModelsLoading(false);
+      return;
+    }
+
     setModelsLoading(true);
     try {
       const resp = await fetch("/api/models", {
@@ -351,6 +356,7 @@ export default function App() {
       }
     } catch {
       if (seq === modelFetchSeq.current) {
+        setAvailableModels([]);
         toast.error("Failed to fetch models from provider.");
       }
     } finally {
