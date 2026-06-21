@@ -687,8 +687,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-accent text-white flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-md bg-accent text-accent-foreground flex items-center justify-center shadow-card">
+                <Brain className="w-6 h-6 text-accent-foreground" />
               </div>
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-ink font-display">
@@ -719,7 +719,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             >
               <Button
                 variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("optimizer")}
                 id="tab-optimizer"
               >
@@ -728,7 +728,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "templates" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "templates" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "templates" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("templates")}
                 id="tab-templates"
               >
@@ -737,7 +737,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "personas" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "personas" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "personas" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("personas")}
                 id="tab-personas"
               >
@@ -746,7 +746,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "history" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "history" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "history" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("history")}
                 id="tab-history"
               >
@@ -755,7 +755,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {historyList.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1.5 bg-slate-200 text-[10px] text-steel border-none shrink-0 px-1.5 py-0"
+                    className="ml-1.5 bg-whisper text-[10px] text-steel border-none shrink-0 px-1.5 py-0"
                   >
                     {historyList.length}
                   </Badge>
@@ -763,7 +763,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </Button>
               <Button
                 variant={activeTab === "about" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "about" ? "bg-accent text-white shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
+                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "about" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
                 onClick={() => setActiveTab("about")}
                 id="tab-about"
               >
@@ -776,7 +776,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             <div className="flex items-center gap-3">
               <Button
                 variant={apiKey ? "outline" : "default"}
-                className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-slate-300 text-steel hover:bg-slate-100" : "bg-accent text-white shadow-sm hover:bg-accent-hover"}`}
+                className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-edges text-steel hover:bg-hover" : "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover"}`}
                 onClick={() => {
                   setApiKeyInputVal(apiKey);
                   setShowApiKeyDialog(true);
@@ -894,7 +894,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {/* LEFT: WORKSPACE INPUTS & CONFIG */}
                 <div className="flex-1 lg:w-1/2 space-y-6">
                   {/* WORKSPACE CARD */}
-                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl relative overflow-hidden">
+                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl relative overflow-hidden">
                     <CardHeader className="pb-4 pt-6 px-6">
                       <div className="flex justify-between items-start">
                         <div>
@@ -949,7 +949,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <div className="text-[10px] text-muted flex justify-between">
                             <span>
                               <Lightbulb className="w-3 h-3 inline -mt-0.5 text-muted" /> Press{" "}
-                              <kbd className="bg-slate-100 border border-whisper px-1.5 py-0.5 rounded text-steel font-mono shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+                              <kbd className="bg-whisper border border-whisper px-1.5 py-0.5 rounded text-steel font-mono shadow-card">
                                 Ctrl + Enter
                               </kbd>{" "}
                               to optimize instantly.
@@ -989,7 +989,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <SelectTrigger
                                   icon={undefined}
                                   placeholder="Standard Prompt Engineer"
-                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1"
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
                                 <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
                                   {allPersonas.map((persona, i) => (
@@ -1049,7 +1049,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <SelectTrigger
                                   icon={undefined}
                                   placeholder={selectedModel || "Select model"}
-                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 focus:ring-offset-1"
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
                                 <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] max-h-60">
                                   {availableModels.length > 0 ? (
@@ -1140,7 +1140,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   handleOptimizePrompt();
                                 }
                               }}
-                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus-visible:ring-slate-900 focus-visible:ring-offset-1 placeholder:text-muted"
+                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus-visible:ring-accent focus-visible:ring-offset-1 placeholder:text-muted"
                             />
                           </div>
 
@@ -1149,7 +1149,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <CardFooter className="border-t border-whisper pt-5 pb-6 flex justify-end gap-3 bg-canvas rounded-b-[calc(2rem-0.5rem)] px-6 mt-4">
                         <Button
                           size="lg"
-                          className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-[1.25rem] text-white pl-8 pr-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
+                          className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-[1.25rem] text-accent-foreground pl-8 pr-3 shadow-card flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
                           disabled={isOptimizing}
                           onClick={handleOptimizePrompt}
                           id="run-optimize-btn"
@@ -1163,7 +1163,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             <>
                               <span>Optimize Prompt</span>
                               <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:bg-white/25 transition-colors group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-300">
-                                <Sparkle className="w-3.5 h-3.5 text-white" />
+                                <Sparkle className="w-3.5 h-3.5 text-accent-foreground" />
                               </span>
                             </>
                           )}
@@ -1172,7 +1172,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </Card>
 
                   {/* BYOK ENCOURAGEMENT CARD */}
-                  <div className="border border-whisper rounded-lg p-5 bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] flex items-start gap-4">
+                  <div className="border border-whisper rounded-lg p-5 bg-surface shadow-card flex items-start gap-4">
                     <div className="w-10 h-10 rounded-md bg-canvas border border-whisper flex items-center justify-center shrink-0">
                       <Lock className="w-5 h-5 text-steel" />
                     </div>
@@ -1193,7 +1193,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <div className="flex flex-col gap-6 lg:w-1/2">
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
-                    <div className="border border-whisper rounded-xl bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transform transition-colors,shadow,ring">
+                    <div className="border border-whisper rounded-xl bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-card transform transition-colors,shadow,ring">
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
                         <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-lg" />
@@ -1261,11 +1261,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       className="space-y-6"
                     >
                       {/* ACCREDITATIONS & SCORE */}
-                      <div className="bg-surface rounded-xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper overflow-hidden">
+                      <div className="bg-surface rounded-xl shadow-card border border-whisper overflow-hidden">
                         <div className="p-6 border-b border-whisper">
                           <div className="flex justify-between items-center flex-wrap gap-4">
                             <div className="flex items-center gap-3">
-                              <Badge className="bg-slate-100 text-steel border-none font-mono text-[10px] tracking-widest uppercase font-semibold px-3 py-1">
+                              <Badge className="bg-whisper text-steel border-none font-mono text-[10px] tracking-widest uppercase font-semibold px-3 py-1">
                                 {optimizedResult.prompt_type || "Standard"}
                               </Badge>
                               <CardTitle className="text-xl font-bold font-display tracking-tight text-ink">
@@ -1299,7 +1299,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 (imp: string, i: number) => (
                                   <div
                                     key={`${imp.slice(0, 60)}-${i}`}
-                                    className="text-sm p-4 rounded-lg bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow"
+                                    className="text-sm p-4 rounded-lg bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card hover:shadow-md transition-shadow"
                                   >
                                     <span className="text-muted shrink-0 font-bold font-mono text-xs mt-0.5">
                                       {(i + 1).toString().padStart(2, "0")}
@@ -1324,7 +1324,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                       <Badge
                                         key={`${ch.slice(0, 60)}-${i}`}
                                         variant="outline"
-                                        className="bg-surface border-whisper text-[11px] px-3 py-1 font-mono text-steel shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                                        className="bg-surface border-whisper text-[11px] px-3 py-1 font-mono text-steel shadow-card"
                                       >
                                         <Check className="w-3 h-3 mr-1 text-emerald-500" />{" "}
                                         {ch}
@@ -1338,8 +1338,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
 
                       {/* OPTIMIZED PROMPT OUTPUT CARD */}
-                      <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl relative overflow-hidden p-2">
-                        <div className="bg-surface rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
+                      <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl relative overflow-hidden p-2">
+                        <div className="bg-surface rounded-lg shadow-card border border-whisper h-full">
                           <CardHeader className="pb-4 pt-6 px-6 border-b border-whisper flex flex-row items-center justify-between">
                             <div>
                               <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display tracking-tight text-ink">
@@ -1354,7 +1354,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 text-xs rounded-full hover:bg-surface text-steel hover:text-ink shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                                className="h-8 text-xs rounded-full hover:bg-surface text-steel hover:text-ink shadow-card"
                                 onClick={() =>
                                   handleCopyToClipboard(
                                     optimizedResult.optimized_prompt,
@@ -1371,7 +1371,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </Button>
 
                               {/* Export selectors */}
-                              <div className="flex rounded-full py-0.5 px-1 bg-surface divide-x divide-slate-100 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] shrink-0 items-center">
+                              <div className="flex rounded-full py-0.5 px-1 bg-surface divide-x divide-edges shadow-card shrink-0 items-center">
                                 <button
                                   className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
                                   onClick={() =>
@@ -1434,7 +1434,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               className="space-y-6"
             >
               {/* FILTER TOOLBAR */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-lg border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-lg border border-whisper shadow-card">
                 <div>
                   <h3 className="text-xl font-bold font-display tracking-tight text-ink">
                     Prompt Presets Gallery
@@ -1458,7 +1458,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     ].map((cat) => (
                       <button
                         key={cat}
-                        className={`text-[11px] px-3 py-1.5 rounded-lg font-semibold tracking-wide uppercase transition-colors,shadow,ring ${categoryFilter === cat ? "bg-surface text-ink shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]" : "text-muted hover:text-steel"}`}
+                        className={`text-[11px] px-3 py-1.5 rounded-lg font-semibold tracking-wide uppercase transition-colors,shadow,ring ${categoryFilter === cat ? "bg-surface text-ink shadow-card" : "text-muted hover:text-steel"}`}
                         onClick={() => setCategoryFilter(cat)}
                       >
                         {cat}
@@ -1471,7 +1471,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     placeholder="Search curated prompts..."
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    className="max-w-[200px] h-9 text-xs bg-surface border-whisper rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                    className="max-w-[200px] h-9 text-xs bg-surface border-whisper rounded-lg shadow-card"
                   />
                 </div>
               </div>
@@ -1486,7 +1486,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {filteredTemplates.map((tpl, i) => (
                   <motion.div key={`${tpl.category}-${tpl.name}`} variants={staggerItem}>
                     <Card
-                      className="border-whisper bg-surface hover:shadow-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:border-whisper flex flex-col justify-between group rounded-lg ring-1 ring-inset ring-whisper/20"
+                      className="border-whisper bg-surface hover:shadow-md shadow-card transition-colors,shadow,ring hover:border-whisper flex flex-col justify-between group rounded-lg ring-1 ring-inset ring-whisper/20"
                     >
                     <CardHeader className="pb-3 pt-5 px-5 border-b border-whisper/40">
                       <div className="flex justify-between items-start">
@@ -1539,7 +1539,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-steel hover:text-ink font-semibold rounded-full hover:bg-surface border border-transparent hover:border-whisper shadow-none hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                        className="text-xs text-steel hover:text-ink font-semibold rounded-full hover:bg-surface border border-transparent hover:border-whisper shadow-none hover:shadow-card"
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         Load into Workspace →
@@ -1571,8 +1571,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* LEFT: EDIT / CREATE FORM */}
                 <div className="lg:w-1/3">
-                  <Card className="border-whisper bg-surface backdrop-blur-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl sticky top-24 p-1.5">
-                    <div className="bg-surface rounded-[calc(0.75rem-0.375rem)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-whisper h-full">
+                  <Card className="border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl sticky top-24 p-1.5">
+                    <div className="bg-surface rounded-[calc(0.75rem-0.375rem)] shadow-card border border-whisper h-full">
                       <CardHeader className="px-6 pt-6">
                         <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight">
                           {editingPersona ? (
@@ -1605,7 +1605,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaName(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-accent shadow-card"
                             />
                           </div>
 
@@ -1621,7 +1621,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaDescription(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-accent shadow-card"
                             />
                           </div>
 
@@ -1639,7 +1639,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaPrompt(e.target.value)
                               }
-                              className="bg-surface border-whisper text-xs font-mono rounded-md focus:ring-slate-900 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] resize-none"
+                              className="bg-surface border-whisper text-xs font-mono rounded-md focus:ring-accent shadow-card resize-none"
                             />
                           </div>
                         </CardContent>
@@ -1664,7 +1664,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <Button
                             type="submit"
                             size="sm"
-                            className="bg-accent text-white hover:bg-accent-hover text-xs text-white rounded-full px-5 shadow-md"
+                            className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs rounded-full px-5 shadow-md"
                           >
                             {editingPersona ? "Save Updates" : "Create Persona"}
                           </Button>
@@ -1676,7 +1676,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {/* RIGHT: PERSONAS LIST GRID */}
                 <div className="flex-1 space-y-4">
-                  <div className="bg-surface p-5 border border-whisper rounded-lg flex items-center justify-between shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+                  <div className="bg-surface p-5 border border-whisper rounded-lg flex items-center justify-between shadow-card">
                     <div>
                       <h3 className="text-base font-bold font-display text-ink tracking-tight">
                         Durable Persona Registry
@@ -1713,7 +1713,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <motion.div key={pers.id} variants={staggerItem}>
                           <Card
                             key={pers.id}
-                            className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
+                            className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-card transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
                           >
                             <CardHeader className="pb-3 pt-5 px-5">
                               <div className="flex justify-between items-start">
@@ -1721,7 +1721,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   variant="secondary"
                                   className={
                                     isPreset
-                                      ? "bg-slate-100 border border-transparent text-[10px] text-steel font-semibold tracking-widest uppercase"
+                                      ? "bg-whisper border border-transparent text-[10px] text-steel font-semibold tracking-widest uppercase"
                                       : "bg-canvas text-accent border border-accent/20 text-[10px] uppercase tracking-widest font-semibold"
                                   }
                                 >
@@ -1733,7 +1733,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-muted hover:text-ink hover:bg-slate-100 rounded-full"
+                                      className="h-8 w-8 text-muted hover:text-ink hover:bg-hover rounded-full"
                                       onClick={() => handleEditPersona(pers)}
                                     >
                                       <GearSix className="w-3.5 h-3.5" />
@@ -1793,7 +1793,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     ? "secondary"
                                     : "ghost"
                                 }
-                                className={`text-xs font-semibold rounded-full px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-white shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-slate-100 hover:text-ink"}`}
+                                className={`text-xs font-semibold rounded-full px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-hover hover:text-ink"}`}
                                 onClick={() => {
                                   setSelectedPersona(pers.id);
                                   toast.success(
@@ -1826,7 +1826,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
-              <div className="bg-surface p-6 border border-whisper rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]">
+              <div className="bg-surface p-6 border border-whisper rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-card">
                 <div>
                   <h3 className="text-xl font-bold font-display tracking-tight text-ink">
                     Prompt Engineering Logs
@@ -1897,7 +1897,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <AlertDialogFooter>
                             <AlertDialogCancel className="rounded-full font-semibold text-steel">Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              className="rounded-full font-semibold bg-error text-white hover:bg-red-600"
+                              className="rounded-full font-semibold bg-error text-destructive-foreground hover:bg-error/80"
                               onClick={() => {
                                 setHistoryList([]);
                                 toast.success("History cache cleared pristine!");
@@ -1911,7 +1911,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs text-error hover:text-error hover:bg-rose-50 border-rose-100 self-end md:self-auto rounded-full font-semibold shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                        className="text-xs text-error hover:text-error hover:bg-error/10 border-error/20 self-end md:self-auto rounded-full font-semibold shadow-card"
                         onClick={() => setShowClearConfirm(true)}
                       >
                         <Trash className="w-3.5 h-3.5 mr-1.5" />
@@ -1942,7 +1942,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     {/* Upper Metadata */}
                     <div className="flex justify-between items-center flex-wrap gap-2 mb-4">
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-slate-100 text-steel border-none text-[10px] uppercase tracking-widest font-mono font-semibold px-3 py-1">
+                        <Badge className="bg-whisper text-steel border-none text-[10px] uppercase tracking-widest font-mono font-semibold px-3 py-1">
                           {item.promptType}
                         </Badge>
                         <span className="text-[10px] text-muted font-mono tracking-wider font-semibold">
@@ -1991,7 +1991,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <span className="text-[10px] font-mono text-ink font-bold tracking-widest uppercase block mb-1">
                           Engineered Prompt Excerpt
                         </span>
-                        <div className="p-4 bg-accent text-white rounded-md text-xs font-mono text-slate-100 line-clamp-2 select-none border border-slate-800 shadow-md leading-snug selection:bg-slate-700">
+                        <div className="p-4 bg-accent text-accent-foreground rounded-md text-xs font-mono line-clamp-2 select-none border border-edges shadow-md leading-snug">
                           {item.optimizedPrompt}
                         </div>
                       </div>
@@ -2033,7 +2033,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="max-w-3xl mx-auto space-y-6"
             >
-              <Card className="border border-whisper bg-surface shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] rounded-xl">
+              <Card className="border border-whisper bg-surface shadow-card rounded-xl">
                 <CardHeader className="p-8 border-b border-whisper pb-6">
                   <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
                     About OpenPrompter
@@ -2050,8 +2050,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     architectural transparency.
                   </p>
 
-                  <div className="p-6 bg-accent text-white border border-slate-800 rounded-lg space-y-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-2 uppercase font-mono tracking-widest">
+                  <div className="p-6 bg-accent text-accent-foreground border border-edges rounded-lg space-y-3 shadow-card">
+                    <h4 className="text-xs font-bold text-accent-foreground flex items-center gap-2 uppercase font-mono tracking-widest">
                       <Lock className="w-4 h-4 text-emerald-400" /> Bring Your
                       Own Key Architecture
                     </h4>
@@ -2200,7 +2200,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
         {/* SHARED LINK FAB */}
       {sharedLinkCopied && (
-        <div className="fixed bottom-6 right-6 z-50 bg-accent text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 right-6 z-50 bg-accent text-accent-foreground text-xs font-semibold px-4 py-2.5 rounded-lg shadow-card animate-in fade-in slide-in-from-bottom-4 duration-300">
           <Check className="w-3.5 h-3.5 mr-1.5 inline" />
           Share link copied!
         </div>
