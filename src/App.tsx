@@ -128,10 +128,10 @@ export default function App() {
     },
   } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
+type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
+
   // Navigation State
-  const [activeTab, setActiveTab] = useState<
-    "optimizer" | "templates" | "personas" | "history" | "about"
-  >("optimizer");
+  const [activeTab, setActiveTab] = useState<TabType>("optimizer");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // App core state
@@ -706,15 +706,15 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               className="hidden md:flex items-center gap-1"
               role="tablist"
               onKeyDown={(e) => {
-                const tabs = ["optimizer","templates","personas","history","about"];
+                const tabs: TabType[] = ["optimizer","templates","personas","history","about"];
                 const idx = tabs.indexOf(activeTab);
                 if (e.key === "ArrowRight" || e.key === "ArrowDown") {
                   e.preventDefault();
-                  setActiveTab(tabs[(idx + 1) % tabs.length] as "optimizer" | "templates" | "personas" | "history" | "about");
+                  setActiveTab(tabs[(idx + 1) % tabs.length]);
                 }
                 if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
                   e.preventDefault();
-                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length] as "optimizer" | "templates" | "personas" | "history" | "about");
+                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
                 }
               }}
             >
