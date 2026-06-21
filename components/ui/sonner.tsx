@@ -6,7 +6,7 @@ import { CheckCircle, Info, WarningCircle, XCircle, Spinner } from "@phosphor-ic
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme="light"
+      theme="dark"
       className="toaster group"
       icons={{
         success: (

@@ -1,8 +1,15 @@
 (function(){
+  function prefersDark() {
+    return globalThis.matchMedia?.("(prefers-color-scheme: dark)")?.matches === true;
+  }
   try {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark' || (!theme && globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
+    const theme = globalThis.localStorage?.getItem("theme");
+    if (theme === "dark" || (theme == null && prefersDark())) {
+      document.documentElement.classList.add("dark");
     }
-  } catch(e) { /* localStorage may be disabled */ }
+  } catch {
+    if (prefersDark()) {
+      document.documentElement.classList.add("dark");
+    }
+  }
 })();
