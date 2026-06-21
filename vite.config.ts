@@ -14,10 +14,21 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
-            'vendor-motion': ['motion', 'framer-motion'],
-            'vendor-icons': ['@hugeicons/core-free-icons'],
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              if (id.includes("react-dom") || id.includes("react/jsx") || id.includes("scheduler")) {
+                return "vendor-react";
+              }
+              if (id.includes("motion") || id.includes("framer-motion")) {
+                return "vendor-motion";
+              }
+              if (id.includes("hugeicons")) {
+                return "vendor-icons";
+              }
+              if (id.includes("@radix-ui")) {
+                return "vendor-radix";
+              }
+            }
           },
         },
       },

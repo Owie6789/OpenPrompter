@@ -299,25 +299,25 @@ app.post("/api/models", async (req, res) => {
         headers: { Authorization: `Bearer ${activeKey}` },
       });
       if (resp.ok) {
-        const data: any = await resp.json();
-        const models: any[] = data.data || data.models || [];
+        const data = (await resp.json()) as ProviderModelsResponse;
+        const models: ProviderModel[] = data.data || data.models || [];
         modelList = models
-          .filter((m: any) => {
+          .filter((m) => {
             const id = (m.id || m.name || "").toLowerCase();
             if (id.includes("embedding") || id.includes("tts") || id.includes("whisper") || id.includes("moderation") || id.includes("dall-e") || id.includes("davinci") || id.includes("babbage") || id.includes("curie")) return false;
             return true;
           })
-          .map((m: any) => ({
-            id: m.id || m.name || m,
-            name: m.id || m.name || m,
+          .map((m) => ({
+            id: m.id || m.name || "",
+            name: m.id || m.name || "",
           }))
           .slice(0, 50);
       }
     }
 
     return res.json({ models: modelList });
-  } catch (error: any) {
-    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(String(error?.message || error))}`);
+  } catch (error: unknown) {
+    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(String(error instanceof Error ? error.message : error))}`);
     return res.json({ models: [] });
   }
 });
@@ -329,6 +329,31 @@ interface LlmResponse {
   key_changes: string[];
   confidence_score: number;
   prompt_type: string;
+}
+
+interface ProviderModel {
+  id?: string;
+  name?: string;
+}
+
+interface ProviderModelsResponse {
+  data?: ProviderModel[];
+  models?: ProviderModel[];
+}
+
+interface AnthropicResponse {
+  content?: Array<{ text?: string }>;
+}
+
+interface OpenAIChatResponse {
+  choices?: Array<{ message?: { content?: string } }>;
+}
+
+interface OptimizeRequestBody {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  temperature: number;
+  response_format: { type: string };
 }
 
 function validateLlmResponse(data: unknown): data is LlmResponse {
@@ -454,8 +479,9 @@ app.post("/api/optimize", async (req, res) => {
     // Validate endpoint
     try {
       await assertSafeResolvedEndpoint(activeEndpoint, prov);
-    } catch (e: any) {
-      return res.status(400).json(errorResponse("validation_error", e.message));
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Invalid endpoint";
+      return res.status(400).json(errorResponse("validation_error", msg));
     }
 
     // Validate model
@@ -541,7 +567,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData: any = await response.json();
+      const resData = (await response.json()) as AnthropicResponse;
       const content = resData.content?.[0]?.text;
       if (!content) {
         throw new Error("No text content returned from Anthropic API.");
@@ -561,7 +587,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
     } else {
       // OpenAI-compatible format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
-      const requestBody: any = {
+      const requestBody: OptimizeRequestBody = {
         model: chosenModel,
         messages: [
           { role: "system", content: systemPrompt },
@@ -586,7 +612,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData: any = await response.json();
+      const resData = (await response.json()) as OpenAIChatResponse;
       const content = resData.choices?.[0]?.message?.content;
       if (!content) {
         throw new Error("No text content returned from the API.");
@@ -606,8 +632,8 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
       }
     }
-  } catch (error: any) {
-    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(String(error?.message || error))}`);
+  } catch (error: unknown) {
+    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(String(error instanceof Error ? error.message : error))}`);
     return res.status(500).json(errorResponse("server_error", "An unexpected error occurred."));
   }
 });
