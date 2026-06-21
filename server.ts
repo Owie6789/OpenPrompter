@@ -22,7 +22,18 @@ if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
 const PORT = parsedPort;
 
 // Security middleware stack
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'"],
+      imgSrc: ["'self'", "data:"],
+      fontSrc: ["'self'"],
+    },
+  },
+}));
 const configuredOrigins = process.env.APP_URL
   ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
@@ -314,7 +325,12 @@ function stripJsonFence(text: string): string {
 
 function sanitizeForLog(s: string, maxLen = 500): string {
   const ESC = String.fromCodePoint(27);
-  return s.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
+  // Redact API key patterns (sk-*, sk-ant-*, Bearer tokens, etc.)
+  let clean = s
+    .replace(/sk-[A-Za-z0-9]{20,}/g, "sk-...REDACTED")
+    .replace(/sk-ant-[A-Za-z0-9]{20,}/g, "sk-ant-...REDACTED")
+    .replace(/Bearer\s+[A-Za-z0-9\-_.]{20,}/gi, "Bearer ...REDACTED");
+  return clean.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
 
 // API: Optimizer core
@@ -520,7 +536,8 @@ async function run() {
     });
   }
 
-  const server = app.listen(PORT, "0.0.0.0", () => {
+  const BIND_HOST = process.env.BIND_HOST || "127.0.0.1";
+  const server = app.listen(PORT, BIND_HOST, () => {
     const addr = server.address();
     const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
     console.log(`OpenPrompter running on http://localhost:${actualPort}`);
