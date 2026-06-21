@@ -204,10 +204,10 @@ Users can also configure keys in-app via the Settings dialog (persisted to `loca
 │   Browser   │────▶│  Express Proxy    │────▶│  LLM API    │
 │   (SPA)     │◀────│  (sanitize/fwd)   │◀────│ (OpenAI-    │
 │             │     │                   │     │  compatible)│
-│ localStorage│     │ fetchWithTimeout  │     │             │
-│ (history,   │     │ SSRF blocklist    │     │             │
-│  keys,      │     │ log sanitization  │     │             │
-│  personas)  │     └──────────────────┘     └─────────────┘
+│ localStorage│     │ safeFetch          │     │             │
+│ (history,   │     │ redirect validation│     │             │
+│  keys,      │     │ SSRF blocklist    │     │             │
+│  personas)  │     │ log sanitization  │     │             │
 └─────────────┘
 ```
 
