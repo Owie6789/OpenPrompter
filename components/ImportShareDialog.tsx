@@ -102,7 +102,7 @@ export default function ImportShareDialog({
             </Button>
             <Button
               size="sm"
-              className="bg-accent text-white hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
+              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
               onClick={handleConfirmImport}
             >
               Import {importData.type === "template" ? "Template" : "Persona"}

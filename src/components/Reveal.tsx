@@ -1,13 +1,12 @@
-"use client"
-
 import { motion } from "motion/react"
 import { motionTokens } from "@/src/lib/motion-tokens"
+import { useReducedMotion } from "@/src/hooks/use-reduced-motion"
 
 interface RevealProps {
-  children: React.ReactNode
-  delay?: number
-  className?: string
-  as?: "div" | "section" | "article" | "span"
+  readonly children: React.ReactNode
+  readonly delay?: number
+  readonly className?: string
+  readonly as?: "div" | "section" | "article" | "span"
 }
 
 export function Reveal({
@@ -16,17 +15,18 @@ export function Reveal({
   className,
   as: Tag = "div",
 }: RevealProps) {
+  const reduced = useReducedMotion()
   const MotionTag = motion[Tag as keyof typeof motion] as React.ElementType
 
   return (
     <MotionTag
-      initial={{ opacity: 0, y: motionTokens.distance.lg }}
+      initial={{ opacity: 0, y: reduced ? 0 : motionTokens.distance.lg }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{
-        duration: motionTokens.duration.slow,
+        duration: reduced ? 0 : motionTokens.duration.slow,
         ease: motionTokens.easing.smooth,
-        delay,
+        delay: reduced ? 0 : delay,
       }}
       className={className}
     >
@@ -35,13 +35,17 @@ export function Reveal({
   )
 }
 
+interface RevealListProps {
+  readonly children: React.ReactNode
+  readonly className?: string
+}
+
 export function RevealList({
   children,
   className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
+}: RevealListProps) {
+  const reduced = useReducedMotion()
+
   return (
     <motion.div
       initial="hidden"
@@ -51,8 +55,8 @@ export function RevealList({
         hidden: {},
         visible: {
           transition: {
-            staggerChildren: 0.07,
-            delayChildren: 0.05,
+            staggerChildren: reduced ? 0 : 0.07,
+            delayChildren: reduced ? 0 : 0.05,
           },
         },
       }}

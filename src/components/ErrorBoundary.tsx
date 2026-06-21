@@ -33,9 +33,9 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col items-center justify-center px-6 text-center">
-          <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mb-6">
+          <div className="w-14 h-14 rounded-full bg-error/10 border border-error/20 flex items-center justify-center mb-6">
             <svg
-              className="w-7 h-7 text-rose-500"
+              className="w-7 h-7 text-error"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -58,7 +58,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           </p>
           <button
             onClick={this.handleReset}
-            className="bg-accent text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-accent-hover transition-colors active:scale-[0.98]"
+            className="bg-accent text-accent-foreground text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-accent-hover transition-colors active:scale-[0.98]"
           >
             Try again
           </button>

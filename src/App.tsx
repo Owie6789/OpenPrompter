@@ -30,9 +30,8 @@ import {
 } from "@phosphor-icons/react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
-import { Reveal, RevealList, revealItemVariants } from "@/src/components/Reveal"
 import { ScrollProgress } from "@/src/components/ScrollProgress"
-import { motionTokens } from "@/src/lib/motion-tokens"
+import { useReducedMotion } from "@/src/hooks/use-reduced-motion"
 
 import { PRESET_PERSONAS, PRESET_TEMPLATES } from "./data";
 import {
@@ -107,19 +106,21 @@ function generateId(prefix: string): string {
 
 export default function App() {
   // Animation variants for staggered entry
+  const reducedMotion = useReducedMotion()
+
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.06,
-        delayChildren: 0.08,
+        staggerChildren: reducedMotion ? 0 : 0.06,
+        delayChildren: reducedMotion ? 0 : 0.08,
       },
     },
   } satisfies React.ComponentProps<typeof motion.div>["variants"];
 
   const staggerItem = {
-    hidden: { opacity: 0, y: 12 },
+    hidden: { opacity: 0, y: reducedMotion ? 0 : 12 },
     visible: {
       opacity: 1,
       y: 0,
@@ -679,11 +680,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent/20 selection:text-ink antialiased">
       <ScrollProgress />
-      <Toaster richColors closeButton theme="light" position="top-right" />
+      <Toaster richColors closeButton theme="dark" position="top-right" />
 
       {/* HEADER — Fluid Island */}
       <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-3 sticky top-3 z-50">
-        <div className="bg-surface backdrop-blur-3xl rounded-xl border border-whisper shadow-[0_20px_60px_-20px_rgba(0,0,0,0.08)] px-4 sm:px-6">
+        <div className="bg-surface backdrop-blur-3xl rounded-xl border border-whisper shadow-elevated px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
@@ -934,7 +935,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <Textarea
                             id="prompt-input"
                             placeholder="E.g., Write a draft story about a lost robot... OR Refactor this python class..."
-                            className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-slate-900 focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-slate-900 rounded-md resize-none shadow-inner"
+                            className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-accent focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-accent rounded-md resize-none shadow-inner"
                             value={promptInput}
                             onChange={(e) =>
                               setPromptInput(e.target.value.slice(0, 5000))
@@ -991,7 +992,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   placeholder="Standard Prompt Engineer"
                                   className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-elevated">
                                   {allPersonas.map((persona, i) => (
                                     <SelectItem
                                       key={persona.id}
@@ -1051,7 +1052,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   placeholder={selectedModel || "Select model"}
                                   className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] max-h-60">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-elevated max-h-60">
                                   {availableModels.length > 0 ? (
                                     availableModels.map((m, i) => (
                                       <SelectItem
@@ -1225,7 +1226,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           className="absolute inset-4 bg-accent/10 rounded-full animate-ping"
                           style={{ animationDuration: "3s" }}
                         />
-                        <div className="relative w-20 h-20 rounded-full bg-surface flex items-center justify-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-whisper z-10">
+                        <div className="relative w-20 h-20 rounded-full bg-surface flex items-center justify-center shadow-card border border-whisper z-10">
                           <MagicWand className="w-8 h-8 text-accent shrink-0" />
                           <div className="absolute -top-1 -right-1 w-6 h-6 bg-surface border border-whisper rounded-full flex items-center justify-center shadow-sm">
                             <Sparkle className="w-3 h-3 text-emerald-500" />
@@ -1402,7 +1403,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                           <CardContent className="p-0">
                             {/* OUTPUT COPY CONTAINER */}
-                            <div className="bg-canvas p-6 font-mono text-sm leading-snug text-ink border-b border-whisper max-h-[380px] overflow-y-auto whitespace-pre-wrap selection:bg-slate-200">
+                            <div className="bg-canvas p-6 font-mono text-sm leading-snug text-ink border-b border-whisper max-h-[380px] overflow-y-auto whitespace-pre-wrap selection:bg-accent/20">
                               {optimizedResult.optimized_prompt}
                             </div>
                           </CardContent>
@@ -1712,7 +1713,6 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         return (
                           <motion.div key={pers.id} variants={staggerItem}>
                           <Card
-                            key={pers.id}
                             className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-card transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
                           >
                             <CardHeader className="pb-3 pt-5 px-5">
@@ -1741,7 +1741,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-muted hover:text-error hover:bg-rose-50 rounded-full"
+                                      className="h-8 w-8 text-muted hover:text-error hover:bg-error/10 rounded-full"
                                       onClick={() => {
                                         setCustomPersonas((prev) =>
                                           prev.filter((p) => p.id !== pers.id),
@@ -1968,7 +1968,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted hover:text-error hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-rose-50 rounded-full"
+                          className="h-8 w-8 text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-error/10 rounded-full"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash className="w-4 h-4" />

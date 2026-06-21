@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) rounded-[15px] bg-card border border-edges py-(--card-spacing) text-sm text-card-foreground transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0.8,1)] hover:bg-surface-high hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)] [--card-spacing:--spacing(6)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[15px] *:[img:last-child]:rounded-b-[15px]",
+        "group/card flex flex-col gap-(--card-spacing) rounded-[15px] bg-card border border-edges py-(--card-spacing) text-sm text-card-foreground transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0.8,1)] hover:bg-surface-high hover:shadow-card-hover [--card-spacing:--spacing(6)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[15px] *:[img:last-child]:rounded-b-[15px]",
         className
       )}
       {...props}

@@ -44,7 +44,7 @@ export default function HistoryDetailDialog({
             <div className="flex justify-between items-center flex-wrap gap-2 text-xs mb-2">
               <Badge
                 variant="secondary"
-                className="bg-slate-100 text-steel border-none px-3 py-1 uppercase tracking-widest font-mono font-semibold"
+                className="bg-whisper text-steel border-none px-3 py-1 uppercase tracking-widest font-mono font-semibold"
               >
                 {selectedHistoryItem.promptType}
               </Badge>
@@ -85,7 +85,7 @@ export default function HistoryDetailDialog({
                 <span className="text-[10px] font-bold text-ink uppercase tracking-widest font-mono block">
                   Optimized Framework
                 </span>
-                <div className="p-5 rounded-md bg-accent text-white border border-slate-800 text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap text-slate-100 select-all selection:bg-slate-700 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
+                <div className="p-5 rounded-md bg-accent text-accent-foreground border border-edges text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all selection:bg-accent/30 shadow-card">
                   {selectedHistoryItem.optimizedPrompt}
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function HistoryDetailDialog({
                 {selectedHistoryItem.improvements.map((imp, i) => (
                   <li
                     key={`${imp.slice(0, 80)}-${i}`}
-                    className="text-xs p-4 rounded-md bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+                    className="text-xs p-4 rounded-md bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card"
                   >
                     <span className="text-muted shrink-0 font-bold font-mono">
                       {(i + 1).toString().padStart(2, "0")}.
@@ -123,7 +123,7 @@ export default function HistoryDetailDialog({
                       <Badge
                         key={`${ch.slice(0, 80)}-${i}`}
                         variant="outline"
-                        className="bg-surface text-[11px] text-steel border border-whisper shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] px-3 py-1 font-mono"
+                        className="bg-surface text-[11px] text-steel border border-whisper shadow-card px-3 py-1 font-mono"
                       >
                         <Check className="w-3 h-3 mr-1 text-emerald-500" />{" "}
                         {ch}
@@ -158,7 +158,7 @@ export default function HistoryDetailDialog({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs text-error hover:text-error border-rose-200 hover:bg-rose-50 font-semibold rounded-md"
+            className="text-xs text-error hover:text-error border-error/20 hover:bg-error/10 font-semibold rounded-md"
             onClick={() => {
               handleDeleteHistory(selectedHistoryItem.id);
               onOpenChange(false);
@@ -179,7 +179,7 @@ export default function HistoryDetailDialog({
             </Button>
             <Button
               size="sm"
-              className="bg-accent text-white hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
+              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
               onClick={() =>
                 handleCopyToClipboard(
                   selectedHistoryItem.optimizedPrompt,
