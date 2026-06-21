@@ -76,7 +76,7 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
           <motion.div
             className={cn(
               container ? "absolute" : "fixed",
-              "inset-0 z-50 bg-black/40 dark:bg-black/80"
+              "inset-0 z-50 bg-black/80"
             )}
             initial={{ opacity: 0 }}
             animate={{ opacity: open ? 1 : 0 }}

@@ -4,7 +4,7 @@
 
 # OpenPrompter
 
-**Open-source AI prompt optimizer. Bring your own key. Zero limits. Zero middlemen.**
+**Open-source AI prompt optimizer. Bring your own key. Stateless proxy. Zero server-side storage.**
 
 <p align="center">
 <a href="https://github.com/Owie6789/OpenPrompter/blob/main/LICENSE"><img src="https://www.shieldcn.dev/badge/License-MIT-18181B.svg?theme=stone&font=geist-mono" alt="License" /></a>
@@ -27,7 +27,7 @@ You paste a rough prompt. OpenPrompter — using **your own API key** from OpenA
 
 Your key. Your data. Your prompts. That's it.
 
-> **<img src="https://api.iconify.design/ph:lock-key.svg?color=%232563eb" width="18" height="18" align="center" /> Privacy Guarantee:** No accounts. No subscriptions. No server-side prompt logging. Keys live in your browser's local storage only.
+> **<img src="https://api.iconify.design/ph:lock-key.svg?color=%232563eb" width="18" height="18" align="center" /> Privacy Guarantee:** No accounts. No subscriptions. No server-side prompt or key storage. Keys live in your browser's localStorage and are sent to a stateless backend proxy for each request — never persisted server-side.
 
 <br>
 
@@ -66,7 +66,7 @@ The engine deconstructs your input and outputs a structured, high-clarity prompt
 <img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" />
 </p>
 
-Plug in your own API key from any supported provider. OpenPrompter routes your prompt directly from browser → your key → provider API. No intermediary, no logging.
+Plug in your own API key from any supported provider. OpenPrompter sends your prompt and API key to its stateless backend proxy, which forwards the request to your selected provider. Keys are not persisted or logged server-side.
 
 <div align="center">
 
@@ -185,10 +185,13 @@ OpenPrompter/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | No | OpenAI API key (server-side BYOK) |
-| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side BYOK) |
-| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side BYOK) |
-| `APP_URL` | No | Public URL for self-referential links |
+| `NODE_ENV` | Yes in production | Set to `production` for strict CSP (no `unsafe-inline`/`unsafe-eval`) |
+| `BIND_HOST` | No | Defaults to `127.0.0.1`; use `0.0.0.0` for Docker/cloud deployments |
+| `PORT` | No | Server port; defaults to `3000`; set `0` to auto-select a free port |
+| `OPENAI_API_KEY` | No | OpenAI API key (server-side fallback) |
+| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side fallback) |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side fallback) |
+| `APP_URL` | No | Public URL for CORS and self-referential links |
 
 Users can also configure keys in-app via the Settings dialog (persisted to `localStorage` under `openprompter_byok_key`).
 

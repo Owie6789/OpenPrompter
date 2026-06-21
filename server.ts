@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
+import * as dns from "node:dns/promises";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -143,15 +144,17 @@ function assertSafeEndpoint(url: string, prov: string): void {
   if (!url) return;
   const parsed = new URL(url);
   if (prov === "custom") {
+    // Block custom endpoints entirely in production — no DNS/redirect SSRF risk
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Custom endpoints are not allowed in production.");
+    }
+
     const isLocalhost =
       parsed.hostname === "localhost" ||
       parsed.hostname === "127.0.0.1" ||
       parsed.hostname === "::1";
 
     if (isLocalhost) {
-      if (process.env.NODE_ENV === "production") {
-        throw new Error("Localhost endpoints are not allowed in production.");
-      }
       return;
     }
 
@@ -168,6 +171,30 @@ function assertSafeEndpoint(url: string, prov: string): void {
   const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname.endsWith(h));
   if (!allowed) {
     throw new Error("Endpoint not permitted.");
+  }
+}
+
+function isPrivateAddress(address: string): boolean {
+  return PRIVATE_IP_PATTERNS.some((pattern) => pattern.test(address));
+}
+
+async function assertSafeResolvedEndpoint(url: string, prov: string): Promise<void> {
+  assertSafeEndpoint(url, prov);
+
+  if (prov !== "custom" || !url) return;
+
+  const parsed = new URL(url);
+  try {
+    const records = await dns.lookup(parsed.hostname, { all: true });
+    if (records.some((record) => isPrivateAddress(record.address))) {
+      throw new Error("Custom endpoint resolves to a private or internal address.");
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("resolves to a private")) {
+      throw err;
+    }
+    // DNS lookup failed — still block to be safe
+    throw new Error("Could not resolve custom endpoint hostname.");
   }
 }
 
@@ -240,7 +267,7 @@ app.post("/api/models", async (req, res) => {
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     try {
-      assertSafeEndpoint(endpoint, prov);
+      await assertSafeResolvedEndpoint(endpoint, prov);
     } catch {
       return res.json({ models: [] });
     }
@@ -290,7 +317,7 @@ app.post("/api/models", async (req, res) => {
 
     return res.json({ models: modelList });
   } catch (error: any) {
-    console.error(`[${rid}] Models fetch error:`, error);
+    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(String(error?.message || error))}`);
     return res.json({ models: [] });
   }
 });
@@ -426,7 +453,7 @@ app.post("/api/optimize", async (req, res) => {
 
     // Validate endpoint
     try {
-      assertSafeEndpoint(activeEndpoint, prov);
+      await assertSafeResolvedEndpoint(activeEndpoint, prov);
     } catch (e: any) {
       return res.status(400).json(errorResponse("validation_error", e.message));
     }
@@ -580,7 +607,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       }
     }
   } catch (error: any) {
-    console.error(`[${rid}] Endpoint error: ${error?.message || error}`);
+    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(String(error?.message || error))}`);
     return res.status(500).json(errorResponse("server_error", "An unexpected error occurred."));
   }
 });
@@ -607,7 +634,7 @@ async function run() {
     console.log(`OpenPrompter running on http://localhost:${actualPort}`);
   }).on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      console.error(`\n❌ Port ${PORT} is already in use.`);
+      console.error(`\nError: Port ${PORT} is already in use.`);
       console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
       console.error(`\n   Options:`);
       console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
