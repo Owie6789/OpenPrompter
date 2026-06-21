@@ -116,8 +116,8 @@ Filter by category or search by keyword. One click loads any template directly i
 |-------|---------|
 | **Empty State** — No history yet | <img src="assets/op-appasset-emptyhistorystate.png" alt="Empty history" width="250"/> |
 | **Loading State** — During generation | <img src="assets/op-appasset-aigenerating-loadstate.png" alt="Loading state" width="250"/> |
-| **Success State** — Optimized result | <img src="assets/op-appasset-success-optimized%20state.png" alt="Success state" width="250"/> |
-| **BYOK Onboarding** — Setup card | <img src="assets/op-appasset-%20BYOK%20Key%20Setup%20%28in-app%20onboarding%20card%29.png" alt="BYOK onboarding" width="250"/> |
+| **Success State** — Optimized result | <img src="assets/op-appasset-success-optimized-state.png" alt="Success state" width="250"/> |
+| **BYOK Onboarding** — Setup card | <img src="assets/op-appasset-byok-onboarding-card.png" alt="BYOK onboarding" width="250"/> |
 
 <br>
 
@@ -173,7 +173,7 @@ OpenPrompter/
 │   ├── openpromptereadmeherobanner.png
 │   ├── opfeature1-4.png         # Feature screenshots
 │   ├── op-appasset-*.png        # In-app state illustrations
-│   └── op-Open_Graph-_Social_Share_Card_86.png
+│   └── op-og-social-card.png
 ├── vite.config.ts
 ├── tsconfig.json
 └── .env.example
@@ -217,7 +217,7 @@ Users can also configure keys in-app via the Settings dialog (persisted to `loca
 ## Social Card
 
 <div align="center">
-  <img src="assets/op-Open_Graph-_Social_Share_Card_86.png" alt="OpenGraph Share Card" width="600"/>
+  <img src="assets/op-og-social-card.png" alt="OpenGraph Share Card" width="600"/>
 </div>
 
 ---
