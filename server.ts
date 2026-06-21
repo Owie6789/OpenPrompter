@@ -24,25 +24,32 @@ const PORT = parsedPort;
 // Security middleware stack
 const isProd = process.env.NODE_ENV === "production";
 
+const baseDirectives: Record<string, string[]> = {
+  defaultSrc: ["'self'"],
+  scriptSrc: ["'self'"],
+  styleSrc: ["'self'", "'unsafe-inline'"],
+  connectSrc: ["'self'"],
+  imgSrc: ["'self'", "data:"],
+  fontSrc: ["'self'"],
+  objectSrc: ["'none'"],
+  baseUri: ["'self'"],
+  frameAncestors: ["'none'"],
+};
+
+if (!isProd && process.env.BIND_HOST !== "127.0.0.1") {
+  console.warn(
+    "[CSP] Development CSP active (unsafe-inline + unsafe-eval). Set NODE_ENV=production for production.",
+  );
+}
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: isProd
-      ? {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          connectSrc: ["'self'"],
-          imgSrc: ["'self'", "data:"],
-          fontSrc: ["'self'"],
-        }
+      ? baseDirectives
       : {
-          // Dev: Vite HMR needs WebSocket + React preamble inline script
-          defaultSrc: ["'self'"],
+          ...baseDirectives,
           scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          connectSrc: ["'self'", "ws://localhost:*"],
-          imgSrc: ["'self'", "data:"],
-          fontSrc: ["'self'"],
+          connectSrc: ["'self'", "ws://localhost:*", "wss://localhost:*"],
         },
   },
 }));
@@ -374,13 +381,15 @@ function sanitizeForLog(s: string, maxLen = 500): string {
     // Modal Labs
     .replace(/as-[A-Za-z0-9]{16,}/g, "as-...REDACTED")
     // Google AI (Gemini)
-    .replace(/AIzaSy[A-Za-z0-9_-]{33}/g, "AIzaSy...REDACTED")
+    .replace(/AIzaSy[A-Za-z0-9_-]{33,}/g, "AIzaSy...REDACTED")
     // Pinecone
     .replace(/pcsk_[A-Za-z0-9_-]{20,}/g, "pcsk_...REDACTED")
     // Voyage AI
     .replace(/voy-[A-Za-z0-9]{20,}/g, "voy-...REDACTED")
     // Jina AI
     .replace(/jina_[A-Za-z0-9]{20,}/g, "jina_...REDACTED")
+    // Hugging Face
+    .replace(/hf_[A-Za-z0-9]{20,}/g, "hf_...REDACTED")
     // OpenAI — generic sk- last (after specific sk-ant/sk-proj/sk-or)
     .replace(/sk-[A-Za-z0-9_-]{20,}/g, "sk-...REDACTED")
     // Bearer / JWT tokens
