@@ -74,15 +74,16 @@ export default function ByokDialog({
         <div className="p-5 sm:p-8">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-surface-high flex items-center justify-center shrink-0">
                 <Key className="w-4 h-4 text-ink" />
               </div>
               BYOK Engine & Keys
             </DialogTitle>
             <DialogDescription className="text-xs text-steel leading-snug mt-2 p-4 bg-canvas rounded-lg border border-whisper">
-              Supply your own API connection. All keys and config properties
-              are saved safely inside your local browser cache (localStorage)
-              and never hit intermediate middleman servers.
+              Supply your own API connection. Keys are stored in browser
+              local storage and sent to our stateless backend proxy for
+              each prompt optimization request — they are not stored or
+              logged on the server.
             </DialogDescription>
           </DialogHeader>
 
@@ -103,8 +104,8 @@ export default function ByokDialog({
                     }}
                     className={`text-xs font-semibold py-2.5 px-3 rounded-md border transition-colors,shadow ${
                       providerInputVal === p.id
-                        ? "bg-accent text-white border-accent shadow-sm"
-                        : "bg-surface text-steel border-whisper hover:border-slate-300"
+                        ? "bg-accent text-accent-foreground border-accent shadow-sm"
+                        : "bg-surface text-steel border-whisper hover:border-accent/40"
                     }`}
                   >
                     {p.label}
@@ -136,7 +137,7 @@ export default function ByokDialog({
                 placeholder="sk-..."
                 value={apiKeyInputVal}
                 onChange={(e) => setApiKeyInputVal(e.target.value)}
-                className="bg-surface border-whisper font-mono text-sm leading-none h-12 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900"
+                className="bg-surface border-whisper font-mono text-sm leading-none h-12 rounded-md shadow-card focus:ring-accent"
               />
             </div>
 
@@ -151,7 +152,7 @@ export default function ByokDialog({
                   placeholder="E.g., https://api.deepseek.com/v1"
                   value={endpointInputVal}
                   onChange={(e) => setEndpointInputVal(e.target.value)}
-                  className="bg-surface border-whisper font-mono text-xs h-11 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900"
+                  className="bg-surface border-whisper font-mono text-xs h-11 rounded-md shadow-card focus:ring-accent"
                 />
                 <div className="flex flex-wrap gap-2 mt-2">
                   <button
@@ -159,7 +160,7 @@ export default function ByokDialog({
                     onClick={() =>
                       setEndpointInputVal("https://api.deepseek.com/v1")
                     }
-                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-slate-100 transition-colors"
+                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-hover transition-colors"
                   >
                     DeepSeek Preset
                   </button>
@@ -168,7 +169,7 @@ export default function ByokDialog({
                     onClick={() =>
                       setEndpointInputVal("https://api.openai.com/v1")
                     }
-                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-slate-100 transition-colors"
+                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-hover transition-colors"
                   >
                     OpenAI Preset
                   </button>
@@ -177,7 +178,7 @@ export default function ByokDialog({
                     onClick={() =>
                       setEndpointInputVal("http://localhost:1234/v1")
                     }
-                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-slate-100 transition-colors"
+                    className="text-[10px] font-semibold bg-canvas border border-whisper px-2.5 py-1 rounded-md text-steel hover:bg-hover transition-colors"
                   >
                     Local Host
                   </button>
@@ -204,7 +205,7 @@ export default function ByokDialog({
                     placeholder="Search or type model ID..."
                     value={customModelInputVal}
                     onChange={(e) => setCustomModelInputVal(e.target.value)}
-                    className="bg-surface border-whisper font-mono text-xs h-11 rounded-md shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] focus:ring-slate-900 pl-9"
+                    className="bg-surface border-whisper font-mono text-xs h-11 rounded-md shadow-card focus:ring-accent pl-9"
                   />
                   <Cpu className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
                 </div>
@@ -280,7 +281,7 @@ export default function ByokDialog({
           <Button
             variant="outline"
             size="sm"
-            className="rounded-md text-error border-rose-200 hover:bg-rose-50 font-semibold"
+            className="rounded-md text-error border-error/20 hover:bg-error/10 font-semibold"
             onClick={() => {
               handleSaveApiKey("", "", "openai", "");
               onOpenChange(false);
@@ -291,7 +292,7 @@ export default function ByokDialog({
           </Button>
           <Button
             size="sm"
-            className="rounded-md bg-accent text-white hover:bg-accent-hover font-semibold shadow-sm px-6"
+            className="rounded-md bg-accent text-accent-foreground hover:bg-accent-hover font-semibold shadow-sm px-6"
             onClick={() =>
               handleSaveApiKey(
                 apiKeyInputVal,

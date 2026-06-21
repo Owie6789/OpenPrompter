@@ -4,7 +4,7 @@
 
 # OpenPrompter
 
-**Open-source AI prompt optimizer. Bring your own key. Zero limits. Zero middlemen.**
+**Open-source AI prompt optimizer. Bring your own key. Stateless proxy. Zero server-side storage.**
 
 <p align="center">
 <a href="https://github.com/Owie6789/OpenPrompter/blob/main/LICENSE"><img src="https://www.shieldcn.dev/badge/License-MIT-18181B.svg?theme=stone&font=geist-mono" alt="License" /></a>
@@ -21,13 +21,13 @@
 
 ## <img src="https://api.iconify.design/ph:info.svg?color=%232563eb" width="28" height="28" align="center" /> **What is OpenPrompter?**
 
-Most prompt optimizer tools are paywalled, rate-limited, or quietly logging your ideas. **OpenPrompter is none of those things.**
+Most prompt optimizer tools are paywalled or quietly logging your ideas. **OpenPrompter is neither:** it uses your own API key through a stateless proxy with lightweight abuse-prevention rate limits (20 requests/minute on `/api/optimize` and `/api/models`).
 
 You paste a rough prompt. OpenPrompter — using **your own API key** from OpenAI, DeepSeek, Anthropic, or any compatible provider — deconstructs it, restructures it into a framework of Role / Task / Context / Constraints / Output, and hands you back something an LLM actually parses well.
 
 Your key. Your data. Your prompts. That's it.
 
-> **<img src="https://api.iconify.design/ph:lock-key.svg?color=%232563eb" width="18" height="18" align="center" /> Privacy Guarantee:** No accounts. No subscriptions. No server-side prompt logging. Keys live in your browser's local storage only.
+> **<img src="https://api.iconify.design/ph:lock-key.svg?color=%232563eb" width="18" height="18" align="center" /> Privacy Guarantee:** No accounts. No subscriptions. No server-side prompt or key storage. Keys live in your browser's localStorage and are sent to a stateless backend proxy for each request — never persisted server-side.
 
 <br>
 
@@ -66,7 +66,7 @@ The engine deconstructs your input and outputs a structured, high-clarity prompt
 <img src="assets/opfeature2.png" alt="BYOK Setup" width="85%" />
 </p>
 
-Plug in your own API key from any supported provider. OpenPrompter routes your prompt directly from browser → your key → provider API. No intermediary, no logging.
+Plug in your own API key from any supported provider. OpenPrompter sends your prompt and API key to its stateless backend proxy, which forwards the request to your selected provider. Keys are not persisted or logged server-side.
 
 <div align="center">
 
@@ -75,7 +75,7 @@ Plug in your own API key from any supported provider. OpenPrompter routes your p
 | **OpenAI** | `https://api.openai.com/v1` | `sk-...` |
 | **DeepSeek** | `https://api.deepseek.com/v1` | `sk-...` |
 | **Anthropic** | `https://api.anthropic.com/v1` | `sk-ant-...` |
-| **Custom** | Any OpenAI-compatible URL | Your format |
+| **Custom** | Any OpenAI-compatible URL (SSRF-protected) | Your format |
 
 </div>
 
@@ -116,8 +116,8 @@ Filter by category or search by keyword. One click loads any template directly i
 |-------|---------|
 | **Empty State** — No history yet | <img src="assets/op-appasset-emptyhistorystate.png" alt="Empty history" width="250"/> |
 | **Loading State** — During generation | <img src="assets/op-appasset-aigenerating-loadstate.png" alt="Loading state" width="250"/> |
-| **Success State** — Optimized result | <img src="assets/op-appasset-success-optimized%20state.png" alt="Success state" width="250"/> |
-| **BYOK Onboarding** — Setup card | <img src="assets/op-appasset-%20BYOK%20Key%20Setup%20%28in-app%20onboarding%20card%29.png" alt="BYOK onboarding" width="250"/> |
+| **Success State** — Optimized result | <img src="assets/op-appasset-success-optimized-state.png" alt="Success state" width="250"/> |
+| **BYOK Onboarding** — Setup card | <img src="assets/op-appasset-byok-onboarding-card.png" alt="BYOK onboarding" width="250"/> |
 
 <br>
 
@@ -173,7 +173,7 @@ OpenPrompter/
 │   ├── openpromptereadmeherobanner.png
 │   ├── opfeature1-4.png         # Feature screenshots
 │   ├── op-appasset-*.png        # In-app state illustrations
-│   └── op-Open_Graph-_Social_Share_Card_86.png
+│   └── op-og-social-card.png
 ├── vite.config.ts
 ├── tsconfig.json
 └── .env.example
@@ -185,10 +185,13 @@ OpenPrompter/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | No | OpenAI API key (server-side BYOK) |
-| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side BYOK) |
-| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side BYOK) |
-| `APP_URL` | No | Public URL for self-referential links |
+| `NODE_ENV` | Yes in production | Set to `production` for strict CSP (no `unsafe-inline`/`unsafe-eval`) |
+| `BIND_HOST` | No | Defaults to `127.0.0.1`; use `0.0.0.0` for Docker/cloud deployments |
+| `PORT` | No | Server port; defaults to `3000`; set `0` to auto-select a free port |
+| `OPENAI_API_KEY` | No | OpenAI API key (server-side fallback) |
+| `DEEPSEEK_API_KEY` | No | DeepSeek API key (server-side fallback) |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key (server-side fallback) |
+| `APP_URL` | No | Public URL for CORS and self-referential links |
 
 Users can also configure keys in-app via the Settings dialog (persisted to `localStorage` under `openprompter_byok_key`).
 
@@ -201,10 +204,10 @@ Users can also configure keys in-app via the Settings dialog (persisted to `loca
 │   Browser   │────▶│  Express Proxy    │────▶│  LLM API    │
 │   (SPA)     │◀────│  (sanitize/fwd)   │◀────│ (OpenAI-    │
 │             │     │                   │     │  compatible)│
-│ localStorage│     │ fetchWithTimeout  │     │             │
-│ (history,   │     │ SSRF blocklist    │     │             │
-│  keys,      │     │ log sanitization  │     │             │
-│  personas)  │     └──────────────────┘     └─────────────┘
+│ localStorage│     │ safeFetch          │     │             │
+│ (history,   │     │ redirect validation│     │             │
+│  keys,      │     │ SSRF blocklist    │     │             │
+│  personas)  │     │ log sanitization  │     │             │
 └─────────────┘
 ```
 
@@ -217,7 +220,7 @@ Users can also configure keys in-app via the Settings dialog (persisted to `loca
 ## Social Card
 
 <div align="center">
-  <img src="assets/op-Open_Graph-_Social_Share_Card_86.png" alt="OpenGraph Share Card" width="600"/>
+  <img src="assets/op-og-social-card.png" alt="OpenGraph Share Card" width="600"/>
 </div>
 
 ---

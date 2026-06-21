@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
+import * as dns from "node:dns/promises";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -14,10 +15,46 @@ if (existsSync(".env.local")) {
 }
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "3000", 10);
+const rawPort = process.env.PORT ?? "3000";
+const parsedPort = Number.parseInt(rawPort, 10);
+if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
+  throw new Error(`Invalid PORT value "${rawPort}". Expected an integer from 0 to 65535.`);
+}
+const PORT = parsedPort;
 
 // Security middleware stack
-app.use(helmet());
+const isProd = process.env.NODE_ENV === "production";
+const BIND_HOST = process.env.BIND_HOST || "127.0.0.1";
+
+const baseDirectives: Record<string, string[]> = {
+  defaultSrc: ["'self'"],
+  scriptSrc: ["'self'"],
+  styleSrc: ["'self'", "'unsafe-inline'"],
+  connectSrc: ["'self'"],
+  imgSrc: ["'self'", "data:"],
+  fontSrc: ["'self'"],
+  objectSrc: ["'none'"],
+  baseUri: ["'self'"],
+  frameAncestors: ["'none'"],
+};
+
+if (!isProd && BIND_HOST !== "127.0.0.1") {
+  console.warn(
+    "[CSP] Development CSP active (unsafe-inline + unsafe-eval). Set NODE_ENV=production for production.",
+  );
+}
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: isProd
+      ? baseDirectives
+      : {
+          ...baseDirectives,
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          connectSrc: ["'self'", "ws://localhost:*", "wss://localhost:*"],
+        },
+  },
+}));
 const configuredOrigins = process.env.APP_URL
   ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
@@ -32,6 +69,21 @@ const corsOrigin = process.env.NODE_ENV === "production"
 
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "50kb" }));
+
+if (isProd) {
+  app.set("trust proxy", 1);
+}
+
+// Standardize JSON parse / payload-too-large errors
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && "body" in err) {
+    return res.status(400).json({ error: "invalid_json", message: "Request body must be valid JSON." });
+  }
+  if (typeof err === "object" && err !== null && "type" in err && (err as { type?: string }).type === "entity.too.large") {
+    return res.status(413).json({ error: "payload_too_large", message: "Request body exceeds 50kb limit." });
+  }
+  return next(err);
+});
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -85,9 +137,9 @@ const PRIVATE_IP_PATTERNS = [
   /^169\.254\./,
   /^0\./,
   /^::1$/,
+  /^::ffff:(?:127\.|10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.)/i,
   /^fe80:/i,
-  /^fc00:/i,
-  /^fd00:/i,
+  /^f[cd][0-9a-f]{2}:/i,
 ];
 
 const PRIVATE_HOSTNAME_PATTERNS = [
@@ -104,18 +156,17 @@ const PRIVATE_HOSTNAME_PATTERNS = [
 ];
 
 function assertSafeEndpoint(url: string, prov: string): void {
-  if (!url) return;
-  const parsed = new URL(url);
   if (prov === "custom") {
+    if (!url) {
+      throw new Error("Custom endpoint URL is required.");
+    }
+    const parsed = new URL(url);
     const isLocalhost =
       parsed.hostname === "localhost" ||
       parsed.hostname === "127.0.0.1" ||
       parsed.hostname === "::1";
 
     if (isLocalhost) {
-      if (process.env.NODE_ENV === "production") {
-        throw new Error("Localhost endpoints are not allowed in production.");
-      }
       return;
     }
 
@@ -123,15 +174,63 @@ function assertSafeEndpoint(url: string, prov: string): void {
       throw new Error("Only HTTPS endpoints are allowed.");
     }
 
-    // Block private/link-local hostnames
     if (PRIVATE_HOSTNAME_PATTERNS.some((p) => p.test(parsed.hostname))) {
       throw new Error("Custom endpoints cannot point to private or internal addresses.");
     }
     return;
   }
+
+  if (!url) return;
+  const parsed = new URL(url);
   const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname.endsWith(h));
   if (!allowed) {
     throw new Error("Endpoint not permitted.");
+  }
+}
+
+function isPrivateAddress(address: string): boolean {
+  return PRIVATE_IP_PATTERNS.some((pattern) => pattern.test(address));
+}
+
+async function assertSafeResolvedEndpoint(url: string, prov: string): Promise<void> {
+  assertSafeEndpoint(url, prov);
+
+  if (prov !== "custom" || !url) return;
+
+  const parsed = new URL(url);
+  const isLocalhost =
+    parsed.hostname === "localhost" ||
+    parsed.hostname === "127.0.0.1" ||
+    parsed.hostname === "::1";
+
+  if (isLocalhost) {
+    if (isProd) {
+      throw new Error("Localhost endpoints are not allowed in production.");
+    }
+    return;
+  }
+
+  try {
+    const records = await dns.lookup(parsed.hostname, { all: true });
+    if (records.some((record) => isPrivateAddress(record.address))) {
+      throw new Error("Custom endpoint resolves to a private or internal address.");
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("resolves to a private")) {
+      throw err;
+    }
+    // DNS lookup failed — still block to be safe
+    throw new Error("Could not resolve custom endpoint hostname.");
+  }
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Unknown error";
   }
 }
 
@@ -173,6 +272,33 @@ async function fetchWithTimeout(url: string, options: RequestInit & { timeout?: 
   }
 }
 
+async function safeFetch(url: string, options: RequestInit & { timeout?: number }, prov: string): Promise<Response> {
+  const MAX_REDIRECTS = 3;
+  let currentUrl = url;
+
+  for (let hops = 0; hops <= MAX_REDIRECTS; hops++) {
+    if (prov === "custom") {
+      await assertSafeResolvedEndpoint(currentUrl, prov);
+    }
+
+    const response = await fetchWithTimeout(currentUrl, {
+      ...options,
+      redirect: "manual",
+    });
+
+    if (![301, 302, 303, 307, 308].includes(response.status)) {
+      return response;
+    }
+
+    const location = response.headers.get("location");
+    if (!location) return response;
+
+    currentUrl = new URL(location, currentUrl).toString();
+  }
+
+  throw new Error("Too many redirects from endpoint.");
+}
+
 // Standardised error response format
 interface ErrorResponse {
   error: string;
@@ -204,7 +330,7 @@ app.post("/api/models", async (req, res) => {
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     try {
-      assertSafeEndpoint(endpoint, prov);
+      await assertSafeResolvedEndpoint(endpoint, prov);
     } catch {
       return res.json({ models: [] });
     }
@@ -232,32 +358,37 @@ app.post("/api/models", async (req, res) => {
       ];
     } else {
       const modelsUrl = `${baseUrl.replace(/\/$/, "")}/models`;
-      const resp = await fetchWithTimeout(modelsUrl, {
+      const resp = await safeFetch(modelsUrl, {
         headers: { Authorization: `Bearer ${activeKey}` },
-      });
+      }, prov);
       if (resp.ok) {
-        const data: any = await resp.json();
-        const models: any[] = data.data || data.models || [];
-        modelList = models
-          .filter((m: any) => {
-            const id = (m.id || m.name || "").toLowerCase();
-            if (id.includes("embedding") || id.includes("tts") || id.includes("whisper") || id.includes("moderation") || id.includes("dall-e") || id.includes("davinci") || id.includes("babbage") || id.includes("curie")) return false;
-            return true;
-          })
-          .map((m: any) => ({
-            id: m.id || m.name || m,
-            name: m.id || m.name || m,
-          }))
-          .slice(0, 50);
+        const data = (await resp.json()) as ProviderModelsResponse;
+        const models: ProviderModel[] = data.data || data.models || [];
+        modelList = models.filter(isChatModel).map(toModelOption).slice(0, 50);
       }
     }
 
     return res.json({ models: modelList });
-  } catch (error: any) {
-    console.error(`[${rid}] Models fetch error:`, error);
+  } catch (error: unknown) {
+    console.error(`[${rid}] Models fetch error: ${sanitizeForLog(errorMessage(error))}`);
     return res.json({ models: [] });
   }
 });
+
+const EXCLUDED_MODEL_SUBSTRINGS = [
+  "embedding", "tts", "whisper", "moderation",
+  "dall-e", "davinci", "babbage", "curie",
+];
+
+function isChatModel(model: ProviderModel): boolean {
+  const id = (model.id || model.name || "").toLowerCase();
+  return !EXCLUDED_MODEL_SUBSTRINGS.some((part) => id.includes(part));
+}
+
+function toModelOption(model: ProviderModel): { id: string; name: string } {
+  const value = model.id || model.name || "";
+  return { id: value, name: value };
+}
 
 // LLM response schema
 interface LlmResponse {
@@ -266,6 +397,31 @@ interface LlmResponse {
   key_changes: string[];
   confidence_score: number;
   prompt_type: string;
+}
+
+interface ProviderModel {
+  id?: string;
+  name?: string;
+}
+
+interface ProviderModelsResponse {
+  data?: ProviderModel[];
+  models?: ProviderModel[];
+}
+
+interface AnthropicResponse {
+  content?: Array<{ text?: string }>;
+}
+
+interface OpenAIChatResponse {
+  choices?: Array<{ message?: { content?: string } }>;
+}
+
+interface OptimizeRequestBody {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  temperature: number;
+  response_format: { type: string };
 }
 
 function validateLlmResponse(data: unknown): data is LlmResponse {
@@ -309,7 +465,57 @@ function stripJsonFence(text: string): string {
 
 function sanitizeForLog(s: string, maxLen = 500): string {
   const ESC = String.fromCodePoint(27);
-  return s.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
+  let clean = s
+    // OpenAI — specific prefixes first
+    .replace(/sk-proj-[A-Za-z0-9_-]{32,}/g, "sk-proj-...REDACTED")
+    .replace(/sk-org-[A-Za-z0-9_-]{32,}/g, "sk-org-...REDACTED")
+    // Anthropic
+    .replace(/sk-ant-[A-Za-z0-9_-]{20,}/g, "sk-ant-...REDACTED")
+    // OpenRouter
+    .replace(/sk-or-v1-[A-Za-z0-9]{20,}/g, "sk-or-v1-...REDACTED")
+    // NVIDIA NIM / NGC
+    .replace(/nvapi-[A-Za-z0-9_-]{20,}/g, "nvapi-...REDACTED")
+    // xAI (Grok)
+    .replace(/xai-[A-Za-z0-9]{20,}/g, "xai-...REDACTED")
+    // Cohere trial
+    .replace(/trial_[A-Za-z0-9]{16,}/g, "trial_...REDACTED")
+    // Groq
+    .replace(/gsk_[A-Za-z0-9]{16,}/g, "gsk_...REDACTED")
+    // Replicate
+    .replace(/r8_[A-Za-z0-9]{20,}/g, "r8_...REDACTED")
+    // Fireworks AI
+    .replace(/fw_[A-Za-z0-9]{20,}/g, "fw_...REDACTED")
+    // Perplexity AI
+    .replace(/pplx-[A-Za-z0-9]{20,}/g, "pplx-...REDACTED")
+    // Anyscale
+    .replace(/secret_[A-Za-z0-9]{16,}/g, "secret_...REDACTED")
+    // OctoAI
+    .replace(/octa_[A-Za-z0-9]{16,}/g, "octa_...REDACTED")
+    // Lepton AI
+    .replace(/lep-[A-Za-z0-9]{16,}/g, "lep-...REDACTED")
+    // Novita AI
+    .replace(/nvt_[A-Za-z0-9]{16,}/g, "nvt_...REDACTED")
+    // Predibase
+    .replace(/pb_[A-Za-z0-9]{16,}/g, "pb_...REDACTED")
+    // Baseten
+    .replace(/b-[A-Za-z0-9]{16,}/g, "b-...REDACTED")
+    // Modal Labs
+    .replace(/as-[A-Za-z0-9]{16,}/g, "as-...REDACTED")
+    // Google AI (Gemini)
+    .replace(/AIzaSy[A-Za-z0-9_-]{33,}/g, "AIzaSy...REDACTED")
+    // Pinecone
+    .replace(/pcsk_[A-Za-z0-9_-]{20,}/g, "pcsk_...REDACTED")
+    // Voyage AI
+    .replace(/voy-[A-Za-z0-9]{20,}/g, "voy-...REDACTED")
+    // Jina AI
+    .replace(/jina_[A-Za-z0-9]{20,}/g, "jina_...REDACTED")
+    // Hugging Face
+    .replace(/hf_[A-Za-z0-9]{20,}/g, "hf_...REDACTED")
+    // OpenAI — generic sk- last (after specific sk-ant/sk-proj/sk-or)
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, "sk-...REDACTED")
+    // Bearer / JWT tokens
+    .replace(/Bearer\s+[\w.-]{20,}/gi, "Bearer ...REDACTED");
+  return clean.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
 
 // API: Optimizer core
@@ -340,9 +546,9 @@ app.post("/api/optimize", async (req, res) => {
 
     // Validate endpoint
     try {
-      assertSafeEndpoint(activeEndpoint, prov);
-    } catch (e: any) {
-      return res.status(400).json(errorResponse("validation_error", e.message));
+      await assertSafeResolvedEndpoint(activeEndpoint, prov);
+    } catch (e: unknown) {
+      return res.status(400).json(errorResponse("validation_error", errorMessage(e)));
     }
 
     // Validate model
@@ -406,7 +612,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
     if (cfg.apiFormat === "anthropic") {
       // Anthropic API format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/messages`;
-      const response = await fetchWithTimeout(endpointUrl, {
+      const response = await safeFetch(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -420,7 +626,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
         }),
-      });
+      }, prov);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -428,7 +634,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData: any = await response.json();
+      const resData = (await response.json()) as AnthropicResponse;
       const content = resData.content?.[0]?.text;
       if (!content) {
         throw new Error("No text content returned from Anthropic API.");
@@ -448,7 +654,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
     } else {
       // OpenAI-compatible format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
-      const requestBody: any = {
+      const requestBody: OptimizeRequestBody = {
         model: chosenModel,
         messages: [
           { role: "system", content: systemPrompt },
@@ -458,14 +664,14 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         response_format: { type: "json_object" },
       };
 
-      const response = await fetchWithTimeout(endpointUrl, {
+      const response = await safeFetch(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${activeKey}`,
         },
         body: JSON.stringify(requestBody),
-      });
+      }, prov);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -473,7 +679,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData: any = await response.json();
+      const resData = (await response.json()) as OpenAIChatResponse;
       const content = resData.choices?.[0]?.message?.content;
       if (!content) {
         throw new Error("No text content returned from the API.");
@@ -493,8 +699,8 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
       }
     }
-  } catch (error: any) {
-    console.error(`[${rid}] Endpoint error: ${error?.message || error}`);
+  } catch (error: unknown) {
+    console.error(`[${rid}] Endpoint error: ${sanitizeForLog(errorMessage(error))}`);
     return res.status(500).json(errorResponse("server_error", "An unexpected error occurred."));
   }
 });
@@ -515,8 +721,21 @@ async function run() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`OpenPrompter running on http://localhost:${PORT}`);
+  const server = app.listen(PORT, BIND_HOST, () => {
+    const addr = server.address();
+    const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
+    console.log(`OpenPrompter running on http://localhost:${actualPort}`);
+  }).on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`\nError: Port ${PORT} is already in use.`);
+      console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
+      console.error(`\n   Options:`);
+      console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
+      console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
+      console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
+      process.exit(1);
+    }
+    throw err;
   });
 }
 
