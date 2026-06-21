@@ -21,7 +21,7 @@
 
 ## <img src="https://api.iconify.design/ph:info.svg?color=%232563eb" width="28" height="28" align="center" /> **What is OpenPrompter?**
 
-Most prompt optimizer tools are paywalled, rate-limited, or quietly logging your ideas. **OpenPrompter is none of those things.**
+Most prompt optimizer tools are paywalled or quietly logging your ideas. **OpenPrompter is neither:** it uses your own API key through a stateless proxy with lightweight abuse-prevention rate limits (20 requests/minute on `/api/optimize` and `/api/models`).
 
 You paste a rough prompt. OpenPrompter — using **your own API key** from OpenAI, DeepSeek, Anthropic, or any compatible provider — deconstructs it, restructures it into a framework of Role / Task / Context / Constraints / Output, and hands you back something an LLM actually parses well.
 
