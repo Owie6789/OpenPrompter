@@ -40,6 +40,7 @@
   --color-brand-accent: #3b82f6;
   --color-brand-accent-hover: #2563eb;
   --color-error: #dc2626;
+  --color-hover: rgba(0, 0, 0, 0.04);
 }
 
 /* Explicit .dark class support for manual toggle */
@@ -71,6 +72,7 @@
   --color-brand-accent: #60a5fa;
   --color-brand-accent-hover: #93c5fd;
   --color-error: #ef4444;
+  --color-hover: rgba(255, 255, 255, 0.06);
 
   /* shadcn runtime vars for dark mode */
   --background: oklch(0.145 0 0);
@@ -185,9 +187,9 @@ p, .text-pretty {
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(226, 232, 240, 0.3) 25%,
-    rgba(226, 232, 240, 0.8) 50%,
-    rgba(226, 232, 240, 0.3) 75%
+    color-mix(in srgb, var(--color-foreground) 4%, transparent) 25%,
+    color-mix(in srgb, var(--color-foreground) 10%, transparent) 50%,
+    color-mix(in srgb, var(--color-foreground) 4%, transparent) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

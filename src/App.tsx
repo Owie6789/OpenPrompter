@@ -30,6 +30,9 @@ import {
 } from "@phosphor-icons/react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
+import { Reveal, RevealList, revealItemVariants } from "@/src/components/Reveal"
+import { ScrollProgress } from "@/src/components/ScrollProgress"
+import { motionTokens } from "@/src/lib/motion-tokens"
 
 import { PRESET_PERSONAS, PRESET_TEMPLATES } from "./data";
 import {
@@ -675,6 +678,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent/20 selection:text-ink antialiased">
+      <ScrollProgress />
       <Toaster richColors closeButton theme="light" position="top-right" />
 
       {/* HEADER — Fluid Island */}
@@ -1691,7 +1695,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
                     {allPersonas
                       .filter((p) =>
                         p.name
@@ -1701,6 +1710,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       .map((pers) => {
                         const isPreset = pers.isPreset;
                         return (
+                          <motion.div key={pers.id} variants={staggerItem}>
                           <Card
                             key={pers.id}
                             className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
@@ -1797,9 +1807,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </Button>
                             </CardFooter>
                           </Card>
+                        </motion.div>
                         );
                       })}
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
@@ -1912,8 +1923,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               </div>
 
               {/* HISTORY LIST */}
-              <div className="space-y-4">
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="space-y-4"
+              >
                 {historyList.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    variants={staggerItem}
+                  >
                   <div
                     key={item.id}
                     className="border border-whisper rounded-lg bg-surface p-6 hover:shadow-md transition-colors,shadow,ring cursor-pointer group"
@@ -1984,6 +2004,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </span>
                     </div>
                   </div>
+                  </motion.div>
                 ))}
 
                 {historyList.length === 0 && (
@@ -1998,7 +2019,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             </motion.div>
           )}
 

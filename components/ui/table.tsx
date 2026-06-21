@@ -186,7 +186,7 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
       if (index === undefined || !ctx) return;
       ctx.registerItem(index, internalRef.current);
       return () => ctx.registerItem(index, null);
-    }, [index, ctx?.registerItem]);
+    }, [index, ctx]);
 
     const isBodyRow = index !== undefined;
     const activeIdx = ctx?.activeIndex ?? null;
