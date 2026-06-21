@@ -122,9 +122,9 @@ const PRIVATE_IP_PATTERNS = [
   /^169\.254\./,
   /^0\./,
   /^::1$/,
+  /^::ffff:(?:127\.|10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.)/i,
   /^fe80:/i,
-  /^fc00:/i,
-  /^fd00:/i,
+  /^f[cd][0-9a-f]{2}:/i,
 ];
 
 const PRIVATE_HOSTNAME_PATTERNS = [
@@ -245,6 +245,33 @@ async function fetchWithTimeout(url: string, options: RequestInit & { timeout?: 
   }
 }
 
+async function safeFetch(url: string, options: RequestInit & { timeout?: number }, prov: string): Promise<Response> {
+  const MAX_REDIRECTS = 3;
+  let currentUrl = url;
+
+  for (let hops = 0; hops <= MAX_REDIRECTS; hops++) {
+    if (prov === "custom") {
+      await assertSafeResolvedEndpoint(currentUrl, prov);
+    }
+
+    const response = await fetchWithTimeout(currentUrl, {
+      ...options,
+      redirect: "manual",
+    });
+
+    if (![301, 302, 303, 307, 308].includes(response.status)) {
+      return response;
+    }
+
+    const location = response.headers.get("location");
+    if (!location) return response;
+
+    currentUrl = new URL(location, currentUrl).toString();
+  }
+
+  throw new Error("Too many redirects from endpoint.");
+}
+
 // Standardised error response format
 interface ErrorResponse {
   error: string;
@@ -304,9 +331,9 @@ app.post("/api/models", async (req, res) => {
       ];
     } else {
       const modelsUrl = `${baseUrl.replace(/\/$/, "")}/models`;
-      const resp = await fetchWithTimeout(modelsUrl, {
+      const resp = await safeFetch(modelsUrl, {
         headers: { Authorization: `Bearer ${activeKey}` },
-      });
+      }, prov);
       if (resp.ok) {
         const data = (await resp.json()) as ProviderModelsResponse;
         const models: ProviderModel[] = data.data || data.models || [];
@@ -558,7 +585,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
     if (cfg.apiFormat === "anthropic") {
       // Anthropic API format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/messages`;
-      const response = await fetchWithTimeout(endpointUrl, {
+      const response = await safeFetch(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -572,7 +599,7 @@ You MUST return your response as a valid, parsable JSON object matching this sch
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
         }),
-      });
+      }, prov);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -610,14 +637,14 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         response_format: { type: "json_object" },
       };
 
-      const response = await fetchWithTimeout(endpointUrl, {
+      const response = await safeFetch(endpointUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${activeKey}`,
         },
         body: JSON.stringify(requestBody),
-      });
+      }, prov);
 
       if (!response.ok) {
         const errorText = await response.text();
