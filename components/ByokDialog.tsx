@@ -80,9 +80,10 @@ export default function ByokDialog({
               BYOK Engine & Keys
             </DialogTitle>
             <DialogDescription className="text-xs text-steel leading-snug mt-2 p-4 bg-canvas rounded-lg border border-whisper">
-              Supply your own API connection. All keys and config properties
-              are saved safely inside your local browser cache (localStorage)
-              and never hit intermediate middleman servers.
+              Supply your own API connection. Keys are stored in browser
+              local storage and sent to our stateless backend proxy for
+              each prompt optimization request — they are not stored or
+              logged on the server.
             </DialogDescription>
           </DialogHeader>
 

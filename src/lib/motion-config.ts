@@ -5,7 +5,7 @@ export const motionConfig = {
   },
 
   prefersReduced() {
-    if (typeof globalThis.window === "undefined") return false
+    if (globalThis.window === undefined) return false
     return globalThis.window.matchMedia("(prefers-reduced-motion: reduce)").matches
   },
 

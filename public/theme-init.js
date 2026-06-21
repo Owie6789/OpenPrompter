@@ -1,8 +1,8 @@
 (function(){
   try {
-    var theme = localStorage.getItem('theme');
-    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
     }
-  } catch(e) {}
+  } catch(e) { /* localStorage may be disabled */ }
 })();

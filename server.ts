@@ -329,7 +329,7 @@ function sanitizeForLog(s: string, maxLen = 500): string {
   let clean = s
     .replace(/sk-[A-Za-z0-9]{20,}/g, "sk-...REDACTED")
     .replace(/sk-ant-[A-Za-z0-9]{20,}/g, "sk-ant-...REDACTED")
-    .replace(/Bearer\s+[A-Za-z0-9\-_.]{20,}/gi, "Bearer ...REDACTED");
+    .replace(/Bearer\s+[A-Za-z0-9_.-]{20,}/gi, "Bearer ...REDACTED");
   return clean.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
 

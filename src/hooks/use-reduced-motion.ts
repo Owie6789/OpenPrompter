@@ -4,7 +4,7 @@ const QUERY = "(prefers-reduced-motion: reduce)"
 
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() => {
-    if (typeof globalThis.window === "undefined") return false
+    if (globalThis.window === undefined) return false
     return globalThis.window.matchMedia(QUERY).matches
   })
 

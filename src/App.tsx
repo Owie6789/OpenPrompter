@@ -1935,7 +1935,6 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     variants={staggerItem}
                   >
                   <div
-                    key={item.id}
                     className="border border-whisper rounded-lg bg-surface p-6 hover:shadow-md transition-colors,shadow,ring cursor-pointer group"
                     onClick={() => setSelectedHistoryItem(item)}
                   >
