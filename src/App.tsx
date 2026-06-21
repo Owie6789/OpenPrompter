@@ -436,10 +436,10 @@ export default function App() {
       };
 
       setHistoryList((prev) => [newHistoryItem, ...prev]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       toast.error(
-        err.message ||
+        (err instanceof Error ? err.message : null) ||
           "Could not optimize prompt. Check console and configuration.",
       );
     } finally {
@@ -649,7 +649,7 @@ export default function App() {
   }, []);
 
   // Export as Markdown format
-  const getMarkdownText = (pr: any) => {
+  const getMarkdownText = (pr: OptimizationResult | null) => {
     if (!pr) return "";
     return `# Optimized System Prompt
 
@@ -684,7 +684,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
       {/* HEADER — Fluid Island */}
       <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-3 sticky top-3 z-50">
-        <div className="bg-surface backdrop-blur-3xl rounded-xl border border-whisper shadow-elevated px-4 sm:px-6">
+        <div className="bg-surface rounded-xl border border-whisper shadow-elevated px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
@@ -710,11 +710,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 const idx = tabs.indexOf(activeTab);
                 if (e.key === "ArrowRight" || e.key === "ArrowDown") {
                   e.preventDefault();
-                  setActiveTab(tabs[(idx + 1) % tabs.length] as any);
+                  setActiveTab(tabs[(idx + 1) % tabs.length] as "optimizer" | "templates" | "personas" | "history" | "about");
                 }
                 if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
                   e.preventDefault();
-                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length] as any);
+                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length] as "optimizer" | "templates" | "personas" | "history" | "about");
                 }
               }}
             >
@@ -874,7 +874,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         <span className="font-semibold text-ink uppercase tracking-wider text-[10px]">
           Open-Source Prompt Optimizer:
         </span>{" "}
-        Your prompts are processed via secure client-side BYOK, never cached on servers.
+        Your prompts use BYOK through a stateless proxy and are never cached on servers.
       </div>
 
       {/* CORE CONTENT */}
@@ -895,7 +895,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {/* LEFT: WORKSPACE INPUTS & CONFIG */}
                 <div className="flex-1 lg:w-1/2 space-y-6">
                   {/* WORKSPACE CARD */}
-                  <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl relative overflow-hidden">
+                  <Card className="border border-whisper bg-surface shadow-card rounded-xl relative overflow-hidden">
                     <CardHeader className="pb-4 pt-6 px-6">
                       <div className="flex justify-between items-start">
                         <div>
@@ -1340,7 +1340,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
 
                       {/* OPTIMIZED PROMPT OUTPUT CARD */}
-                      <Card className="border border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl relative overflow-hidden p-2">
+                      <Card className="border border-whisper bg-surface shadow-card rounded-xl relative overflow-hidden p-2">
                         <div className="bg-surface rounded-lg shadow-card border border-whisper h-full">
                           <CardHeader className="pb-4 pt-6 px-6 border-b border-whisper flex flex-row items-center justify-between">
                             <div>
@@ -1516,7 +1516,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <CardContent className="pb-4 px-5 pt-4">
                       {/* Double-bezel: inner nested surface with its own depth */}
                       <div
-                        className="p-4 bg-canvas border border-whisper/70 rounded-md text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-colors,shadow,ring duration-300 select-none cursor-pointer hover:bg-canvas/80 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]"
+                        className="p-4 bg-canvas border border-whisper/70 rounded-md text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-[background,color] duration-300 select-none cursor-pointer hover:bg-canvas/80"
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         {tpl.promptText}
@@ -1573,7 +1573,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* LEFT: EDIT / CREATE FORM */}
                 <div className="lg:w-1/3">
-                  <Card className="border-whisper bg-surface backdrop-blur-3xl shadow-card rounded-xl sticky top-24 p-1.5">
+                  <Card className="border-whisper bg-surface shadow-card rounded-xl sticky top-24 p-1.5">
                     <div className="bg-surface rounded-[calc(0.75rem-0.375rem)] shadow-card border border-whisper h-full">
                       <CardHeader className="px-6 pt-6">
                         <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight">

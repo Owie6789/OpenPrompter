@@ -70,6 +70,21 @@ const corsOrigin = process.env.NODE_ENV === "production"
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "50kb" }));
 
+if (isProd) {
+  app.set("trust proxy", 1);
+}
+
+// Standardize JSON parse / payload-too-large errors
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && "body" in err) {
+    return res.status(400).json({ error: "invalid_json", message: "Request body must be valid JSON." });
+  }
+  if (typeof err === "object" && err !== null && "type" in err && (err as { type?: string }).type === "entity.too.large") {
+    return res.status(413).json({ error: "payload_too_large", message: "Request body exceeds 50kb limit." });
+  }
+  return next(err);
+});
+
 // Rate limiting
 const apiLimiter = rateLimit({
   windowMs: 60_000,
@@ -183,6 +198,18 @@ async function assertSafeResolvedEndpoint(url: string, prov: string): Promise<vo
   if (prov !== "custom" || !url) return;
 
   const parsed = new URL(url);
+  const isLocalhost =
+    parsed.hostname === "localhost" ||
+    parsed.hostname === "127.0.0.1" ||
+    parsed.hostname === "::1";
+
+  if (isLocalhost) {
+    if (isProd) {
+      throw new Error("Localhost endpoints are not allowed in production.");
+    }
+    return;
+  }
+
   try {
     const records = await dns.lookup(parsed.hostname, { all: true });
     if (records.some((record) => isPrivateAddress(record.address))) {
