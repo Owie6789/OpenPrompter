@@ -142,9 +142,6 @@ const PRIVATE_HOSTNAME_PATTERNS = [
 
 function assertSafeEndpoint(url: string, prov: string): void {
   if (prov === "custom") {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Custom endpoints are not allowed in production.");
-    }
     if (!url) {
       throw new Error("Custom endpoint URL is required.");
     }
