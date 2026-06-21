@@ -325,11 +325,53 @@ function stripJsonFence(text: string): string {
 
 function sanitizeForLog(s: string, maxLen = 500): string {
   const ESC = String.fromCodePoint(27);
-  // Redact API key patterns (sk-*, sk-ant-*, Bearer tokens, etc.)
   let clean = s
-    .replace(/sk-[A-Za-z0-9_-]{20,}/g, "sk-...REDACTED")
+    // OpenAI — specific prefixes first
+    .replace(/sk-proj-[A-Za-z0-9_-]{32,}/g, "sk-proj-...REDACTED")
+    .replace(/sk-org-[A-Za-z0-9_-]{32,}/g, "sk-org-...REDACTED")
+    // Anthropic
     .replace(/sk-ant-[A-Za-z0-9_-]{20,}/g, "sk-ant-...REDACTED")
-    .replace(/gsk_[\w-]{16,}/g, "gsk_...REDACTED")
+    // OpenRouter
+    .replace(/sk-or-v1-[A-Za-z0-9]{20,}/g, "sk-or-v1-...REDACTED")
+    // NVIDIA NIM / NGC
+    .replace(/nvapi-[A-Za-z0-9_-]{20,}/g, "nvapi-...REDACTED")
+    // xAI (Grok)
+    .replace(/xai-[A-Za-z0-9]{20,}/g, "xai-...REDACTED")
+    // Cohere trial
+    .replace(/trial_[A-Za-z0-9]{16,}/g, "trial_...REDACTED")
+    // Groq
+    .replace(/gsk_[A-Za-z0-9]{16,}/g, "gsk_...REDACTED")
+    // Replicate
+    .replace(/r8_[A-Za-z0-9]{20,}/g, "r8_...REDACTED")
+    // Fireworks AI
+    .replace(/fw_[A-Za-z0-9]{20,}/g, "fw_...REDACTED")
+    // Perplexity AI
+    .replace(/pplx-[A-Za-z0-9]{20,}/g, "pplx-...REDACTED")
+    // Anyscale
+    .replace(/secret_[A-Za-z0-9]{16,}/g, "secret_...REDACTED")
+    // OctoAI
+    .replace(/octa_[A-Za-z0-9]{16,}/g, "octa_...REDACTED")
+    // Lepton AI
+    .replace(/lep-[A-Za-z0-9]{16,}/g, "lep-...REDACTED")
+    // Novita AI
+    .replace(/nvt_[A-Za-z0-9]{16,}/g, "nvt_...REDACTED")
+    // Predibase
+    .replace(/pb_[A-Za-z0-9]{16,}/g, "pb_...REDACTED")
+    // Baseten
+    .replace(/b-[A-Za-z0-9]{16,}/g, "b-...REDACTED")
+    // Modal Labs
+    .replace(/as-[A-Za-z0-9]{16,}/g, "as-...REDACTED")
+    // Google AI (Gemini)
+    .replace(/AIzaSy[A-Za-z0-9_-]{33}/g, "AIzaSy...REDACTED")
+    // Pinecone
+    .replace(/pcsk_[A-Za-z0-9_-]{20,}/g, "pcsk_...REDACTED")
+    // Voyage AI
+    .replace(/voy-[A-Za-z0-9]{20,}/g, "voy-...REDACTED")
+    // Jina AI
+    .replace(/jina_[A-Za-z0-9]{20,}/g, "jina_...REDACTED")
+    // OpenAI — generic sk- last (after specific sk-ant/sk-proj/sk-or)
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, "sk-...REDACTED")
+    // Bearer / JWT tokens
     .replace(/Bearer\s+[\w.-]{20,}/gi, "Bearer ...REDACTED");
   return clean.replaceAll(ESC, " ").replace(/[\r\n\t]/g, " ").slice(0, maxLen);
 }
