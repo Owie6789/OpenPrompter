@@ -2181,7 +2181,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       {/* DIALOG 2: DETAIL INSPECTION MODAL FOR LOGS */}
       <HistoryDetailDialog
         selectedHistoryItem={selectedHistoryItem}
-        onOpenChange={(open: any) => {
+        onOpenChange={(open: boolean) => {
           if (!open) setSelectedHistoryItem(null);
         }}
         handleDeleteHistory={handleDeleteHistory}
