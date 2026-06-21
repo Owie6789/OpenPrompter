@@ -23,6 +23,7 @@ const PORT = parsedPort;
 
 // Security middleware stack
 const isProd = process.env.NODE_ENV === "production";
+const BIND_HOST = process.env.BIND_HOST || "127.0.0.1";
 
 const baseDirectives: Record<string, string[]> = {
   defaultSrc: ["'self'"],
@@ -36,7 +37,7 @@ const baseDirectives: Record<string, string[]> = {
   frameAncestors: ["'none'"],
 };
 
-if (!isProd && process.env.BIND_HOST !== "127.0.0.1") {
+if (!isProd && BIND_HOST !== "127.0.0.1") {
   console.warn(
     "[CSP] Development CSP active (unsafe-inline + unsafe-eval). Set NODE_ENV=production for production.",
   );
@@ -600,7 +601,6 @@ async function run() {
     });
   }
 
-  const BIND_HOST = process.env.BIND_HOST || "127.0.0.1";
   const server = app.listen(PORT, BIND_HOST, () => {
     const addr = server.address();
     const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
