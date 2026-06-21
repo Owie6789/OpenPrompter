@@ -22,16 +22,28 @@ if (!Number.isInteger(parsedPort) || parsedPort < 0 || parsedPort > 65535) {
 const PORT = parsedPort;
 
 // Security middleware stack
+const isProd = process.env.NODE_ENV === "production";
+
 app.use(helmet({
   contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'"],
-      imgSrc: ["'self'", "data:"],
-      fontSrc: ["'self'"],
-    },
+    directives: isProd
+      ? {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: ["'self'"],
+          imgSrc: ["'self'", "data:"],
+          fontSrc: ["'self'"],
+        }
+      : {
+          // Dev: Vite HMR needs WebSocket + React preamble inline script
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: ["'self'", "ws://localhost:*"],
+          imgSrc: ["'self'", "data:"],
+          fontSrc: ["'self'"],
+        },
   },
 }));
 const configuredOrigins = process.env.APP_URL
