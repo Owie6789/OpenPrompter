@@ -311,6 +311,13 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     setCustomModel(cleanedCustomModel);
     setActiveProvider(cleanedProvider);
 
+    // Also update selectedModel so the workspace dropdown reflects the BYOK choice
+    if (cleanedCustomModel) {
+      setSelectedModel(cleanedCustomModel);
+    } else {
+      setSelectedModel("gpt-4o");
+    }
+
     toast.success("BYOK Engine configuration saved successfully.");
     setShowKeyDialog(false);
     fetchAvailableModels({
