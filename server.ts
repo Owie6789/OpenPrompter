@@ -186,7 +186,7 @@ function assertSafeEndpoint(url: string, prov: string): void {
 
   if (!url) return;
   const parsed = new URL(url);
-  const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname.endsWith(h));
+  const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname === h || parsed.hostname.endsWith('.' + h));
   if (!allowed) {
     throw new Error("Endpoint not permitted.");
   }
@@ -267,10 +267,10 @@ function resolveProviderSafety(endpoint: string, claimedProvider: string): strin
   try {
     const parsed = new URL(endpoint);
     const hosts = PROVIDER_HOSTS[claimedProvider] || [];
-    if (hosts.some((h) => parsed.hostname.endsWith(h))) return claimedProvider;
+    if (hosts.some((h) => parsed.hostname === h || parsed.hostname.endsWith('.' + h))) return claimedProvider;
     return "custom";
   } catch {
-    return claimedProvider;
+    return "custom";
   }
 }
 
@@ -735,33 +735,33 @@ const isDev = !isProd;
 
 void (async () => {
   if (isDev) {
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "spa",
-  });
-  app.use(vite.middlewares);
-} else {
-  const distPath = path.join(process.cwd(), "dist");
-  app.use(express.static(distPath));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-}
-
-const server = app.listen(PORT, BIND_HOST, () => {
-  const addr = server.address();
-  const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
-  console.log(`OpenPrompter running on http://localhost:${actualPort}`);
-}).on("error", (err: NodeJS.ErrnoException) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`\nError: Port ${PORT} is already in use.`);
-    console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
-    console.error(`\n   Options:`);
-    console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
-    console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
-    console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
-    process.exit(1);
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
   }
-  throw err;
-});
+
+  const server = app.listen(PORT, BIND_HOST, () => {
+    const addr = server.address();
+    const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
+    console.log(`OpenPrompter running on http://localhost:${actualPort}`);
+  }).on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`\nError: Port ${PORT} is already in use.`);
+      console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
+      console.error(`\n   Options:`);
+      console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
+      console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
+      console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
+      process.exit(1);
+    }
+    throw err;
+  });
 })();

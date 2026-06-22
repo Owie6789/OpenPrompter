@@ -703,7 +703,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             </div>
 
             {/* Desktop Nav */}
-            <div
+            <nav
               className="hidden md:flex items-center gap-1"
               role="tablist"
               onKeyDown={(e) => {
@@ -772,7 +772,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <Question className="w-4 h-4 mr-2" />
                 About & Guide
               </Button>
-            </div>
+            </nav>
 
             {/* API Settings & Key triggers */}
             <div className="flex items-center gap-3">
