@@ -262,6 +262,8 @@ function resolveProvider(endpoint: string): ProviderConfig {
 
 function resolveProviderSafety(endpoint: string, claimedProvider: string): string {
   if (claimedProvider === "custom") return "custom";
+  // No custom endpoint supplied — the hardcoded defaultEndpoint is used,
+  // so the claimed provider can be trusted without hostname verification.
   if (!endpoint) return claimedProvider;
   try {
     const parsed = new URL(endpoint);

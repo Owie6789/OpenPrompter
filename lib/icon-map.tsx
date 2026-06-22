@@ -499,6 +499,8 @@ const hugeiconsMap: Record<IconName, IconComponent> = {
   "settings": hugeicons(HiSettings),
   "plus": hugeicons(HiPlus),
   "arrow-left": hugeicons(HiArrowLeft),
+  // HugeIcons has no standalone ArrowRight01; ChevronRight doubles as the
+  // arrow-right affordance in this library
   "arrow-right": hugeicons(HiChevronRight),
   "arrow-up": hugeicons(HiArrowUp),
   "search": hugeicons(HiSearch),

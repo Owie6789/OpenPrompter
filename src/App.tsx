@@ -782,6 +782,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <Button
                 variant={apiKey ? "outline" : "default"}
                 className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-edges text-steel hover:bg-hover" : "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover"}`}
+                aria-label={apiKey ? "API Connected" : "Connection Setup"}
                 onClick={() => {
                   setApiKeyInputVal(apiKey);
                   setShowApiKeyDialog(true);
@@ -1019,7 +1020,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 </label>
                                 {modelsLoading ? (
                                   <span className="flex items-center gap-1 text-[10px] text-muted">
-                                    <div className="w-2.5 h-2.5 rounded-full border-2 border-muted border-t-transparent animate-spin" />
+                                    <div className="w-2.5 h-2.5 rounded-xl border-2 border-muted border-t-transparent animate-spin" />
                                     Loading models...
                                   </span>
                                 ) : availableModels.length > 0 ? (
@@ -1113,9 +1114,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                         setCustomModelInputVal(m.id);
                                         toast.info(`Model set to ${m.name}`);
                                       }}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-whisper text-[11px] text-steel hover:border-accent hover:text-accent transition-colors shrink-0 cursor-pointer"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-surface border border-whisper text-[11px] text-steel hover:border-accent hover:text-accent transition-colors shrink-0 cursor-pointer"
                                     >
-                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                      <div className="w-1.5 h-1.5 rounded-xl bg-emerald-400" />
                                       {m.name}
                                     </button>
                                   ))}
@@ -1161,13 +1162,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         >
                           {isOptimizing ? (
                             <>
-                              <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                              <div className="w-4 h-4 rounded-xl border-2 border-white/30 border-t-white animate-spin" />
                               Optimizing...
                             </>
                           ) : (
                             <>
                               <span>Optimize Prompt</span>
-                              <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:bg-white/25 transition-colors group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-300">
+                              <span className="w-7 h-7 rounded-xl bg-white/15 flex items-center justify-center group-hover:bg-white/25 transition-colors group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-300">
                                 <Sparkle className="w-3.5 h-3.5 text-accent-foreground" />
                               </span>
                             </>
@@ -1200,7 +1201,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
                     <div className="border border-whisper rounded-xl bg-surface p-6 lg:p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px] lg:min-h-[450px] shadow-card transform transition-colors,shadow,ring">
-                      <img src={loadingAsset} alt="Optimizing..." className="w-48 h-auto opacity-80 mb-2" />
+                      <img src={loadingAsset} alt="Optimizing..." className="w-48 h-auto opacity-80 mb-2" width={192} height={192} />
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
                         <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-lg" />
@@ -1211,7 +1212,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <h4 className="text-xl font-bold text-ink font-display tracking-tight">
                           Prompt Optimization Active
                         </h4>
-                        <p className="text-xs font-mono text-steel uppercase tracking-widest bg-canvas py-1.5 px-3 rounded-full inline-block">
+                        <p className="text-xs font-mono text-steel uppercase tracking-widest bg-canvas py-1.5 px-3 rounded-xl inline-block">
                           {progressStep}
                         </p>
                         <p className="text-sm text-steel leading-snug pt-2">
@@ -1227,14 +1228,14 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   {!isOptimizing && !optimizedResult && (
                     <div className="border border-dashed border-whisper rounded-xl p-6 lg:p-12 flex flex-col items-center justify-center text-center text-steel bg-canvas min-h-[300px] lg:min-h-[480px]">
                       <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-accent/5 rounded-full animate-pulse" />
+                        <div className="absolute inset-0 bg-accent/5 rounded-xl animate-pulse" />
                         <div
-                          className="absolute inset-4 bg-accent/10 rounded-full animate-ping"
+                          className="absolute inset-4 bg-accent/10 rounded-xl animate-ping"
                           style={{ animationDuration: "3s" }}
                         />
-                        <div className="relative w-20 h-20 rounded-full bg-surface flex items-center justify-center shadow-card border border-whisper z-10">
+                        <div className="relative w-20 h-20 rounded-xl bg-surface flex items-center justify-center shadow-card border border-whisper z-10">
                           <MagicWand className="w-8 h-8 text-accent shrink-0" />
-                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-surface border border-whisper rounded-full flex items-center justify-center shadow-sm">
+                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-surface border border-whisper rounded-xl flex items-center justify-center shadow-sm">
                             <Sparkle className="w-3 h-3 text-emerald-500" />
                           </div>
                         </div>
@@ -1356,7 +1357,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </div>
 
                             {/* Toolbar options */}
-                            <div className="flex items-center gap-2 bg-canvas p-1 rounded-full border border-whisper">
+                            <div className="flex items-center gap-2 bg-canvas p-1 rounded-xl border border-whisper">
                               {/* Copy plain */}
                               <Button
                                 variant="ghost"
@@ -1378,7 +1379,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               </Button>
 
                               {/* Export selectors */}
-                              <div className="flex rounded-full py-0.5 px-1 bg-surface divide-x divide-edges shadow-card shrink-0 items-center">
+                              <div className="flex rounded-xl py-0.5 px-1 bg-surface divide-x divide-edges shadow-card shrink-0 items-center">
                                 <button
                                   className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
                                   onClick={() =>
@@ -1671,7 +1672,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <Button
                             type="submit"
                             size="sm"
-                            className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs rounded-full px-5 shadow-md"
+                            className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs rounded-xl px-5 shadow-md"
                           >
                             {editingPersona ? "Save Updates" : "Create Persona"}
                           </Button>
@@ -1739,7 +1740,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-muted hover:text-ink hover:bg-hover rounded-full"
+                                      className="h-8 w-8 text-muted hover:text-ink hover:bg-hover rounded-xl"
                                       onClick={() => handleEditPersona(pers)}
                                     >
                                       <GearSix className="w-3.5 h-3.5" />
@@ -1747,7 +1748,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-muted hover:text-error hover:bg-error/10 rounded-full"
+                                      className="h-8 w-8 text-muted hover:text-error hover:bg-error/10 rounded-xl"
                                       onClick={() => {
                                         setCustomPersonas((prev) =>
                                           prev.filter((p) => p.id !== pers.id),
@@ -1799,7 +1800,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     ? "secondary"
                                     : "ghost"
                                 }
-                                className={`text-xs font-semibold rounded-full px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-hover hover:text-ink"}`}
+                                className={`text-xs font-semibold rounded-xl px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-hover hover:text-ink"}`}
                                 onClick={() => {
                                   setSelectedPersona(pers.id);
                                   toast.success(
@@ -1848,7 +1849,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-steel hover:text-ink rounded-full font-semibold cursor-pointer"
+                      className="text-xs text-steel hover:text-ink rounded-xl font-semibold cursor-pointer"
                       onClick={() => {
                         // Download as JSON
                         const blob = new Blob(
@@ -1870,7 +1871,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-steel hover:text-ink rounded-full font-semibold cursor-pointer"
+                      className="text-xs text-steel hover:text-ink rounded-xl font-semibold cursor-pointer"
                       onClick={() => {
                         const md = historyList
                           .map(
@@ -1901,9 +1902,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-full font-semibold text-steel">Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="rounded-xl font-semibold text-steel">Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              className="rounded-full font-semibold bg-error text-destructive-foreground hover:bg-error/80"
+                              className="rounded-xl font-semibold bg-error text-destructive-foreground hover:bg-error/80"
                               onClick={() => {
                                 setHistoryList([]);
                                 toast.success("History cache cleared pristine!");
@@ -1917,7 +1918,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs text-error hover:text-error hover:bg-error/10 border-error/20 self-end md:self-auto rounded-full font-semibold shadow-card"
+                        className="text-xs text-error hover:text-error hover:bg-error/10 border-error/20 self-end md:self-auto rounded-xl font-semibold shadow-card"
                         onClick={() => setShowClearConfirm(true)}
                       >
                         <Trash className="w-3.5 h-3.5 mr-1.5" />
@@ -1973,7 +1974,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-error/10 rounded-full"
+                          className="h-8 w-8 text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-error/10 rounded-xl"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash className="w-4 h-4" />
@@ -2014,7 +2015,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {historyList.length === 0 && (
                   <div className="border border-dashed border-whisper rounded-xl p-12 text-center text-steel bg-surface">
-                    <img src={emptyHistoryAsset} alt="No history" className="w-32 h-auto mx-auto mb-4 opacity-60" />
+                    <img src={emptyHistoryAsset} alt="No history" className="w-32 h-auto mx-auto mb-4 opacity-60" width={128} height={128} />
                     <h4 className="text-sm font-bold text-ink tracking-tight">
                       No prompt history found
                     </h4>
@@ -2041,12 +2042,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <Card className="border border-whisper bg-surface shadow-card rounded-xl">
                 <CardHeader className="p-8 border-b border-whisper pb-6">
                   <div className="flex items-center gap-4 mb-3">
-                    <img src={openprompterIcon} alt="OpenPrompter" className="w-14 h-14 rounded-xl shadow-card" />
+                    <img src={openprompterIcon} alt="OpenPrompter" className="w-14 h-14 rounded-xl shadow-card" width={56} height={56} />
                     <div>
                       <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
                         About OpenPrompter
                       </CardTitle>
-                      <CardDescription className="text-xs text-steel bg-canvas uppercase tracking-widest font-mono font-semibold py-1.5 px-3 rounded-full inline-block mt-2 w-max">
+                      <CardDescription className="text-xs text-steel bg-canvas uppercase tracking-widest font-mono font-semibold py-1.5 px-3 rounded-xl inline-block mt-2 w-max">
                         Zero Limits. Zero Telemetry. 100% Free.
                       </CardDescription>
                     </div>
