@@ -76,6 +76,10 @@ import ByokDialog from "@/components/ByokDialog";
 import HistoryDetailDialog from "@/components/HistoryDetailDialog";
 import ImportShareDialog from "@/components/ImportShareDialog";
 
+import openprompterIcon from "@/assets/openpromptericon.png";
+import loadingAsset from "@/assets/op-appasset-aigenerating-loadstate.png";
+import emptyHistoryAsset from "@/assets/op-appasset-emptyhistorystate.png";
+
 function safeJsonParse<T>(json: string | null, fallback: T): T {
   if (!json) return fallback;
   try { return JSON.parse(json) as T; }
@@ -784,8 +788,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 }}
                 id="key-settings-btn"
               >
-                <Key className="w-3.5 h-3.5 mr-1" />
-                {apiKey ? "API Connected" : "Connection Setup"}
+                <Key className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">{apiKey ? "API Connected" : "Connection Setup"}</span>
               </Button>
 
               {/* Mobile menu trigger */}
@@ -913,7 +917,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           variant="ghost"
                           size="sm"
                           onClick={handleResetWorkspace}
-                          className="h-8 text-xs text-muted hover:text-ink rounded-full"
+                          className="h-8 text-xs text-muted hover:text-ink rounded-xl"
                         >
                           <ArrowCounterClockwise className="w-3.5 h-3.5 mr-1" />
                           Reset
@@ -1150,7 +1154,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <CardFooter className="border-t border-whisper pt-5 pb-6 flex justify-end gap-3 bg-canvas rounded-b-[calc(2rem-0.5rem)] px-6 mt-4">
                         <Button
                           size="lg"
-                          className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-[1.25rem] text-accent-foreground pl-8 pr-3 shadow-card flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
+                          className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-xl text-accent-foreground pl-8 pr-3 shadow-card flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
                           disabled={isOptimizing}
                           onClick={handleOptimizePrompt}
                           id="run-optimize-btn"
@@ -1196,6 +1200,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
                     <div className="border border-whisper rounded-xl bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-card transform transition-colors,shadow,ring">
+                      <img src={loadingAsset} alt="Optimizing..." className="w-48 h-auto opacity-80 mb-2" />
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
                         <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-lg" />
@@ -1246,7 +1251,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       {/* Curated Templates Link Quick Hack */}
                       <Button
                         variant="outline"
-                        className="text-steel hover:text-ink text-xs gap-1 rounded-full border-whisper bg-surface active:-translate-y-px transition-colors,shadow,ring"
+                        className="text-steel hover:text-ink text-xs gap-1 rounded-xl border-whisper bg-surface active:-translate-y-px transition-colors,shadow,ring"
                         onClick={() => setActiveTab("templates")}
                       >
                         Browse professional presets{" "}
@@ -1356,7 +1361,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 text-xs rounded-full hover:bg-surface text-steel hover:text-ink shadow-card"
+                                className="h-8 text-xs rounded-xl hover:bg-surface text-steel hover:text-ink shadow-card"
                                 onClick={() =>
                                   handleCopyToClipboard(
                                     optimizedResult.optimized_prompt,
@@ -1532,7 +1537,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-muted hover:text-accent font-semibold rounded-full hover:bg-surface border border-transparent hover:border-accent/20"
+                        className="text-xs text-muted hover:text-accent font-semibold rounded-xl hover:bg-surface border border-transparent hover:border-accent/20"
                         onClick={() => handleShareTemplate(tpl)}
                       >
                         <ShareNetwork className="w-3.5 h-3.5 mr-1" />
@@ -1541,7 +1546,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-steel hover:text-ink font-semibold rounded-full hover:bg-surface border border-transparent hover:border-whisper shadow-none hover:shadow-card"
+                        className="text-xs text-steel hover:text-ink font-semibold rounded-xl hover:bg-surface border border-transparent hover:border-whisper shadow-none hover:shadow-card"
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         Load into Workspace →
@@ -1652,7 +1657,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="text-xs font-semibold rounded-full"
+                              className="text-xs font-semibold rounded-xl"
                               onClick={() => {
                                 setEditingPersona(null);
                                 setNewPersonaName("");
@@ -1779,7 +1784,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-xs text-muted hover:text-accent font-semibold rounded-full hover:bg-surface border border-transparent hover:border-accent/20"
+                                  className="text-xs text-muted hover:text-accent font-semibold rounded-xl hover:bg-surface border border-transparent hover:border-accent/20"
                                   onClick={() => handleSharePersona(pers)}
                                 >
                                   <ShareNetwork className="w-3.5 h-3.5 mr-1" />
@@ -2009,7 +2014,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 {historyList.length === 0 && (
                   <div className="border border-dashed border-whisper rounded-xl p-12 text-center text-steel bg-surface">
-                    <ClockCounterClockwise className="w-12 h-12 text-muted mx-auto mb-4" />
+                    <img src={emptyHistoryAsset} alt="No history" className="w-32 h-auto mx-auto mb-4 opacity-60" />
                     <h4 className="text-sm font-bold text-ink tracking-tight">
                       No prompt history found
                     </h4>
@@ -2035,12 +2040,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             >
               <Card className="border border-whisper bg-surface shadow-card rounded-xl">
                 <CardHeader className="p-8 border-b border-whisper pb-6">
-                  <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
-                    About OpenPrompter
-                  </CardTitle>
-                  <CardDescription className="text-xs text-steel bg-canvas uppercase tracking-widest font-mono font-semibold py-1.5 px-3 rounded-full inline-block mt-3 w-max">
-                    Zero Limits. Zero Telemetry. 100% Free.
-                  </CardDescription>
+                  <div className="flex items-center gap-4 mb-3">
+                    <img src={openprompterIcon} alt="OpenPrompter" className="w-14 h-14 rounded-xl shadow-card" />
+                    <div>
+                      <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
+                        About OpenPrompter
+                      </CardTitle>
+                      <CardDescription className="text-xs text-steel bg-canvas uppercase tracking-widest font-mono font-semibold py-1.5 px-3 rounded-full inline-block mt-2 w-max">
+                        Zero Limits. Zero Telemetry. 100% Free.
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-8 py-6 space-y-8 text-sm text-steel leading-snug">
                   <p className="text-base text-ink font-medium tracking-tight">

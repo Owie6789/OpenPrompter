@@ -174,7 +174,7 @@ import HiStar from "@hugeicons/core-free-icons/StarIcon";
 import HiSettings from "@hugeicons/core-free-icons/Settings01Icon";
 import HiPlus from "@hugeicons/core-free-icons/PlusSignIcon";
 import HiArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import HiArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+
 import HiArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import HiSearch from "@hugeicons/core-free-icons/Search01Icon";
 import HiLoader from "@hugeicons/core-free-icons/Loading01Icon";
@@ -499,7 +499,7 @@ const hugeiconsMap: Record<IconName, IconComponent> = {
   "settings": hugeicons(HiSettings),
   "plus": hugeicons(HiPlus),
   "arrow-left": hugeicons(HiArrowLeft),
-  "arrow-right": hugeicons(HiArrowRight),
+  "arrow-right": hugeicons(HiChevronRight),
   "arrow-up": hugeicons(HiArrowUp),
   "search": hugeicons(HiSearch),
   "loader": hugeicons(HiLoader),

@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 
@@ -38,7 +39,7 @@ const shapeMap: Record<ShapeVariant, ShapeClasses> = {
     focusRing: "rounded-[22px]",
     mergedBg: "rounded-2xl",
     container: "rounded-3xl",
-    button: "rounded-[20px]",
+    button: "rounded-xl",
     input: "rounded-[20px]",
     bgRadius: 20,
     mergedRadius: 16,
@@ -79,7 +80,7 @@ function useShapeContext() {
 function transitionShape(callback: () => void) {
   const root = document.documentElement;
   root.classList.add("transitioning");
-  void root.offsetHeight;
+  root.offsetHeight; // eslint-disable-line @typescript-eslint/no-unused-expressions
   callback();
   setTimeout(() => root.classList.remove("transitioning"), 200);
 }
@@ -87,10 +88,10 @@ function transitionShape(callback: () => void) {
 function ShapeProvider({
   children,
   defaultShape = "pill",
-}: {
+}: Readonly<{
   children: ReactNode;
   defaultShape?: ShapeVariant;
-}) {
+}>) {
   const [shape, setShapeState] = useState<ShapeVariant>(defaultShape);
 
   const setShape = useCallback((next: ShapeVariant) => {
@@ -99,12 +100,7 @@ function ShapeProvider({
 
   // Global keyboard shortcut: R to cycle radius
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "r" && e.key !== "R") return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
-      e.preventDefault();
+    const cycleShape = () => {
       transitionShape(() => {
         setShapeState((prev) => {
           const idx = shapeOrder.indexOf(prev);
@@ -112,12 +108,24 @@ function ShapeProvider({
         });
       });
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "r" && e.key !== "R") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      e.preventDefault();
+      cycleShape();
+    };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({ shape, setShape, classes: shapeMap[shape] }),
+    [shape, setShape],
+  );
   return (
-    <ShapeContext.Provider value={{ shape, setShape, classes: shapeMap[shape] }}>
+    <ShapeContext.Provider value={contextValue}>
       {children}
     </ShapeContext.Provider>
   );

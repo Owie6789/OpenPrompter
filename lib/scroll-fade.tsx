@@ -159,7 +159,7 @@ export function ScrollEdgeCue({
   size = "comfortable",
   inset = 4,
   chevron = true,
-}: ScrollEdgeCueProps) {
+}: Readonly<ScrollEdgeCueProps>) {
   const contextLevel = useSurface();
   // Clamp to the ladder (1–8), mirroring SurfaceProvider — an out-of-range
   // override would interpolate an invalid var and silently kill the gradient.
@@ -170,6 +170,14 @@ export function ScrollEdgeCue({
   // Gradient direction where 100% == the hard outer edge.
   const dir = `to ${edge}`;
 
+  const bandPosition = mode === "sticky"
+    ? vertical
+      ? { left: -inset, right: -inset, [edge]: -inset, height: sizePx }
+      : { top: -inset, bottom: -inset, [edge]: -inset, width: sizePx }
+    : vertical
+      ? { left: 0, right: 0, [edge]: 0, height: sizePx }
+      : { top: 0, bottom: 0, [edge]: 0, width: sizePx };
+
   const band = (
     <div
       style={
@@ -178,13 +186,7 @@ export function ScrollEdgeCue({
           opacity: visible ? 1 : 0,
           // Exit slightly faster than enter, per the animation guidelines.
           transition: `opacity ${visible ? 160 : 120}ms ease`,
-          ...(mode === "sticky"
-            ? vertical
-              ? { left: -inset, right: -inset, [edge]: -inset, height: sizePx }
-              : { top: -inset, bottom: -inset, [edge]: -inset, width: sizePx }
-            : vertical
-              ? { left: 0, right: 0, [edge]: 0, height: sizePx }
-              : { top: 0, bottom: 0, [edge]: 0, width: sizePx }),
+          ...bandPosition,
         } as CSSProperties
       }
     >
