@@ -169,7 +169,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     null,
   );
   const [newPersonaName, setNewPersonaName] = useState("");
-  const [newPersonaDesc, setNewPersonaDescription] = useState("");
+  const [newPersonaDesc, setNewPersonaDesc] = useState("");
   const [newPersonaPrompt, setNewPersonaPrompt] = useState("");
 
   // Dialog & View State helpers
@@ -188,7 +188,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
   const [customModelInputVal, setCustomModelInputVal] = useState(customModel);
   const [providerInputVal, setProviderInputVal] = useState(activeProvider);
 
-  const [showKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] =
     useState<PromptHistoryItem | null>(null);
   const [sharedLinkCopied, setSharedLinkCopied] = useState(false);
@@ -291,15 +291,9 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     modelToSave?: string,
   ) => {
     const cleanedKey = keyToSave.trim();
-    const cleanedEndpoint = (
-      endpointToSave !== undefined ? endpointToSave : endpointInputVal
-    ).trim();
-    const cleanedProvider = (
-      providerToSave !== undefined ? providerToSave : providerInputVal
-    ).trim();
-    const cleanedCustomModel = (
-      modelToSave !== undefined ? modelToSave : customModelInputVal
-    ).trim();
+    const cleanedEndpoint = (endpointToSave ?? endpointInputVal).trim();
+    const cleanedProvider = (providerToSave ?? providerInputVal).trim();
+    const cleanedCustomModel = (modelToSave ?? customModelInputVal).trim();
 
     // Write storage first, then update state
     try {
@@ -318,7 +312,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     setActiveProvider(cleanedProvider);
 
     toast.success("BYOK Engine configuration saved successfully.");
-    setShowApiKeyDialog(false);
+    setShowKeyDialog(false);
     fetchAvailableModels({
       apiKey: cleanedKey,
       apiEndpoint: cleanedEndpoint,
@@ -408,7 +402,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
       if (!response.ok) {
         // Handle specific BYOK missing prompt
         if (data.error === "apiKey_missing") {
-          setShowApiKeyDialog(true);
+          setShowKeyDialog(true);
           setApiKeyInputVal("");
           toast.error("API Key Configuration Required");
           throw new Error(data.message);
@@ -493,7 +487,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
 
     // Reset Form
     setNewPersonaName("");
-    setNewPersonaDescription("");
+    setNewPersonaDesc("");
     setNewPersonaPrompt("");
     setEditingPersona(null);
   };
@@ -501,7 +495,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
   const handleEditPersona = (pers: CustomPersona) => {
     setEditingPersona(pers);
     setNewPersonaName(pers.name);
-    setNewPersonaDescription(pers.description);
+    setNewPersonaDesc(pers.description);
     setNewPersonaPrompt(pers.systemPrompt);
   };
 
@@ -702,7 +696,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             </div>
 
             {/* Desktop Nav */}
-            <nav
+            <div
               className="hidden md:flex items-center gap-1"
               role="tablist"
               onKeyDown={(e) => {
@@ -771,7 +765,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <Question className="w-4 h-4 mr-2" />
                 About & Guide
               </Button>
-            </nav>
+            </div>
 
             {/* API Settings & Key triggers */}
             <div className="flex items-center gap-3">
@@ -780,7 +774,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-edges text-steel hover:bg-hover" : "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover"}`}
                 onClick={() => {
                   setApiKeyInputVal(apiKey);
-                  setShowApiKeyDialog(true);
+                  setShowKeyDialog(true);
                 }}
                 id="key-settings-btn"
               >
@@ -1013,23 +1007,25 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <label htmlFor="model-select" className="text-[11px] font-semibold text-steel uppercase tracking-wider">
                                   Model
                                 </label>
-                                {modelsLoading ? (
+                                {modelsLoading && (
                                   <span className="flex items-center gap-1 text-[10px] text-muted">
                                     <div className="w-2.5 h-2.5 rounded-full border-2 border-muted border-t-transparent animate-spin" />
                                     Loading models...
                                   </span>
-                                ) : availableModels.length > 0 ? (
+                                )}
+                                {!modelsLoading && availableModels.length > 0 && (
                                   <button
                                     type="button"
-                                    onClick={() => setShowApiKeyDialog(true)}
+                                    onClick={() => setShowKeyDialog(true)}
                                     className="tabular-nums text-[10px] text-accent hover:text-accent-hover font-semibold tracking-wider"
                                   >
                                     {availableModels.length} models
                                   </button>
-                                ) : (
+                                )}
+                                {!modelsLoading && availableModels.length === 0 && (
                                   <button
                                     type="button"
-                                    onClick={() => setShowApiKeyDialog(true)}
+                                    onClick={() => setShowKeyDialog(true)}
                                     className="text-[10px] text-accent hover:text-accent-hover font-semibold tracking-wider"
                                   >
                                     Configure API
@@ -1280,11 +1276,17 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 Confidence
                               </span>
                               <div className="flex items-center gap-1">
-                                <span
-                                  className={`text-base font-bold font-mono tracking-tight ${optimizedResult.confidence_score >= 90 ? "text-ink" : optimizedResult.confidence_score >= 70 ? "text-steel" : "text-amber-500"}`}
-                                >
-                                  {optimizedResult.confidence_score}%
-                                </span>
+                                {(() => {
+                                  const score = optimizedResult.confidence_score;
+                                  const confidenceColor = score >= 90 ? "text-ink" : score >= 70 ? "text-steel" : "text-amber-500";
+                                  return (
+                                    <span
+                                      className={`text-base font-bold font-mono tracking-tight ${confidenceColor}`}
+                                    >
+                                      {score}%
+                                    </span>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
@@ -1621,7 +1623,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               placeholder="E.g., Optimizes for clean architectures"
                               value={newPersonaDesc}
                               onChange={(e) =>
-                                setNewPersonaDescription(e.target.value)
+                                setNewPersonaDesc(e.target.value)
                               }
                               className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-accent shadow-card"
                             />
@@ -1656,7 +1658,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onClick={() => {
                                 setEditingPersona(null);
                                 setNewPersonaName("");
-                                setNewPersonaDescription("");
+                                setNewPersonaDesc("");
                                 setNewPersonaPrompt("");
                               }}
                             >
@@ -2164,7 +2166,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       {/* DIALOG 1: BRING YOUR OWN KEY SETTINGS */}
       <ByokDialog
         open={showKeyDialog}
-        onOpenChange={setShowApiKeyDialog}
+        onOpenChange={setShowKeyDialog}
         apiKeyInputVal={apiKeyInputVal}
         setApiKeyInputVal={setApiKeyInputVal}
         endpointInputVal={endpointInputVal}

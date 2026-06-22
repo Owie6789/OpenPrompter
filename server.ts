@@ -59,13 +59,17 @@ const configuredOrigins = process.env.APP_URL
   ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
 
-const corsOrigin = process.env.NODE_ENV === "production"
-  ? configuredOrigins.length > 0
-    ? configuredOrigins
-    : (() => { throw new Error("APP_URL must be configured in production for CORS."); })()
-  : configuredOrigins.length > 0
-    ? configuredOrigins
-    : true;
+let corsOrigin: string[] | string;
+if (process.env.NODE_ENV === "production") {
+  if (configuredOrigins.length === 0) {
+    throw new Error("APP_URL must be configured in production for CORS.");
+  }
+  corsOrigin = configuredOrigins;
+} else if (configuredOrigins.length > 0) {
+  corsOrigin = configuredOrigins;
+} else {
+  corsOrigin = [`http://localhost:${PORT}`];
+}
 
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "50kb" }));
@@ -242,6 +246,12 @@ function sanitizeControlSequences(text: string): string {
   return text.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
 }
 
+const PROVIDER_HOSTS: Record<string, string[]> = {
+  openai: ["api.openai.com"],
+  deepseek: ["api.deepseek.com"],
+  anthropic: ["api.anthropic.com"],
+};
+
 function resolveProvider(endpoint: string): ProviderConfig {
   if (!endpoint) return PROVIDERS.custom;
   const e = endpoint.toLowerCase();
@@ -249,6 +259,19 @@ function resolveProvider(endpoint: string): ProviderConfig {
   if (e.includes("anthropic")) return PROVIDERS.anthropic;
   if (e.includes("openai")) return PROVIDERS.openai;
   return PROVIDERS.custom;
+}
+
+function resolveProviderSafety(endpoint: string, claimedProvider: string): string {
+  if (claimedProvider === "custom") return "custom";
+  if (!endpoint) return claimedProvider;
+  try {
+    const parsed = new URL(endpoint);
+    const hosts = PROVIDER_HOSTS[claimedProvider] || [];
+    if (hosts.some((h) => parsed.hostname.endsWith(h))) return claimedProvider;
+    return "custom";
+  } catch {
+    return claimedProvider;
+  }
 }
 
 // Generate a simple request ID
@@ -326,7 +349,8 @@ app.post("/api/models", async (req, res) => {
     }
 
     const endpoint = (apiEndpoint || "").trim();
-    const prov = provider || resolveProvider(endpoint).label.toLowerCase();
+    const claimedProv = provider || resolveProvider(endpoint).label.toLowerCase();
+    const prov = resolveProviderSafety(endpoint, claimedProv);
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     try {
@@ -541,7 +565,8 @@ app.post("/api/optimize", async (req, res) => {
     }
 
     const activeEndpoint = (apiEndpoint || "").trim();
-    const prov = provider || resolveProvider(activeEndpoint).label.toLowerCase();
+    const claimedProv = provider || resolveProvider(activeEndpoint).label.toLowerCase();
+    const prov = resolveProviderSafety(activeEndpoint, claimedProv);
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     // Validate endpoint
@@ -706,37 +731,37 @@ You MUST return your response as a valid, parsable JSON object matching this sch
 });
 
 // Start server
-async function run() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+const isDev = !isProd;
 
-  const server = app.listen(PORT, BIND_HOST, () => {
-    const addr = server.address();
-    const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
-    console.log(`OpenPrompter running on http://localhost:${actualPort}`);
-  }).on("error", (err: NodeJS.ErrnoException) => {
-    if (err.code === "EADDRINUSE") {
-      console.error(`\nError: Port ${PORT} is already in use.`);
-      console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
-      console.error(`\n   Options:`);
-      console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
-      console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
-      console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
-      process.exit(1);
-    }
-    throw err;
+void (async () => {
+  if (isDev) {
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+  app.use(vite.middlewares);
+} else {
+  const distPath = path.join(process.cwd(), "dist");
+  app.use(express.static(distPath));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
-run();
+const server = app.listen(PORT, BIND_HOST, () => {
+  const addr = server.address();
+  const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
+  console.log(`OpenPrompter running on http://localhost:${actualPort}`);
+}).on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`\nError: Port ${PORT} is already in use.`);
+    console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
+    console.error(`\n   Options:`);
+    console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
+    console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
+    console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
+    process.exit(1);
+  }
+  throw err;
+});
+})();
