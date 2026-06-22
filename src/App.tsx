@@ -206,6 +206,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     type: "persona";
     data: PersonaShareData;
   } | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   // Copy-state feedbacks
   const [copiedState, setCopiedState] = useState<
@@ -465,6 +466,10 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
       toast.warning("Please fill in Name and Persona Instruction.");
       return;
     }
+    if (!newPersonaDesc.trim()) {
+      toast.error("Short description is required.");
+      return;
+    }
 
     if (editingPersona) {
       // Edit mode
@@ -555,12 +560,20 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     if (result.success === true) {
       try {
         await navigator.clipboard.writeText(result.url);
-        setSharedLinkCopied(true);
-        setTimeout(() => setSharedLinkCopied(false), 3000);
-        toast.success("Template share link copied!");
       } catch {
-        toast.error("Clipboard write failed — please copy the URL manually.");
+        // Fallback for non-HTTPS or restricted contexts
+        const ta = document.createElement('textarea');
+        ta.value = result.url;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
       }
+      setSharedLinkCopied(true);
+      setTimeout(() => setSharedLinkCopied(false), 3000);
+      toast.success("Template share link copied!");
     } else {
       toast.error(result.error);
     }
@@ -581,12 +594,20 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     if (result.success === true) {
       try {
         await navigator.clipboard.writeText(result.url);
-        setSharedLinkCopied(true);
-        setTimeout(() => setSharedLinkCopied(false), 3000);
-        toast.success("Persona share link copied!");
       } catch {
-        toast.error("Clipboard write failed — please copy the URL manually.");
+        // Fallback for non-HTTPS or restricted contexts
+        const ta = document.createElement('textarea');
+        ta.value = result.url;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
       }
+      setSharedLinkCopied(true);
+      setTimeout(() => setSharedLinkCopied(false), 3000);
+      toast.success("Persona share link copied!");
     } else {
       toast.error(result.error);
     }
@@ -643,6 +664,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
       }
     } else {
       toast.error(result.error);
+      setShareError(result.error);
     }
     // Clean URL without reload — use URLSearchParams for correctness
     const cleanParams = new URLSearchParams(globalThis.location.search);
@@ -884,6 +906,19 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
       {/* CORE CONTENT */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 w-full">
+        {/* SHARE ERROR BANNER */}
+        {shareError && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-sm text-red-400 mb-4 flex items-start justify-between">
+            <span>{shareError}</span>
+            <button
+              className="ml-3 text-red-400 hover:text-red-300 shrink-0"
+              onClick={() => setShareError(null)}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* TABS CONTAINER */}
         <AnimatePresence mode="wait">
           {/* TAB 1: OPERATIONAL WORKSPACE (OPTIMIZER) */}
@@ -1672,6 +1707,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <Button
                             type="submit"
                             size="sm"
+                            disabled={!newPersonaDesc.trim()}
                             className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs rounded-xl px-5 shadow-md"
                           >
                             {editingPersona ? "Save Updates" : "Create Persona"}

@@ -10,7 +10,7 @@
 
 /* ── Shaders Design System ────────────────────────────── */
 /* Dark-first theme. Inspired by Shaders WebGPU library.  */
-/* Cyan (#6bdfff) + golden yellow (#ffcb6b) on dark bg.   */
+/* Neutral black/grey/white + golden yellow (#ffcb6b) on dark bg. */
 
 @theme {
   /* Typography */
@@ -26,14 +26,14 @@
   --color-muted: #697088;
   --color-muted-foreground: #81879c;
   --color-border: #202129;
-  --color-ring: #6bdfff;
-  --color-primary: #6bdfff;
+  --color-ring: #e6e9fa;
+  --color-primary: #e6e9fa;
   --color-primary-foreground: #0a1820;
   --color-secondary: #242430;
   --color-secondary-foreground: #e6e9fa;
   --color-destructive: #ff6b6b;
   --color-destructive-foreground: #ffffff;
-  --color-accent: #6bdfff;
+  --color-accent: #e6e9fa;
   --color-accent-foreground: #0a1820;
   --color-popover: #1a1a1b;
   --color-popover-foreground: #e6e9fa;
@@ -42,12 +42,12 @@
   --color-input: #202129;
   --color-sidebar: #0f0f11;
   --color-sidebar-foreground: #e6e9fa;
-  --color-sidebar-primary: #6bdfff;
+  --color-sidebar-primary: #e6e9fa;
   --color-sidebar-primary-foreground: #0a1820;
   --color-sidebar-accent: #242430;
   --color-sidebar-accent-foreground: #e6e9fa;
   --color-sidebar-border: #202129;
-  --color-sidebar-ring: #6bdfff;
+  --color-sidebar-ring: #e6e9fa;
 
   /* ── Shaders custom semantic colors ── */
   --color-canvas: #141416;
@@ -61,17 +61,17 @@
   --color-steel-bright: #81879c;
   --color-whisper: rgba(255, 255, 255, 0.06);
   --color-edges: #202129;
-  --color-brand-accent: #6bdfff;
-  --color-brand-accent-hover: #87f3ff;
+  --color-brand-accent: #e6e9fa;
+  --color-brand-accent-hover: #ffffff;
   --color-secondary-accent: #ffcb6b;
   --color-error: #ff6b6b;
-  --color-hover: rgba(107, 223, 255, 0.08);
-  --color-accent-hover: #87f3ff;
+  --color-hover: rgba(230, 233, 250, 0.08);
+  --color-accent-hover: #ffffff;
   --color-highlight: #d1d7ea;
 
   /* ── Shadows ── */
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.25);
   --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
@@ -83,33 +83,33 @@
   --card-foreground: #e6e9fa;
   --popover: #1a1a1b;
   --popover-foreground: #e6e9fa;
-  --primary: #6bdfff;
+  --primary: #e6e9fa;
   --primary-foreground: #0a1820;
   --secondary: #242430;
   --secondary-foreground: #e6e9fa;
   --muted: #697088;
   --muted-foreground: #81879c;
-  --accent: #6bdfff;
+  --accent: #e6e9fa;
   --accent-foreground: #0a1820;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
   --border: #202129;
   --input: #202129;
-  --ring: #6bdfff;
+  --ring: #e6e9fa;
   --radius: 0.25rem;
-  --chart-1: #6bdfff;
+  --chart-1: #e6e9fa;
   --chart-2: #ffcb6b;
   --chart-3: #d930b1;
   --chart-4: #a252fa;
   --chart-5: #b79cff;
   --sidebar: #0f0f11;
   --sidebar-foreground: #e6e9fa;
-  --sidebar-primary: #6bdfff;
+  --sidebar-primary: #e6e9fa;
   --sidebar-primary-foreground: #0a1820;
   --sidebar-accent: #242430;
   --sidebar-accent-foreground: #e6e9fa;
   --sidebar-border: #202129;
-  --sidebar-ring: #6bdfff;
+  --sidebar-ring: #e6e9fa;
 }
 
 /* ── .dark block for manual toggle support ── */
@@ -121,32 +121,32 @@
   --card-foreground: #e6e9fa;
   --popover: #1a1a1b;
   --popover-foreground: #e6e9fa;
-  --primary: #6bdfff;
+  --primary: #e6e9fa;
   --primary-foreground: #0a1820;
   --secondary: #242430;
   --secondary-foreground: #e6e9fa;
   --muted: #697088;
   --muted-foreground: #81879c;
-  --accent: #6bdfff;
+  --accent: #e6e9fa;
   --accent-foreground: #0a1820;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
   --border: #202129;
   --input: #202129;
-  --ring: #6bdfff;
-  --chart-1: #6bdfff;
+  --ring: #e6e9fa;
+  --chart-1: #e6e9fa;
   --chart-2: #ffcb6b;
   --chart-3: #d930b1;
   --chart-4: #a252fa;
   --chart-5: #b79cff;
   --sidebar: #0f0f11;
   --sidebar-foreground: #e6e9fa;
-  --sidebar-primary: #6bdfff;
+  --sidebar-primary: #e6e9fa;
   --sidebar-primary-foreground: #0a1820;
   --sidebar-accent: #242430;
   --sidebar-accent-foreground: #e6e9fa;
   --sidebar-border: #202129;
-  --sidebar-ring: #6bdfff;
+  --sidebar-ring: #e6e9fa;
 
   --surface-1: #171717;
   --surface-2: #1E1E1E;
