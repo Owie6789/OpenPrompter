@@ -687,7 +687,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       <Toaster richColors closeButton theme="dark" position="top-right" />
 
       {/* HEADER — Fluid Island */}
-      <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-3 sticky top-3 z-50">
+      <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-2 sm:mt-3 sticky top-3 z-50">
         <div className="bg-surface rounded-xl border border-whisper shadow-elevated px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
@@ -882,7 +882,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       </div>
 
       {/* CORE CONTENT */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 w-full">
         {/* TABS CONTAINER */}
         <AnimatePresence mode="wait">
           {/* TAB 1: OPERATIONAL WORKSPACE (OPTIMIZER) */}
@@ -900,7 +900,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <div className="flex-1 lg:w-1/2 space-y-6">
                   {/* WORKSPACE CARD */}
                   <Card className="border border-whisper bg-surface shadow-card rounded-xl relative overflow-hidden">
-                    <CardHeader className="pb-4 pt-6 px-6">
+                    <CardHeader className="pb-3 pt-4 px-4 lg:px-6 lg:pt-6">
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display text-ink tracking-tight">
@@ -939,7 +939,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           <Textarea
                             id="prompt-input"
                             placeholder="E.g., Write a draft story about a lost robot... OR Refactor this python class..."
-                            className="min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-accent focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-accent rounded-md resize-none shadow-inner"
+                            className="min-h-[160px] lg:min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-accent focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-accent rounded-md resize-none shadow-inner"
                             value={promptInput}
                             onChange={(e) =>
                               setPromptInput(e.target.value.slice(0, 5000))
@@ -1199,7 +1199,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <div className="flex flex-col gap-6 lg:w-1/2">
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
-                    <div className="border border-whisper rounded-xl bg-surface p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[450px] shadow-card transform transition-colors,shadow,ring">
+                    <div className="border border-whisper rounded-xl bg-surface p-6 lg:p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px] lg:min-h-[450px] shadow-card transform transition-colors,shadow,ring">
                       <img src={loadingAsset} alt="Optimizing..." className="w-48 h-auto opacity-80 mb-2" />
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
@@ -1225,7 +1225,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                   {/* IDLE (NO RESULT) VIEW */}
                   {!isOptimizing && !optimizedResult && (
-                    <div className="border border-dashed border-whisper rounded-xl p-12 flex flex-col items-center justify-center text-center text-steel bg-canvas min-h-[480px]">
+                    <div className="border border-dashed border-whisper rounded-xl p-6 lg:p-12 flex flex-col items-center justify-center text-center text-steel bg-canvas min-h-[300px] lg:min-h-[480px]">
                       <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
                         <div className="absolute inset-0 bg-accent/5 rounded-full animate-pulse" />
                         <div
