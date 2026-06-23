@@ -170,13 +170,10 @@ export function ScrollEdgeCue({
   // Gradient direction where 100% == the hard outer edge.
   const dir = `to ${edge}`;
 
-  const bandPosition = mode === "sticky"
-    ? vertical
-      ? { left: -inset, right: -inset, [edge]: -inset, height: sizePx }
-      : { top: -inset, bottom: -inset, [edge]: -inset, width: sizePx }
-    : vertical
-      ? { left: 0, right: 0, [edge]: 0, height: sizePx }
-      : { top: 0, bottom: 0, [edge]: 0, width: sizePx };
+  const isSticky = mode === "sticky";
+  const bandPosition = vertical
+    ? { left: isSticky ? -inset : 0, right: isSticky ? -inset : 0, [edge]: isSticky ? -inset : 0, height: sizePx }
+    : { top: isSticky ? -inset : 0, bottom: isSticky ? -inset : 0, [edge]: isSticky ? -inset : 0, width: sizePx };
 
   const band = (
     <div

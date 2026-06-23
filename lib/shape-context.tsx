@@ -80,7 +80,7 @@ function useShapeContext() {
 function transitionShape(callback: () => void) {
   const root = document.documentElement;
   root.classList.add("transitioning");
-  root.offsetHeight; // eslint-disable-line @typescript-eslint/no-unused-expressions
+  void root.offsetHeight; // force layout reflow
   callback();
   setTimeout(() => root.classList.remove("transitioning"), 200);
 }
@@ -99,15 +99,16 @@ function ShapeProvider({
   }, []);
 
   // Global keyboard shortcut: R to cycle radius
-  useEffect(() => {
-    const cycleShape = () => {
-      transitionShape(() => {
-        setShapeState((prev) => {
-          const idx = shapeOrder.indexOf(prev);
-          return shapeOrder[(idx + 1) % shapeOrder.length];
-        });
+  const cycleShape = useCallback(() => {
+    transitionShape(() => {
+      setShapeState((prev) => {
+        const idx = shapeOrder.indexOf(prev);
+        return shapeOrder[(idx + 1) % shapeOrder.length];
       });
-    };
+    });
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "r" && e.key !== "R") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -118,7 +119,7 @@ function ShapeProvider({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [cycleShape]);
 
   const contextValue = useMemo(
     () => ({ shape, setShape, classes: shapeMap[shape] }),

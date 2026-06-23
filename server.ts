@@ -61,9 +61,10 @@ const configuredOrigins = process.env.APP_URL
 
 let corsOrigin: string | string[] | boolean;
 if (isProd) {
-  corsOrigin = configuredOrigins.length > 0
-    ? configuredOrigins
-    : (() => { throw new Error("APP_URL must be configured in production for CORS."); })();
+  if (configuredOrigins.length === 0) {
+    throw new Error("APP_URL must be configured in production for CORS.");
+  }
+  corsOrigin = configuredOrigins;
 } else if (configuredOrigins.length > 0) {
   corsOrigin = configuredOrigins;
 } else {

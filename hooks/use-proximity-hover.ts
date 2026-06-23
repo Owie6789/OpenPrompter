@@ -91,6 +91,47 @@ export function useProximityHover<T extends HTMLElement>(
     [measureItems]
   );
 
+  const findClosestItem = useCallback(
+    (
+      rects: ItemRect[],
+      mousePos: number,
+      containerEdge: number,
+      borderOffset: number,
+      scrollOffset: number,
+      scale: number,
+      axis: "x" | "y",
+    ) => {
+      let closestIndex: number | null = null;
+      let closestDistance = Infinity;
+      let containingIndex: number | null = null;
+
+      for (let index = 0; index < rects.length; index++) {
+        const r = rects[index];
+        if (!r) continue;
+
+        const contentPos = axis === "x" ? r.left : r.top;
+        const itemStart = containerEdge + (borderOffset + contentPos - scrollOffset) * scale;
+        const itemSize = (axis === "x" ? r.width : r.height) * scale;
+        const itemEnd = itemStart + itemSize;
+
+        if (mousePos >= itemStart && mousePos <= itemEnd) {
+          containingIndex = index;
+        }
+
+        const itemCenter = itemStart + itemSize / 2;
+        const distance = Math.abs(mousePos - itemCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      }
+
+      return containingIndex ?? closestIndex;
+    },
+    [],
+  );
+
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       const mouseX = e.clientX;
