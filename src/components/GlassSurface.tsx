@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useId } from 'react';
+import { useMediaQuery } from '../hooks/use-media-query';
 
 export interface GlassSurfaceProps {
   children?: React.ReactNode;
@@ -23,19 +24,6 @@ export interface GlassSurfaceProps {
   style?: React.CSSProperties;
 }
 
-const useDarkMode = () => {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    if (typeof globalThis === 'undefined') return;
-    const mediaQuery = globalThis.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(mediaQuery.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-  return isDark;
-};
-
 const GlassSurface: React.FC<GlassSurfaceProps> = ({
   children, width = 200, height = 80, borderRadius = 20, borderWidth = 0.07,
   brightness = 50, opacity = 0.93, blur = 11, displace = 0, backgroundOpacity = 0,
@@ -43,7 +31,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   blueOffset = 20, xChannel = 'R', yChannel = 'G', mixBlendMode = 'difference',
   className = '', style = {}
 }) => {
-  const uniqueId = useId().replaceAll(/:/g, '-');
+  const uniqueId = useId().replaceAll(':', '-');
   const filterId = `glass-filter-${uniqueId}`;
   const redGradId = `red-grad-${uniqueId}`;
   const blueGradId = `blue-grad-${uniqueId}`;
@@ -54,7 +42,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const greenChannelRef = useRef<SVGFEDisplacementMapElement>(null);
   const blueChannelRef = useRef<SVGFEDisplacementMapElement>(null);
   const gaussianBlurRef = useRef<SVGFEGaussianBlurElement>(null);
-  const isDarkMode = useDarkMode();
+  const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();

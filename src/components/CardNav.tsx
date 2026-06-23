@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ArrowUpRight } from '@phosphor-icons/react';
+import { useMediaQuery } from '../hooks/use-media-query';
 
 type CardNavLink = {
   label: string;
@@ -51,12 +52,12 @@ const CardNav: React.FC<CardNavProps> = ({
   const navRef = useRef<HTMLDivElement | null>(null);
   const cardsRef = useRef<HTMLDivElement[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const calculateHeight = () => {
     const navEl = navRef.current;
     if (!navEl) return EXPANDED_HEIGHT;
 
-    const isMobile = globalThis.matchMedia('(max-width: 768px)').matches;
     if (!isMobile) return EXPANDED_HEIGHT;
 
     const contentEl = navEl.querySelector('.card-nav-content') as HTMLElement;
@@ -126,7 +127,7 @@ const CardNav: React.FC<CardNavProps> = ({
     };
     globalThis.addEventListener('resize', handleResize);
     return () => globalThis.removeEventListener('resize', handleResize);
-  }, [isExpanded]);
+  }, [isExpanded, isMobile]);
 
   const toggleMenu = () => {
     const tl = tlRef.current;
