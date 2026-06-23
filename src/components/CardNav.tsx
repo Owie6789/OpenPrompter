@@ -131,14 +131,14 @@ const CardNav: React.FC<CardNavProps> = ({
   const toggleMenu = () => {
     const tl = tlRef.current;
     if (!tl) return;
-    if (!isExpanded) {
-      setIsHamburgerOpen(true);
-      setIsExpanded(true);
-      tl.play(0);
-    } else {
+    if (isExpanded) {
       setIsHamburgerOpen(false);
       tl.eventCallback('onReverseComplete', () => setIsExpanded(false));
       tl.reverse();
+    } else {
+      setIsHamburgerOpen(true);
+      setIsExpanded(true);
+      tl.play(0);
     }
   };
 

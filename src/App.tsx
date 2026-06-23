@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Sparkle,
   GearSix,
-  Key,
   Copy,
   Check,
   ArrowCounterClockwise,
@@ -13,7 +12,6 @@ import {
   ShareNetwork,
   Lock,
   ShieldCheck,
-  List,
   X,
   CaretRight,
   MagicWand,
