@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   Sparkle,
-  ClockCounterClockwise,
   GearSix,
   Key,
   Copy,
   Check,
   ArrowCounterClockwise,
   FileText,
-  UserCheck,
   Trash,
   PlusCircle,
   Download,
   ShareNetwork,
-  Question,
   Lock,
   ShieldCheck,
   List,
@@ -22,7 +19,6 @@ import {
   MagicWand,
   Sliders,
   Cpu,
-  Layout,
   Coffee,
   ArrowsClockwise,
   Lightbulb,
@@ -569,7 +565,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
         document.body.appendChild(ta);
         ta.select();
         const copyOk = document.execCommand('copy');
-        document.body.removeChild(ta);
+        ta.remove();
         if (!copyOk) throw new Error('execCommand copy failed');
       }
       setSharedLinkCopied(true);
@@ -604,7 +600,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
         document.body.appendChild(ta);
         ta.select();
         const copyOk = document.execCommand('copy');
-        document.body.removeChild(ta);
+        ta.remove();
         if (!copyOk) throw new Error('execCommand copy failed');
       }
       setSharedLinkCopied(true);

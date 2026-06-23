@@ -80,7 +80,7 @@ function useShapeContext() {
 function transitionShape(callback: () => void) {
   const root = document.documentElement;
   root.classList.add("transitioning");
-  void root.offsetHeight; // force layout reflow
+  root.offsetHeight; // NOSONAR - intentional forced reflow
   callback();
   setTimeout(() => root.classList.remove("transitioning"), 200);
 }

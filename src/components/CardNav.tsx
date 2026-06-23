@@ -70,7 +70,7 @@ const CardNav: React.FC<CardNavProps> = ({
       contentEl.style.pointerEvents = 'auto';
       contentEl.style.position = 'static';
       contentEl.style.height = 'auto';
-      void contentEl.offsetHeight;
+      contentEl.offsetHeight; // NOSONAR - intentional forced reflow
 
       const contentHeight = contentEl.scrollHeight;
 
@@ -107,22 +107,21 @@ const CardNav: React.FC<CardNavProps> = ({
   }, [ease, items]);
 
   useLayoutEffect(() => {
+    const resetTimeline = (progress = 0) => {
+      tlRef.current?.kill();
+      const newTl = createTimeline();
+      if (newTl) {
+        if (progress) newTl.progress(progress);
+        tlRef.current = newTl;
+      }
+    };
     const handleResize = () => {
       if (!tlRef.current) return;
       if (isExpanded) {
         gsap.set(navRef.current, { height: calculateHeight() });
-        tlRef.current.kill();
-        const newTl = createTimeline();
-        if (newTl) {
-          newTl.progress(1);
-          tlRef.current = newTl;
-        }
+        resetTimeline(1);
       } else {
-        tlRef.current.kill();
-        const newTl = createTimeline();
-        if (newTl) {
-          tlRef.current = newTl;
-        }
+        resetTimeline(0);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -156,21 +155,14 @@ const CardNav: React.FC<CardNavProps> = ({
         aria-label="Main navigation"
       >
         <div className="card-nav-top absolute inset-x-0 top-0 h-[60px] flex items-center justify-between p-2 pl-[1.1rem] z-[2]">
-          <div
+          <button
+            type="button"
             className={`hamburger-menu ${isHamburgerOpen ? 'open' : ''} group h-full flex flex-col items-center justify-center cursor-pointer gap-[6px] order-2 md:order-none`}
             onClick={toggleMenu}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleMenu();
-              }
-            }}
-            role="button"
             aria-label={isExpanded ? 'Close menu' : 'Open menu'}
             aria-expanded={isExpanded}
             aria-controls="card-nav-content"
-            tabIndex={0}
-            style={{ color: menuColor || '#000' }}
+            style={{ color: menuColor || '#000', background: 'none', border: 'none', padding: 0 }}
           >
             <div
               className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-300 ease-linear [transform-origin:50%_50%] ${
@@ -182,7 +174,7 @@ const CardNav: React.FC<CardNavProps> = ({
                 isHamburgerOpen ? '-translate-y-[4px] -rotate-45' : ''
               } group-hover:opacity-75`}
             />
-          </div>
+          </button>
 
           <div className="logo-container flex items-center md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 order-1 md:order-none">
             <img src={logo} alt={logoAlt} className="logo h-[28px]" />
@@ -205,7 +197,6 @@ const CardNav: React.FC<CardNavProps> = ({
               ? 'visible pointer-events-auto'
               : 'invisible pointer-events-none'
           } md:flex-row md:items-end md:gap-[12px]`}
-          role="tabpanel"
           aria-hidden={!isExpanded}
         >
           {(items || []).slice(0, 3).map((item, idx) => (
