@@ -134,10 +134,11 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const getContainerStyles = (): React.CSSProperties => {
+    const hasInset = className.includes('inset-0');
     const baseStyles: React.CSSProperties = {
       ...style,
       width: typeof width === 'number' ? `${width}px` : width,
-      height: typeof height === 'number' ? `${height}px` : height,
+      ...(!hasInset ? { height: typeof height === 'number' ? `${height}px` : height } : {}),
       borderRadius: `${borderRadius}px`,
       '--glass-frost': backgroundOpacity,
       '--glass-saturation': saturation
