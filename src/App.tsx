@@ -537,6 +537,26 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     toast.info("Workspace pristine and reset.");
   };
 
+  // Copy a URL to clipboard with fallback for non-HTTPS contexts
+  const copyUrlToClipboard = async (url: string, successMessage: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const copyOk = document.execCommand('copy'); // NOSONAR - intentional fallback for non-HTTPS
+      ta.remove();
+      if (!copyOk) throw new Error('execCommand copy failed');
+    }
+    setSharedLinkCopied(true);
+    setTimeout(() => setSharedLinkCopied(false), 3000);
+    toast.success(successMessage);
+  };
+
   // Share a template via URL
   const handleShareTemplate = async (tpl: PromptTemplate) => {
     const payload: SharePayload = {
@@ -552,23 +572,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     };
     const result = generateShareUrl(payload);
     if (result.success === true) {
-      try {
-        await navigator.clipboard.writeText(result.url);
-      } catch {
-        // Fallback for non-HTTPS or restricted contexts
-        const ta = document.createElement('textarea');
-        ta.value = result.url;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        const copyOk = document.execCommand('copy');
-        ta.remove();
-        if (!copyOk) throw new Error('execCommand copy failed');
-      }
-      setSharedLinkCopied(true);
-      setTimeout(() => setSharedLinkCopied(false), 3000);
-      toast.success("Template share link copied!");
+      await copyUrlToClipboard(result.url, "Template share link copied!");
     } else {
       toast.error(result.error);
     }
@@ -587,23 +591,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     };
     const result = generateShareUrl(payload);
     if (result.success === true) {
-      try {
-        await navigator.clipboard.writeText(result.url);
-      } catch {
-        // Fallback for non-HTTPS or restricted contexts
-        const ta = document.createElement('textarea');
-        ta.value = result.url;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        const copyOk = document.execCommand('copy');
-        ta.remove();
-        if (!copyOk) throw new Error('execCommand copy failed');
-      }
-      setSharedLinkCopied(true);
-      setTimeout(() => setSharedLinkCopied(false), 3000);
-      toast.success("Persona share link copied!");
+      await copyUrlToClipboard(result.url, "Persona share link copied!");
     } else {
       toast.error(result.error);
     }
@@ -700,11 +688,11 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
   });
 
   // CardNav navigation items
+  const navItemDefaults = { bgColor: "#1a1a1b", textColor: "#e6e9fa" } as const;
   const navItems = [
     {
       label: "Workspace",
-      bgColor: "#1a1a1b",
-      textColor: "#e6e9fa",
+      ...navItemDefaults,
       links: [
         { label: "Optimize Prompt", href: "#", ariaLabel: "Go to Workspace", onClick: () => { setActiveTab("optimizer"); } },
         { label: "Curated Presets", href: "#", ariaLabel: "Go to Curated Presets", onClick: () => { setActiveTab("templates"); } },
@@ -713,8 +701,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
     },
     {
       label: "Library",
-      bgColor: "#1a1a1b",
-      textColor: "#e6e9fa",
+      ...navItemDefaults,
       links: [
         { label: "Templates", href: "#", ariaLabel: "Go to Templates", onClick: () => { setActiveTab("templates"); } },
         { label: "Personas", href: "#", ariaLabel: "Go to Personas", onClick: () => { setActiveTab("personas"); } },
@@ -723,8 +710,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
     },
     {
       label: "Info",
-      bgColor: "#1a1a1b",
-      textColor: "#e6e9fa",
+      ...navItemDefaults,
       links: [
         { label: "About & Guide", href: "#", ariaLabel: "About and Guide", onClick: () => { setActiveTab("about"); } },
         { label: "GitHub", href: "https://github.com/Owie6789/OpenPrompter", ariaLabel: "GitHub Repository" },
