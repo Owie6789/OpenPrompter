@@ -31,6 +31,8 @@ import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { ScrollProgress } from "@/src/components/ScrollProgress"
 import { useReducedMotion } from "@/src/hooks/use-reduced-motion"
+import CardNav from "@/src/components/CardNav";
+import GlassSurface from "@/src/components/GlassSurface";
 
 import { PRESET_PERSONAS, PRESET_TEMPLATES } from "./data";
 import {
@@ -135,7 +137,6 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<TabType>("optimizer");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // App core state
   const [promptInput, setPromptInput] = useState("");
@@ -702,196 +703,74 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
     return hitsQuery && hitsCategory;
   });
 
+  // CardNav navigation items
+  const navItems = [
+    {
+      label: "Workspace",
+      bgColor: "#1a1a1b",
+      textColor: "#e6e9fa",
+      links: [
+        { label: "Optimize Prompt", href: "#", ariaLabel: "Go to Workspace", onClick: () => { setActiveTab("optimizer"); } },
+        { label: "Curated Presets", href: "#", ariaLabel: "Go to Curated Presets", onClick: () => { setActiveTab("templates"); } },
+        { label: "Custom Personas", href: "#", ariaLabel: "Go to Custom Personas", onClick: () => { setActiveTab("personas"); } },
+      ]
+    },
+    {
+      label: "Library",
+      bgColor: "#1a1a1b",
+      textColor: "#e6e9fa",
+      links: [
+        { label: "Templates", href: "#", ariaLabel: "Go to Templates", onClick: () => { setActiveTab("templates"); } },
+        { label: "Personas", href: "#", ariaLabel: "Go to Personas", onClick: () => { setActiveTab("personas"); } },
+        { label: "History", href: "#", ariaLabel: "Go to History", onClick: () => { setActiveTab("history"); } },
+      ]
+    },
+    {
+      label: "Info",
+      bgColor: "#1a1a1b",
+      textColor: "#e6e9fa",
+      links: [
+        { label: "About & Guide", href: "#", ariaLabel: "About and Guide", onClick: () => { setActiveTab("about"); } },
+        { label: "GitHub", href: "https://github.com/Owie6789/OpenPrompter", ariaLabel: "GitHub Repository" },
+        { label: "Privacy", href: "#", ariaLabel: "Privacy Policy", onClick: () => { setActiveTab("about"); } },
+      ]
+    }
+  ];
+
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent/20 selection:text-ink antialiased">
       <ScrollProgress />
       <Toaster richColors closeButton theme="dark" position="top-right" />
 
-      {/* HEADER — Fluid Island */}
-      <header className="mx-auto max-w-7xl w-full px-3 sm:px-6 mt-2 sm:mt-3 sticky top-3 z-50">
-        <div className="bg-surface rounded-xl border border-whisper shadow-elevated px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16">
-            {/* Logo area */}
-            <div className="flex items-center gap-3">
-              <img src={openprompterIcon} alt="" width={40} height={40} className="w-10 h-10 rounded-md shadow-card" />
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-ink font-display">
-                  OpenPrompter
-                </h1>
-                <p className="text-[10px] text-steel uppercase font-mono tracking-widest leading-none mt-0.5">
-                  Open-Source Optimizer
-                </p>
-              </div>
-            </div>
-
-            {/* Desktop Nav */}
-            <nav
-              className="hidden md:flex items-center gap-1"
-              role="tablist"
-              onKeyDown={(e) => {
-                const tabs: TabType[] = ["optimizer","templates","personas","history","about"];
-                const idx = tabs.indexOf(activeTab);
-                if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setActiveTab(tabs[(idx + 1) % tabs.length]);
-                }
-                if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
-                }
-              }}
-            >
-              <Button
-                variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow active:scale-[0.98] ${activeTab === "optimizer" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
-                onClick={() => setActiveTab("optimizer")}
-                id="tab-optimizer"
-              >
-                <Sparkle className="w-4 h-4 mr-2" />
-                Workspace
-              </Button>
-              <Button
-                variant={activeTab === "templates" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "templates" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
-                onClick={() => setActiveTab("templates")}
-                id="tab-templates"
-              >
-                <Layout className="w-4 h-4 mr-2" />
-                Curated Presets
-              </Button>
-              <Button
-                variant={activeTab === "personas" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "personas" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
-                onClick={() => setActiveTab("personas")}
-                id="tab-personas"
-              >
-                <UserCheck className="w-4 h-4 mr-2" />
-                Custom Personas
-              </Button>
-              <Button
-                variant={activeTab === "history" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "history" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
-                onClick={() => setActiveTab("history")}
-                id="tab-history"
-              >
-                <ClockCounterClockwise className="w-4 h-4 mr-2" />
-                Durable History
-                {historyList.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1.5 bg-whisper text-[10px] text-steel border-none shrink-0 px-1.5 py-0"
-                  >
-                    {historyList.length}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant={activeTab === "about" ? "secondary" : "ghost"}
-                className={`text-sm rounded-lg px-4 transition-colors,shadow ${activeTab === "about" ? "bg-accent text-accent-foreground shadow-sm font-semibold" : "text-steel hover:text-ink"}`}
-                onClick={() => setActiveTab("about")}
-                id="tab-about"
-              >
-                <Question className="w-4 h-4 mr-2" />
-                About & Guide
-              </Button>
-            </nav>
-
-            {/* API Settings & Key triggers */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant={apiKey ? "outline" : "default"}
-                className={`h-9 text-xs rounded-lg transition-colors,shadow active:scale-95 ${apiKey ? "border-edges text-steel hover:bg-hover" : "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover"}`}
-                aria-label={apiKey ? "API Connected" : "Connection Setup"}
-                onClick={() => {
-                  setApiKeyInputVal(apiKey);
-                  setShowApiKeyDialog(true);
-                }}
-                id="key-settings-btn"
-              >
-                <Key className="w-3.5 h-3.5 sm:mr-1" />
-                <span className="hidden sm:inline">{apiKey ? "API Connected" : "Connection Setup"}</span>
-              </Button>
-
-              {/* Mobile menu trigger */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                id="mobile-menu-trigger"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <List className="w-6 h-6" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile menu panel */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-whisper px-4 py-3 space-y-2">
-              <Button
-                className="w-full justify-start text-left"
-                variant={activeTab === "optimizer" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("optimizer");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Sparkle className="w-4 h-4 mr-2" />
-                Workspace
-              </Button>
-              <Button
-                className="w-full justify-start text-left"
-                variant={activeTab === "templates" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("templates");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Layout className="w-4 h-4 mr-2" />
-                Curated Presets
-              </Button>
-              <Button
-                className="w-full justify-start text-left"
-                variant={activeTab === "personas" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("personas");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <UserCheck className="w-4 h-4 mr-2" />
-                Custom Personas
-              </Button>
-              <Button
-                className="w-full justify-start text-left"
-                variant={activeTab === "history" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("history");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <ClockCounterClockwise className="w-4 h-4 mr-2" />
-                Durable History
-              </Button>
-              <Button
-                className="w-full justify-start text-left"
-                variant={activeTab === "about" ? "secondary" : "ghost"}
-                onClick={() => {
-                  setActiveTab("about");
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Question className="w-4 h-4 mr-2" />
-                About & Guide
-              </Button>
-            </div>
-          )}
-
-        </div>
-      </header>
+      {/* HEADER — CardNav with Glass Surface */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-4">
+        <GlassSurface
+          width="90%"
+          height={68}
+          borderRadius={16}
+          brightness={15}
+          opacity={0.85}
+          blur={12}
+          backgroundOpacity={0.6}
+          saturation={1.2}
+          className="w-full max-w-[840px]"
+        >
+          <CardNav
+            logo={openprompterIcon}
+            logoAlt="OpenPrompter"
+            items={navItems}
+            baseColor="transparent"
+            menuColor="#e6e9fa"
+            buttonBgColor="#e6e9fa"
+            buttonTextColor="#141416"
+            buttonLabel={apiKey ? "API Connected" : "Connection Setup"}
+            onButtonClick={() => {
+              setApiKeyInputVal(apiKey);
+              setShowApiKeyDialog(true);
+            }}
+          />
+        </GlassSurface>
+      </div>
 
       {/* ANNOUNCEMENT BAR */}
       <div className="bg-surface border-b border-whisper px-4 py-2.5 text-center text-[11px] text-steel">
@@ -902,7 +781,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       </div>
 
       {/* CORE CONTENT */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 py-4 lg:py-8 w-full">
         {/* SHARE ERROR BANNER */}
         {shareError && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-sm text-red-400 mb-4 flex items-start justify-between">
