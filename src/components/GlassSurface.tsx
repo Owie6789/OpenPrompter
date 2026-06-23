@@ -134,6 +134,12 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       '--glass-saturation': saturation
     } as React.CSSProperties;
 
+    const darkBorder = '1px solid rgba(255,255,255,0.2)';
+    const lightBorder = '1px solid rgba(255,255,255,0.3)';
+    const darkInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)';
+    const lightInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.5), inset 0 -1px 0 0 rgba(255,255,255,0.3)';
+    const lightFullShadow = '0 8px 32px 0 rgba(31,38,135,0.2), 0 2px 16px 0 rgba(31,38,135,0.1), inset 0 1px 0 0 rgba(255,255,255,0.4), inset 0 -1px 0 0 rgba(255,255,255,0.2)';
+
     if (svgSupported) {
       return {
         ...baseStyles,
@@ -146,28 +152,24 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     }
 
     if (!supportsBackdropFilter()) {
-      const fallbackBg = isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)';
-      const fallbackBorder = isDarkMode ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.3)';
-      const fallbackShadow = isDarkMode
-        ? 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)'
-        : 'inset 0 1px 0 0 rgba(255,255,255,0.5), inset 0 -1px 0 0 rgba(255,255,255,0.3)';
-      return { ...baseStyles, background: fallbackBg, border: fallbackBorder, boxShadow: fallbackShadow };
+      return {
+        ...baseStyles,
+        background: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
+        border: isDarkMode ? darkBorder : lightBorder,
+        boxShadow: isDarkMode ? darkInsetShadow : lightInsetShadow
+      };
     }
 
-    const blurAmount = isDarkMode ? 1.8 : 1.8;
     const brightnessAmount = isDarkMode ? 1.2 : 1.1;
     const bgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)';
-    const filterValue = `blur(12px) saturate(${blurAmount}) brightness(${brightnessAmount})`;
-    const boxShadow = isDarkMode
-      ? 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)'
-      : '0 8px 32px 0 rgba(31,38,135,0.2), 0 2px 16px 0 rgba(31,38,135,0.1), inset 0 1px 0 0 rgba(255,255,255,0.4), inset 0 -1px 0 0 rgba(255,255,255,0.2)';
+    const filterValue = `blur(12px) saturate(1.8) brightness(${brightnessAmount})`;
     return {
       ...baseStyles,
       background: bgColor,
       backdropFilter: filterValue,
       WebkitBackdropFilter: filterValue,
-      border: isDarkMode ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.3)',
-      boxShadow
+      border: isDarkMode ? darkBorder : lightBorder,
+      boxShadow: isDarkMode ? darkInsetShadow : lightFullShadow
     };
   };
 
