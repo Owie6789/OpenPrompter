@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Brain,
   Sparkle,
   ClockCounterClockwise,
   GearSix,
@@ -714,9 +713,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo area */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-accent text-accent-foreground flex items-center justify-center shadow-card">
-                <Brain className="w-6 h-6 text-accent-foreground" />
-              </div>
+              <img src={openprompterIcon} alt="" width={40} height={40} className="w-10 h-10 rounded-md shadow-card" />
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-ink font-display">
                   OpenPrompter
