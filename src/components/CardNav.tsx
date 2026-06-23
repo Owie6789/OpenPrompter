@@ -125,8 +125,17 @@ const CardNav: React.FC<CardNavProps> = ({
         resetTimeline(0);
       }
     };
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (isExpanded && navRef.current && !navRef.current.contains(e.target as Node)) {
+        toggleMenu();
+      }
+    };
     globalThis.addEventListener('resize', handleResize);
-    return () => globalThis.removeEventListener('resize', handleResize);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      globalThis.removeEventListener('resize', handleResize);
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
   }, [isExpanded, isMobile]);
 
   const toggleMenu = () => {
@@ -166,19 +175,20 @@ const CardNav: React.FC<CardNavProps> = ({
             style={{ color: menuColor || '#000', background: 'none', border: 'none', padding: 0 }}
           >
             <div
-              className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-300 ease-linear [transform-origin:50%_50%] ${
+              className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] [transform-origin:50%_50%] ${
                 isHamburgerOpen ? 'translate-y-[4px] rotate-45' : ''
               } group-hover:opacity-75`}
             />
             <div
-              className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-300 ease-linear [transform-origin:50%_50%] ${
+              className={`hamburger-line w-[30px] h-[2px] bg-current transition-[transform,opacity,margin] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] [transform-origin:50%_50%] ${
                 isHamburgerOpen ? '-translate-y-[4px] -rotate-45' : ''
               } group-hover:opacity-75`}
             />
           </button>
 
           <div className="logo-container flex items-center md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 order-1 md:order-none">
-            <img src={logo} alt={logoAlt} className="logo h-[28px]" />
+            <img src={logo} alt={logoAlt} className="logo h-[36px]" />
+            <span className="ml-2 text-[15px] font-semibold tracking-tight hidden md:inline" style={{ color: menuColor || '#000' }}>OpenPrompter</span>
           </div>
 
           <button
@@ -193,7 +203,7 @@ const CardNav: React.FC<CardNavProps> = ({
 
         <div
           id="card-nav-content"
-          className={`card-nav-content absolute left-0 right-0 top-[60px] bottom-0 p-2 flex flex-col items-stretch gap-2 justify-start z-[1] ${
+          className={`card-nav-content absolute left-0 right-0 top-[60px] bottom-0 px-2 pb-2 flex flex-col items-stretch gap-2 justify-start z-[1] ${
             isExpanded
               ? 'visible pointer-events-auto'
               : 'invisible pointer-events-none'
@@ -222,6 +232,7 @@ const CardNav: React.FC<CardNavProps> = ({
                         e.preventDefault();
                         lnk.onClick();
                       }
+                      if (isMobile && isExpanded) toggleMenu();
                     }}
                   >
                     <ArrowUpRight

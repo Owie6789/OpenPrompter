@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Sparkle,
   GearSix,
@@ -176,6 +176,20 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
   const [customModel, setCustomModel] = useState(() => safeLocalStorageGet("openprompter_custom_model"));
 
   const [activeProvider, setActiveProvider] = useState(() => safeLocalStorageGet("openprompter_provider", "openai"));
+
+  // Sticky announcement bar — hide when footer is in view
+  const footerRef = useRef<HTMLElement>(null);
+  const [footerVisible, setFooterVisible] = useState(false);
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
@@ -755,14 +769,6 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             />
           </div>
         </div>
-      </div>
-
-      {/* ANNOUNCEMENT BAR */}
-      <div className="bg-surface border-b border-whisper px-4 py-2.5 text-center text-[11px] text-steel">
-        <span className="font-semibold text-ink uppercase tracking-wider text-[10px]">
-          Open-Source Prompt Optimizer:
-        </span>{" "}
-        Your prompts use BYOK through a stateless proxy and are never cached on servers.
       </div>
 
       {/* CORE CONTENT */}
@@ -2025,8 +2031,18 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         </AnimatePresence>
       </main>
 
+      {/* ANNOUNCEMENT BAR — sticky bottom, hides when footer in view */}
+      {!footerVisible && (
+        <div className="sticky bottom-0 bg-surface border-t border-whisper px-4 py-2.5 text-center text-[11px] text-steel z-40">
+          <span className="font-semibold text-ink uppercase tracking-wider text-[10px]">
+            Open-Source Prompt Optimizer:
+          </span>{" "}
+          Your prompts use BYOK through a stateless proxy and are never cached on servers.
+        </div>
+      )}
+
       {/* FOOTER */}
-      <footer className="border-t border-whisper bg-surface py-8 text-center text-xs text-steel mt-12 shadow-inner">
+      <footer ref={footerRef} className="border-t border-whisper bg-surface py-8 text-center text-xs text-steel mt-12 shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           <div className="flex justify-center gap-6 text-muted flex-wrap">
             <button
