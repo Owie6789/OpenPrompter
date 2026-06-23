@@ -60,11 +60,8 @@ const configuredOrigins = process.env.APP_URL
   : [];
 
 let corsOrigin: string | string[] | boolean;
-if (isProd) {
-  if (configuredOrigins.length === 0) {
-    throw new Error("APP_URL must be configured in production for CORS.");
-  }
-  corsOrigin = configuredOrigins;
+if (isProd && configuredOrigins.length === 0) {
+  throw new Error("APP_URL must be configured in production for CORS.");
 } else if (configuredOrigins.length > 0) {
   corsOrigin = configuredOrigins;
 } else {
@@ -734,35 +731,33 @@ You MUST return your response as a valid, parsable JSON object matching this sch
 
 // Start server
 const isDev = !isProd;
-void (async () => {
-  if (isDev) {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
-  const server = app.listen(PORT, BIND_HOST, () => {
-    const addr = server.address();
-    const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
-    console.log(`OpenPrompter running on http://localhost:${actualPort}`);
-  }).on("error", (err: NodeJS.ErrnoException) => {
-    if (err.code === "EADDRINUSE") {
-      console.error(`\nError: Port ${PORT} is already in use.`);
-      console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
-      console.error(`\n   Options:`);
-      console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
-      console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
-      console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
-      process.exit(1);
-    }
-    throw err;
+if (isDev) {
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
   });
-})();
+  app.use(vite.middlewares);
+} else {
+  const distPath = path.join(process.cwd(), "dist");
+  app.use(express.static(distPath));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
+
+const server = app.listen(PORT, BIND_HOST, () => {
+  const addr = server.address();
+  const actualPort = addr && typeof addr === "object" ? addr.port : PORT;
+  console.log(`OpenPrompter running on http://localhost:${actualPort}`);
+}).on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`\nError: Port ${PORT} is already in use.`);
+    console.error(`   Another OpenPrompter instance may be running, or another process owns this port.`);
+    console.error(`\n   Options:`);
+    console.error(`   • Kill it:    npx kill-port ${PORT}  (or: lsof -ti:${PORT} | xargs kill -9)`);
+    console.error(`   • Use another: PORT=${PORT + 1} npm run dev`);
+    console.error(`   • Auto-find:  Set PORT=0 to let OS pick a free port\n`);
+    process.exit(1);
+  }
+  throw err;
+});

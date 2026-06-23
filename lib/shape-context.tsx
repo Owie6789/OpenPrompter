@@ -99,14 +99,16 @@ function ShapeProvider({
   }, []);
 
   // Global keyboard shortcut: R to cycle radius
+  const nextShape = useCallback((prev: ShapeVariant): ShapeVariant => {
+    const idx = shapeOrder.indexOf(prev);
+    return shapeOrder[(idx + 1) % shapeOrder.length];
+  }, []);
+
   const cycleShape = useCallback(() => {
     transitionShape(() => {
-      setShapeState((prev) => {
-        const idx = shapeOrder.indexOf(prev);
-        return shapeOrder[(idx + 1) % shapeOrder.length];
-      });
+      setShapeState(nextShape);
     });
-  }, []);
+  }, [nextShape]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
