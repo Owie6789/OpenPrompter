@@ -26,8 +26,8 @@ export interface GlassSurfaceProps {
 const useDarkMode = () => {
   const [isDark, setIsDark] = useState(false);
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (typeof globalThis === 'undefined') return;
+    const mediaQuery = globalThis.matchMedia('(prefers-color-scheme: dark)');
     setIsDark(mediaQuery.matches);
     const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
     mediaQuery.addEventListener('change', handler);
@@ -43,7 +43,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   blueOffset = 20, xChannel = 'R', yChannel = 'G', mixBlendMode = 'difference',
   className = '', style = {}
 }) => {
-  const uniqueId = useId().replace(/:/g, '-');
+  const uniqueId = useId().replaceAll(/:/g, '-');
   const filterId = `glass-filter-${uniqueId}`;
   const redGradId = `red-grad-${uniqueId}`;
   const blueGradId = `blue-grad-${uniqueId}`;
@@ -110,7 +110,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   useEffect(() => { setTimeout(updateDisplacementMap, 0); }, [width, height]);
 
   const supportsSVGFilters = () => {
-    if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+    if (typeof globalThis === 'undefined' || typeof document === 'undefined') return false;
     const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
     const isFirefox = /Firefox/.test(navigator.userAgent);
     if (isWebkit || isFirefox) return false;
@@ -120,7 +120,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const supportsBackdropFilter = () => {
-    if (typeof window === 'undefined') return false;
+    if (typeof globalThis === 'undefined') return false;
     return CSS.supports('backdrop-filter', 'blur(10px)');
   };
 
@@ -139,15 +139,16 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     const darkInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)';
     const lightInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.5), inset 0 -1px 0 0 rgba(255,255,255,0.3)';
     const lightFullShadow = '0 8px 32px 0 rgba(31,38,135,0.2), 0 2px 16px 0 rgba(31,38,135,0.1), inset 0 1px 0 0 rgba(255,255,255,0.4), inset 0 -1px 0 0 rgba(255,255,255,0.2)';
+    const svgSharedShadow = '0px 4px 16px rgba(17,17,26,0.05), 0px 8px 24px rgba(17,17,26,0.05), 0px 16px 56px rgba(17,17,26,0.05), 0px 4px 16px rgba(17,17,26,0.05) inset, 0px 8px 24px rgba(17,17,26,0.05) inset, 0px 16px 56px rgba(17,17,26,0.05) inset';
+    const darkSvgInset = '0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset, 0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset';
+    const lightSvgInset = '0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset, 0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset';
 
     if (svgSupported) {
       return {
         ...baseStyles,
         background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
         backdropFilter: `url(#${filterId}) saturate(${saturation})`,
-        boxShadow: isDarkMode
-          ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset, 0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset, 0px 4px 16px rgba(17,17,26,0.05), 0px 8px 24px rgba(17,17,26,0.05), 0px 16px 56px rgba(17,17,26,0.05), 0px 4px 16px rgba(17,17,26,0.05) inset, 0px 8px 24px rgba(17,17,26,0.05) inset, 0px 16px 56px rgba(17,17,26,0.05) inset`
-          : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset, 0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset, 0px 4px 16px rgba(17,17,26,0.05), 0px 8px 24px rgba(17,17,26,0.05), 0px 16px 56px rgba(17,17,26,0.05), 0px 4px 16px rgba(17,17,26,0.05) inset, 0px 8px 24px rgba(17,17,26,0.05) inset, 0px 16px 56px rgba(17,17,26,0.05) inset`
+        boxShadow: `${isDarkMode ? darkSvgInset : lightSvgInset}, ${svgSharedShadow}`
       };
     }
 

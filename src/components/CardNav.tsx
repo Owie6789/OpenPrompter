@@ -56,7 +56,7 @@ const CardNav: React.FC<CardNavProps> = ({
     const navEl = navRef.current;
     if (!navEl) return EXPANDED_HEIGHT;
 
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = globalThis.matchMedia('(max-width: 768px)').matches;
     if (!isMobile) return EXPANDED_HEIGHT;
 
     const contentEl = navEl.querySelector('.card-nav-content') as HTMLElement;
@@ -124,8 +124,8 @@ const CardNav: React.FC<CardNavProps> = ({
         resetTimeline(0);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    globalThis.addEventListener('resize', handleResize);
+    return () => globalThis.removeEventListener('resize', handleResize);
   }, [isExpanded]);
 
   const toggleMenu = () => {
