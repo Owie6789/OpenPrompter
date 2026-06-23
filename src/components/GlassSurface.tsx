@@ -147,14 +147,14 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       return { ...baseStyles, background: modeStyles.svgBg, backdropFilter: `url(#${filterId}) saturate(${saturation})`, boxShadow: modeStyles.svgBoxShadow };
     }
     if (!supportsBackdropFilter()) {
-      return { ...baseStyles, background: modeStyles.fallbackBg, border: modeStyles.border, boxShadow: modeStyles.insetShadow };
+      return { ...baseStyles, background: modeStyles.fallbackBg, border: modeStyles.border, boxShadow: modeStyles.fullShadow };
     }
     const filterValue = `blur(12px) saturate(1.8) brightness(${modeStyles.brightness})`;
     return { ...baseStyles, background: modeStyles.bgColor, backdropFilter: filterValue, WebkitBackdropFilter: filterValue, border: modeStyles.border, boxShadow: modeStyles.fullShadow };
   };
 
   return (
-    <div ref={containerRef} className={`relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out ${className}`} style={getContainerStyles()}>
+    <div ref={containerRef} className={`relative z-[0] flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out ${className}`} style={getContainerStyles()}>
       <svg className="w-full h-full pointer-events-none absolute inset-0 opacity-0 -z-10" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">

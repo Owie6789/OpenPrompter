@@ -750,10 +750,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             blur={12}
             backgroundOpacity={0.6}
             saturation={1.2}
-            className="pointer-events-auto"
-          >
-            <div className="pointer-events-auto">
-              <CardNav
+            className="absolute inset-0 pointer-events-auto"
+          />
+          <div className="relative pointer-events-auto">
+            <CardNav
               logo={openprompterIcon}
               logoAlt="OpenPrompter"
               items={navItems}
@@ -766,11 +766,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 setApiKeyInputVal(apiKey);
                 setShowApiKeyDialog(true);
               }}
-            />{/* CARD NAV */}
-          </div>{/* POINTER-EVENTS-AUTO WRAPPER */}
-        </GlassSurface>{/* HEADER GLASS SURFACE */}
-      </div>{/* RELATIVE WRAPPER */}
-    </div>{/* FIXED HEADER */}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* CORE CONTENT */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 py-4 lg:py-8 w-full">
