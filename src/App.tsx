@@ -568,8 +568,9 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
         ta.style.left = '-9999px';
         document.body.appendChild(ta);
         ta.select();
-        document.execCommand('copy');
+        const copyOk = document.execCommand('copy');
         document.body.removeChild(ta);
+        if (!copyOk) throw new Error('execCommand copy failed');
       }
       setSharedLinkCopied(true);
       setTimeout(() => setSharedLinkCopied(false), 3000);
@@ -602,8 +603,9 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
         ta.style.left = '-9999px';
         document.body.appendChild(ta);
         ta.select();
-        document.execCommand('copy');
+        const copyOk = document.execCommand('copy');
         document.body.removeChild(ta);
+        if (!copyOk) throw new Error('execCommand copy failed');
       }
       setSharedLinkCopied(true);
       setTimeout(() => setSharedLinkCopied(false), 3000);
@@ -742,34 +744,37 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       <ScrollProgress />
       <Toaster richColors closeButton theme="dark" position="top-right" />
 
-      {/* HEADER — CardNav with Glass Surface */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-4">
-        <GlassSurface
-          width="90%"
-          height={68}
-          borderRadius={16}
-          brightness={15}
-          opacity={0.85}
-          blur={12}
-          backgroundOpacity={0.6}
-          saturation={1.2}
-          className="w-full max-w-[840px]"
-        >
-          <CardNav
-            logo={openprompterIcon}
-            logoAlt="OpenPrompter"
-            items={navItems}
-            baseColor="transparent"
-            menuColor="#e6e9fa"
-            buttonBgColor="#e6e9fa"
-            buttonTextColor="#141416"
-            buttonLabel={apiKey ? "API Connected" : "Connection Setup"}
-            onButtonClick={() => {
-              setApiKeyInputVal(apiKey);
-              setShowApiKeyDialog(true);
-            }}
+      {/* HEADER — CardNav with Glass Surface backdrop */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-4 pointer-events-none">
+        <div className="relative w-full max-w-[840px]">
+          <GlassSurface
+            width="100%"
+            height={68}
+            borderRadius={16}
+            brightness={15}
+            opacity={0.85}
+            blur={12}
+            backgroundOpacity={0.6}
+            saturation={1.2}
+            className="absolute inset-0 pointer-events-auto"
           />
-        </GlassSurface>
+          <div className="relative pointer-events-auto">
+            <CardNav
+              logo={openprompterIcon}
+              logoAlt="OpenPrompter"
+              items={navItems}
+              baseColor="transparent"
+              menuColor="#e6e9fa"
+              buttonBgColor="#e6e9fa"
+              buttonTextColor="#141416"
+              buttonLabel={apiKey ? "API Connected" : "Connection Setup"}
+              onButtonClick={() => {
+                setApiKeyInputVal(apiKey);
+                setShowApiKeyDialog(true);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ANNOUNCEMENT BAR */}

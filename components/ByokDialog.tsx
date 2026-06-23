@@ -70,7 +70,7 @@ export default function ByokDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-none text-ink sm:max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl rounded-xl p-0 overflow-hidden">
+      <DialogContent className="bg-surface border-none text-ink sm:max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl rounded-xl p-0">
         <div className="p-5 sm:p-8">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-xl font-bold font-display flex items-center gap-2 tracking-tight">
