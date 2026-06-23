@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useId } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useId } from 'react';
 import { useMediaQuery } from '../hooks/use-media-query';
 
 export interface GlassSurfaceProps {
@@ -43,6 +43,27 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const blueChannelRef = useRef<SVGFEDisplacementMapElement>(null);
   const gaussianBlurRef = useRef<SVGFEGaussianBlurElement>(null);
   const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const modeStyles = useMemo(() => {
+    const darkBorder = '1px solid rgba(255,255,255,0.2)';
+    const lightBorder = '1px solid rgba(255,255,255,0.3)';
+    const darkInset = 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)';
+    const lightInset = 'inset 0 1px 0 0 rgba(255,255,255,0.5), inset 0 -1px 0 0 rgba(255,255,255,0.3)';
+    const lightFull = '0 8px 32px 0 rgba(31,38,135,0.2), 0 2px 16px 0 rgba(31,38,135,0.1), inset 0 1px 0 0 rgba(255,255,255,0.4), inset 0 -1px 0 0 rgba(255,255,255,0.2)';
+    const svgShared = '0px 4px 16px rgba(17,17,26,0.05), 0px 8px 24px rgba(17,17,26,0.05), 0px 16px 56px rgba(17,17,26,0.05), 0px 4px 16px rgba(17,17,26,0.05) inset, 0px 8px 24px rgba(17,17,26,0.05) inset, 0px 16px 56px rgba(17,17,26,0.05) inset';
+    const darkSvgInset = '0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset, 0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset';
+    const lightSvgInset = '0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset, 0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset';
+    return {
+      border: isDarkMode ? darkBorder : lightBorder,
+      insetShadow: isDarkMode ? darkInset : lightInset,
+      fullShadow: isDarkMode ? darkInset : lightFull,
+      svgBg: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
+      svgBoxShadow: `${isDarkMode ? darkSvgInset : lightSvgInset}, ${svgShared}`,
+      brightness: isDarkMode ? 1.2 : 1.1,
+      bgColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)',
+      fallbackBg: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
+    };
+  }, [isDarkMode, backgroundOpacity]);
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -122,44 +143,14 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       '--glass-saturation': saturation
     } as React.CSSProperties;
 
-    const darkBorder = '1px solid rgba(255,255,255,0.2)';
-    const lightBorder = '1px solid rgba(255,255,255,0.3)';
-    const darkInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.2), inset 0 -1px 0 0 rgba(255,255,255,0.1)';
-    const lightInsetShadow = 'inset 0 1px 0 0 rgba(255,255,255,0.5), inset 0 -1px 0 0 rgba(255,255,255,0.3)';
-    const lightFullShadow = '0 8px 32px 0 rgba(31,38,135,0.2), 0 2px 16px 0 rgba(31,38,135,0.1), inset 0 1px 0 0 rgba(255,255,255,0.4), inset 0 -1px 0 0 rgba(255,255,255,0.2)';
-    const svgSharedShadow = '0px 4px 16px rgba(17,17,26,0.05), 0px 8px 24px rgba(17,17,26,0.05), 0px 16px 56px rgba(17,17,26,0.05), 0px 4px 16px rgba(17,17,26,0.05) inset, 0px 8px 24px rgba(17,17,26,0.05) inset, 0px 16px 56px rgba(17,17,26,0.05) inset';
-    const darkSvgInset = '0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset, 0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset';
-    const lightSvgInset = '0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset, 0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset';
-
     if (svgSupported) {
-      return {
-        ...baseStyles,
-        background: isDarkMode ? `hsl(0 0% 0% / ${backgroundOpacity})` : `hsl(0 0% 100% / ${backgroundOpacity})`,
-        backdropFilter: `url(#${filterId}) saturate(${saturation})`,
-        boxShadow: `${isDarkMode ? darkSvgInset : lightSvgInset}, ${svgSharedShadow}`
-      };
+      return { ...baseStyles, background: modeStyles.svgBg, backdropFilter: `url(#${filterId}) saturate(${saturation})`, boxShadow: modeStyles.svgBoxShadow };
     }
-
     if (!supportsBackdropFilter()) {
-      return {
-        ...baseStyles,
-        background: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)',
-        border: isDarkMode ? darkBorder : lightBorder,
-        boxShadow: isDarkMode ? darkInsetShadow : lightInsetShadow
-      };
+      return { ...baseStyles, background: modeStyles.fallbackBg, border: modeStyles.border, boxShadow: modeStyles.insetShadow };
     }
-
-    const brightnessAmount = isDarkMode ? 1.2 : 1.1;
-    const bgColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)';
-    const filterValue = `blur(12px) saturate(1.8) brightness(${brightnessAmount})`;
-    return {
-      ...baseStyles,
-      background: bgColor,
-      backdropFilter: filterValue,
-      WebkitBackdropFilter: filterValue,
-      border: isDarkMode ? darkBorder : lightBorder,
-      boxShadow: isDarkMode ? darkInsetShadow : lightFullShadow
-    };
+    const filterValue = `blur(12px) saturate(1.8) brightness(${modeStyles.brightness})`;
+    return { ...baseStyles, background: modeStyles.bgColor, backdropFilter: filterValue, WebkitBackdropFilter: filterValue, border: modeStyles.border, boxShadow: modeStyles.fullShadow };
   };
 
   return (
