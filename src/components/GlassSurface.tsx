@@ -138,7 +138,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
     const baseStyles: React.CSSProperties = {
       ...style,
       width: typeof width === 'number' ? `${width}px` : width,
-      ...(!hasInset ? { height: typeof height === 'number' ? `${height}px` : height } : {}),
+      ...(!hasInset ? { height: typeof height === 'number' ? `${height}px` : height } : { minHeight: typeof height === 'number' ? `${height}px` : height }),
       borderRadius: `${borderRadius}px`,
       '--glass-frost': backgroundOpacity,
       '--glass-saturation': saturation
