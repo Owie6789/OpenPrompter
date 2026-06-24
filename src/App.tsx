@@ -752,7 +752,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
             saturation={1.2}
             className="absolute inset-0 pointer-events-auto"
           />
-          <div className="relative pointer-events-auto">
+          <div className="relative z-10 pointer-events-auto">
             <CardNav
               logo={openprompterIcon}
               logoAlt="OpenPrompter"
