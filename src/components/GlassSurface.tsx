@@ -135,14 +135,15 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
   const getContainerStyles = (): React.CSSProperties => {
     const hasInset = className.includes('inset-0');
+    const heightValue = typeof height === 'number' ? `${height}px` : height;
     const baseStyles: React.CSSProperties = {
       ...style,
       width: typeof width === 'number' ? `${width}px` : width,
-      ...(!hasInset ? { height: typeof height === 'number' ? `${height}px` : height } : { minHeight: typeof height === 'number' ? `${height}px` : height }),
+      ...(hasInset ? { minHeight: heightValue } : { height: heightValue }),
       borderRadius: `${borderRadius}px`,
       '--glass-frost': backgroundOpacity,
       '--glass-saturation': saturation
-    } as React.CSSProperties;
+    } as unknown as React.CSSProperties;
 
     if (svgSupported) {
       return { ...baseStyles, background: modeStyles.svgBg, backdropFilter: `url(#${filterId}) saturate(${saturation})`, boxShadow: modeStyles.svgBoxShadow };

@@ -67,6 +67,11 @@ export default function ByokDialog({
 }: Readonly<ByokDialogProps>) {
   const providerKeyUrl = providerKeyUrls[providerInputVal] ?? null;
   const providerLabel = providerDisplayNames[providerInputVal] ?? "API";
+  const filteredModels = availableModels.filter((m) =>
+    !customModelInputVal ||
+    m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
+    m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -215,12 +220,7 @@ export default function ByokDialog({
               {availableModels.length > 0 && (
                 <div className="border border-whisper rounded-md bg-canvas overflow-hidden">
                   <div className="max-h-36 overflow-y-auto overscroll-contain divide-y divide-whisper/50">
-                    {availableModels
-                      .filter((m) =>
-                        !customModelInputVal ||
-                        m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
-                        m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
-                      )
+                    {filteredModels
                       .map((m) => (
                         <button
                           key={m.id}
@@ -241,11 +241,7 @@ export default function ByokDialog({
                           )}
                         </button>
                       ))}
-                    {availableModels.filter((m) =>
-                      !customModelInputVal ||
-                      m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
-                      m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
-                    ).length === 0 && (
+                    {filteredModels.length === 0 && (
                       <div className="px-3 py-4 text-[11px] text-muted text-center">
                         No models match your filter.
                       </div>

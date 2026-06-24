@@ -486,6 +486,24 @@ function stripJsonFence(text: string): string {
   return cleaned.trim();
 }
 
+function parseAndValidateLlmResponse(
+  cookedText: string,
+  rid: string,
+  providerName: string
+): { status: "ok"; data: LlmResponse } | { status: "error"; httpStatus: number; body: ErrorResponse } {
+  try {
+    const parsedData = JSON.parse(cookedText);
+    if (!validateLlmResponse(parsedData)) {
+      console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
+      return { status: "error", httpStatus: 500, body: errorResponse("schema_error", "LLM returned an unexpected response format.") };
+    }
+    return { status: "ok", data: sanitizeLlmResponse(parsedData) };
+  } catch {
+    console.error(`[${rid}] Failed to parse JSON from ${providerName}: ${sanitizeForLog(cookedText, 200)}`);
+    return { status: "error", httpStatus: 500, body: errorResponse("json_parse_error", "Failed to parse API response as JSON.") };
+  }
+}
+
 function sanitizeForLog(s: string, maxLen = 500): string {
   const ESC = String.fromCodePoint(27);
   let clean = s
@@ -664,17 +682,11 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         throw new Error("No text content returned from Anthropic API.");
       }
       const cookedText = stripJsonFence(content);
-      try {
-        const parsedData = JSON.parse(cookedText);
-        if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
-          return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
-        }
-        return res.json(sanitizeLlmResponse(parsedData));
-      } catch {
-        console.error(`[${rid}] Failed to parse JSON from Anthropic: ${sanitizeForLog(cookedText, 200)}`);
-        return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
+      const result = parseAndValidateLlmResponse(cookedText, rid, "Anthropic");
+      if (result.status === "error") {
+        return res.status(result.httpStatus).json(result.body);
       }
+      return res.json(result.data);
     } else {
       // OpenAI-compatible format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
@@ -710,18 +722,11 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       }
 
       const cookedText = stripJsonFence(content);
-
-      try {
-        const parsedData = JSON.parse(cookedText);
-        if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
-          return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
-        }
-        return res.json(sanitizeLlmResponse(parsedData));
-      } catch {
-        console.error(`[${rid}] Failed to parse JSON: ${sanitizeForLog(cookedText, 200)}`);
-        return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
+      const result = parseAndValidateLlmResponse(cookedText, rid, "OpenAI");
+      if (result.status === "error") {
+        return res.status(result.httpStatus).json(result.body);
       }
+      return res.json(result.data);
     }
   } catch (error: unknown) {
     console.error(`[${rid}] Endpoint error: ${sanitizeForLog(errorMessage(error))}`);

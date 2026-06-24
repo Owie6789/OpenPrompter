@@ -265,7 +265,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     }
   }, [customInstructions]);
 
-  // Restore model + instructions from localStorage on mount
+  // Animate optimization step text during active optimization
   useEffect(() => {
     if (!isOptimizing) return;
     const steps = [

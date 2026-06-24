@@ -156,7 +156,7 @@ import {
 } from "@phosphor-icons/react";
 
 // ── HugeIcons ───────────────────────────────────────────────
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react";
 import HiChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import HiChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import HiDropper from "@hugeicons/core-free-icons/DropperIcon";
@@ -310,8 +310,7 @@ function hugeicons(iconDef: unknown): IconComponent {
   return function HugeIconsAdapter({ size, strokeWidth, className }: IconComponentProps) {
     return (
       <HugeiconsIcon
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        icon={iconDef as any}
+        icon={iconDef as IconSvgElement}
         size={size}
         strokeWidth={strokeWidth}
         className={className}
