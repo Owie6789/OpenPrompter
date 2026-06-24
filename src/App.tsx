@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Sparkle,
   GearSix,
@@ -586,7 +586,11 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     };
     const result = generateShareUrl(payload);
     if (result.success === true) {
-      await copyUrlToClipboard(result.url, "Template share link copied!");
+      try {
+        await copyUrlToClipboard(result.url, "Template share link copied!");
+      } catch {
+        toast.error("Could not copy link — please copy the URL manually.");
+      }
     } else {
       toast.error(result.error);
     }
@@ -605,7 +609,11 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     };
     const result = generateShareUrl(payload);
     if (result.success === true) {
-      await copyUrlToClipboard(result.url, "Persona share link copied!");
+      try {
+        await copyUrlToClipboard(result.url, "Persona share link copied!");
+      } catch {
+        toast.error("Could not copy link — please copy the URL manually.");
+      }
     } else {
       toast.error(result.error);
     }
@@ -701,9 +709,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
     return hitsQuery && hitsCategory;
   });
 
-  // CardNav navigation items
+  // CardNav navigation items — memoized to prevent GSAP timeline re-creation on every render
   const navItemDefaults = { bgColor: "#1a1a1b", textColor: "#e6e9fa" } as const;
-  const navItems = [
+  const navItems = useMemo(() => [
     {
       label: "Workspace",
       ...navItemDefaults,
@@ -731,7 +739,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         { label: "Privacy", href: "#", ariaLabel: "Privacy Policy", onClick: () => { setActiveTab("about"); } },
       ]
     }
-  ];
+  ], [setActiveTab]);
 
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink flex flex-col font-sans select-text selection:bg-accent/20 selection:text-ink antialiased">
