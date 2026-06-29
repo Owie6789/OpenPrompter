@@ -11,10 +11,10 @@ export function useSurface(): number {
 export function SurfaceProvider({
   value,
   children,
-}: {
+}: Readonly<{
   value: number;
   children: ReactNode;
-}) {
+}>) {
   return (
     <SurfaceContext.Provider value={Math.max(1, Math.min(8, value))}>
       {children}

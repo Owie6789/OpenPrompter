@@ -14,7 +14,7 @@ const Input = React.forwardRef<
       type={type}
       data-slot="input"
       className={cn(
-        "flex h-9 w-full rounded-lg border border-foreground/10 bg-canvas px-3 py-1.5",
+        "flex h-9 w-full rounded-xl border border-foreground/10 bg-canvas px-3 py-1.5",
         "text-sm text-ink leading-snug placeholder:text-muted",
         "transition-[border-color,box-shadow] duration-150",
         "hover:border-foreground/20",

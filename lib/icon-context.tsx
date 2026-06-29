@@ -62,10 +62,10 @@ function useIcons(): Record<IconName, IconComponent> {
 function IconProvider({
   children,
   defaultLibrary = "lucide",
-}: {
+}: Readonly<{
   children: ReactNode;
   defaultLibrary?: IconLibrary;
-}) {
+}>) {
   const [iconLibrary, setIconLibraryState] = useState<IconLibrary>(defaultLibrary);
 
   const setIconLibrary = useCallback((next: IconLibrary) => {
@@ -89,8 +89,12 @@ function IconProvider({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({ iconLibrary, setIconLibrary }),
+    [iconLibrary, setIconLibrary],
+  );
   return (
-    <IconContext.Provider value={{ iconLibrary, setIconLibrary }}>
+    <IconContext.Provider value={contextValue}>
       {children}
     </IconContext.Provider>
   );

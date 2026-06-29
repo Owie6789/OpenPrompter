@@ -27,3 +27,5 @@ clean_nm_v2.cjs
 
 # Generated / transient
 *.tsbuildinfo
+testsprite.md
+tmp/

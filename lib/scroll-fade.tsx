@@ -159,16 +159,33 @@ export function ScrollEdgeCue({
   size = "comfortable",
   inset = 4,
   chevron = true,
-}: ScrollEdgeCueProps) {
+}: Readonly<ScrollEdgeCueProps>) {
   const contextLevel = useSurface();
-  // Clamp to the ladder (1–8), mirroring SurfaceProvider — an out-of-range
-  // override would interpolate an invalid var and silently kill the gradient.
   const level = Math.max(1, Math.min(8, surfaceLevel ?? contextLevel));
   const surface = `var(--surface-${level})`;
   const vertical = edge === "top" || edge === "bottom";
   const sizePx = CUE_SIZES[size];
-  // Gradient direction where 100% == the hard outer edge.
   const dir = `to ${edge}`;
+  const isSticky = mode === "sticky";
+  const offset = isSticky ? -inset : 0;
+
+  const bandPosition: CSSProperties = vertical
+    ? { left: offset, right: offset, [edge]: offset, height: sizePx }
+    : { top: offset, bottom: offset, [edge]: offset, width: sizePx };
+
+  const transitionMs = visible ? 160 : 120;
+
+  const chevronCenter = vertical
+    ? { left: "50%", transform: "translateX(-50%)" }
+    : { top: "50%", transform: "translateY(-50%)" };
+
+  const containerStyle: CSSProperties = {
+    position: "sticky",
+    [edge]: 0,
+    ...(vertical ? { height: 0 } : { width: 0 }),
+    zIndex: 30,
+    pointerEvents: "none",
+  };
 
   const band = (
     <div
@@ -176,15 +193,8 @@ export function ScrollEdgeCue({
         {
           position: "absolute",
           opacity: visible ? 1 : 0,
-          // Exit slightly faster than enter, per the animation guidelines.
-          transition: `opacity ${visible ? 160 : 120}ms ease`,
-          ...(mode === "sticky"
-            ? vertical
-              ? { left: -inset, right: -inset, [edge]: -inset, height: sizePx }
-              : { top: -inset, bottom: -inset, [edge]: -inset, width: sizePx }
-            : vertical
-              ? { left: 0, right: 0, [edge]: 0, height: sizePx }
-              : { top: 0, bottom: 0, [edge]: 0, width: sizePx }),
+          transition: `opacity ${transitionMs}ms ease`,
+          ...bandPosition,
         } as CSSProperties
       }
     >
@@ -209,9 +219,7 @@ export function ScrollEdgeCue({
           style={
             {
               position: "absolute",
-              ...(vertical
-                ? { left: "50%", transform: "translateX(-50%)" }
-                : { top: "50%", transform: "translateY(-50%)" }),
+              ...chevronCenter,
               [edge]: 8,
             } as CSSProperties
           }
@@ -226,20 +234,8 @@ export function ScrollEdgeCue({
     return <div aria-hidden>{band}</div>;
   }
 
-  // Sticky: a zero-size sticky anchor so the cue adds no layout extent.
   return (
-    <div
-      aria-hidden
-      style={
-        {
-          position: "sticky",
-          [edge]: 0,
-          ...(vertical ? { height: 0 } : { width: 0 }),
-          zIndex: 30,
-          pointerEvents: "none",
-        } as CSSProperties
-      }
-    >
+    <div aria-hidden style={containerStyle}>
       {band}
     </div>
   );
