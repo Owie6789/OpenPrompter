@@ -175,7 +175,7 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
 
   const [customModel, setCustomModel] = useState(() => safeLocalStorageGet("openprompter_custom_model"));
 
-  const [activeProvider, setActiveProvider] = useState(() => safeLocalStorageGet("openprompter_provider", "openai"));
+  const [activeProvider, setActiveProvider] = useState(() => safeLocalStorageGet("openprompter_provider", "custom"));
 
   // Sticky announcement bar — hide when footer is in view
   const footerRef = useRef<HTMLElement>(null);
@@ -295,6 +295,21 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
   useEffect(() => {
     if (apiKey) fetchAvailableModels();
   }, [activeProvider, apiKey, apiEndpoint]);
+
+  // Debounced auto-fetch when dialog inputs change (key + endpoint)
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!apiKeyInputVal || !showKeyDialog) return;
+    debounceRef.current = setTimeout(() => {
+      fetchAvailableModels({
+        apiKey: apiKeyInputVal,
+        apiEndpoint: endpointInputVal,
+        provider: providerInputVal,
+      });
+    }, 800);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [apiKeyInputVal, endpointInputVal, providerInputVal, showKeyDialog]);
 
   // Handle save of Key
   const handleSaveApiKey = (
@@ -746,21 +761,19 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       <ScrollProgress />
       <Toaster richColors closeButton theme="dark" position="top-right" />
 
-      {/* HEADER — CardNav with Glass Surface backdrop */}
+      {/* HEADER — GlassSurface wrapping CardNav as integrated background */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 md:pt-4 px-4 pointer-events-none">
-        <div className="relative w-full max-w-[840px]">
+        <div className="w-full max-w-[840px]">
           <GlassSurface
             width="100%"
-            height={68}
             borderRadius={16}
             brightness={15}
-            opacity={0.85}
-            blur={12}
-            backgroundOpacity={0.6}
+            opacity={0.92}
+            blur={16}
+            backgroundOpacity={0.8}
             saturation={1.2}
-            className="absolute inset-0 pointer-events-auto"
-          />
-          <div className="relative z-10 pointer-events-auto">
+            className="pointer-events-auto [overflow:visible]"
+          >
             <CardNav
               logo={openprompterIcon}
               logoAlt="OpenPrompter"
@@ -775,7 +788,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 setShowApiKeyDialog(true);
               }}
             />
-          </div>
+          </GlassSurface>
         </div>
       </div>
 
@@ -783,7 +796,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 py-4 lg:py-8 w-full">
         {/* SHARE ERROR BANNER */}
         {shareError && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-sm text-red-400 mb-4 flex items-start justify-between">
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-400 mb-4 flex items-start justify-between">
             <span>{shareError}</span>
             <button
               className="ml-3 text-red-400 hover:text-red-300 shrink-0"
@@ -814,7 +827,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <CardHeader className="pb-3 pt-4 px-4 lg:px-6 lg:pt-6">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display text-ink tracking-tight">
+                          <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display text-ink tracking-tight" style={{ textWrap: "balance" }}>
                             <Sparkle className="w-5 h-5 text-ink" />
                             Optimize Prompt
                           </CardTitle>
@@ -843,14 +856,14 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             <label htmlFor="prompt-input" className="text-sm font-semibold text-steel tracking-tight">
                               Paste Your Prompt
                             </label>
-                            <span className="text-[10px] text-muted font-mono tracking-wider">
+                            <span className="text-[10px] text-muted font-mono tracking-wider tabular-nums">
                               {promptInput.length}/5000 chars
                             </span>
                           </div>
                           <Textarea
                             id="prompt-input"
                             placeholder="E.g., Write a draft story about a lost robot... OR Refactor this python class..."
-                            className="min-h-[160px] lg:min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-accent focus-visible:ring-offset-2 transition-colors,shadow,ring focus:border-accent rounded-md resize-none shadow-inner"
+                            className="min-h-[160px] lg:min-h-[220px] bg-canvas border-whisper font-mono text-sm leading-snug text-ink placeholder:text-muted focus-visible:ring-accent focus-visible:ring-offset-2 transition-colors shadow-inner rounded-xl resize-none"
                             value={promptInput}
                             onChange={(e) =>
                               setPromptInput(e.target.value.slice(0, 5000))
@@ -905,9 +918,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <SelectTrigger
                                   icon={undefined}
                                   placeholder="Standard Prompt Engineer"
-                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-xl shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-elevated">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-xl shadow-elevated">
                                   {allPersonas.map((persona, i) => (
                                     <SelectItem
                                       key={persona.id}
@@ -956,6 +969,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 value={selectedModel}
                                 onValueChange={(val) => {
                                   setSelectedModel(val);
+                                  setCustomModel(val);
                                   setCustomModelInputVal(val);
                                 }}
                                 options={availableModels.length > 0
@@ -965,9 +979,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 <SelectTrigger
                                   icon={undefined}
                                   placeholder={selectedModel || "Select model"}
-                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus:ring-accent focus:ring-offset-1"
+                                  className="bg-surface border-whisper text-ink text-xs h-10 rounded-xl shadow-card focus:ring-accent focus:ring-offset-1"
                                 />
-                                <SelectContent className="bg-surface border-whisper text-ink rounded-md shadow-elevated max-h-60">
+                                <SelectContent className="bg-surface border-whisper text-ink rounded-xl shadow-elevated max-h-60">
                                   {availableModels.length > 0 ? (
                                     availableModels.map((m, i) => (
                                       <SelectItem
@@ -1001,13 +1015,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </div>
                             </div>
 
-                          {/* MODEL MARQUEE */}
+                          {/* MODEL MARQUEE — STICKY */}
                           {availableModels.length > 0 && (
-                            <div className="relative overflow-hidden rounded-md bg-canvas border border-whisper py-2.5 px-4 shadow-inner">
+                            <div className="sticky top-0 z-10 relative overflow-hidden rounded-xl bg-canvas border border-whisper py-2.5 px-4 shadow-inner">
                               <div className="flex items-center gap-2 text-[11px] text-muted mb-1.5">
                                 <Cpu className="w-3 h-3 text-accent" />
                                 <span className="font-semibold uppercase tracking-wider">Available Models</span>
-                                <span className="text-[10px]">· {availableModels.length}</span>
+                                <span className="text-[10px] tabular-nums">· {availableModels.length}</span>
                               </div>
                               <div className="overflow-hidden">
                                 <motion.div
@@ -1021,6 +1035,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                       key={`${m.id}-${i}`}
                                       onClick={() => {
                                         setSelectedModel(m.id);
+                                        setCustomModel(m.id);
                                         setCustomModelInputVal(m.id);
                                         toast.info(`Model set to ${m.name}`);
                                       }}
@@ -1056,13 +1071,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   handleOptimizePrompt();
                                 }
                               }}
-                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-md shadow-card focus-visible:ring-accent focus-visible:ring-offset-1 placeholder:text-muted"
+                              className="bg-surface border-whisper text-ink text-xs h-10 rounded-xl shadow-card focus-visible:ring-accent focus-visible:ring-offset-1 placeholder:text-muted"
                             />
                           </div>
 
                     </CardContent>
 
-                      <CardFooter className="border-t border-whisper pt-5 pb-6 flex justify-end gap-3 bg-canvas rounded-b-[calc(2rem-0.5rem)] px-6 mt-4">
+                      <CardFooter className="border-t border-whisper pt-5 pb-6 flex justify-end gap-3 bg-canvas rounded-b-xl px-6 mt-4">
                         <Button
                           size="lg"
                           className="group relative bg-accent hover:bg-accent-hover text-sm font-semibold rounded-xl text-accent-foreground pl-8 pr-3 shadow-card flex items-center justify-center gap-3 h-11 active:scale-[0.98] transition-[transform,background-color,box-shadow]"
@@ -1088,8 +1103,8 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </Card>
 
                   {/* BYOK ENCOURAGEMENT CARD */}
-                  <div className="border border-whisper rounded-lg p-5 bg-surface shadow-card flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-md bg-canvas border border-whisper flex items-center justify-center shrink-0">
+                  <div className="border border-whisper rounded-xl p-5 bg-surface shadow-card flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-canvas border border-whisper flex items-center justify-center shrink-0">
                       <Lock className="w-5 h-5 text-steel" />
                     </div>
                     <div>
@@ -1110,12 +1125,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 <div className="flex flex-col gap-6 lg:w-1/2">
                   {/* GENERATING SCREEN STATE */}
                   {isOptimizing && (
-                    <div className="border border-whisper rounded-xl bg-surface p-6 lg:p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px] lg:min-h-[450px] shadow-card transform transition-colors,shadow,ring">
+                    <div className="border border-whisper rounded-xl bg-surface p-6 lg:p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px] lg:min-h-[450px] shadow-card">
                       <img src={loadingAsset} alt="Optimizing..." className="w-48 h-auto opacity-80 mb-2" width={192} height={192} />
                       <div className="space-y-4 w-full">
                         <div className="skeleton-shimmer h-12 w-3/4 mx-auto border-none rounded-xl" />
-                        <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-lg" />
-                        <div className="skeleton-shimmer h-32 w-full border-none rounded-lg" />
+                        <div className="skeleton-shimmer h-4 w-1/2 mx-auto border-none rounded-xl" />
+                        <div className="skeleton-shimmer h-32 w-full border-none rounded-xl" />
                       </div>
 
                       <div className="space-y-3 max-w-sm">
@@ -1162,7 +1177,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       {/* Curated Templates Link Quick Hack */}
                       <Button
                         variant="outline"
-                        className="text-steel hover:text-ink text-xs gap-1 rounded-xl border-whisper bg-surface active:-translate-y-px transition-colors,shadow,ring"
+                        className="text-steel hover:text-ink text-xs gap-1 rounded-xl border-whisper bg-surface active:-translate-y-px transition-colors"
                         onClick={() => setActiveTab("templates")}
                       >
                         Browse professional presets{" "}
@@ -1186,12 +1201,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               <Badge className="bg-whisper text-steel border-none font-mono text-[10px] tracking-widest uppercase font-semibold px-3 py-1">
                                 {optimizedResult.prompt_type || "Standard"}
                               </Badge>
-                              <CardTitle className="text-xl font-bold font-display tracking-tight text-ink">
+                              <CardTitle className="text-xl font-bold font-display tracking-tight text-ink" style={{ textWrap: "balance" }}>
                                 Optimization Analysis
                               </CardTitle>
                             </div>
 
-                            <div className="flex items-center gap-2 bg-canvas px-4 py-2 rounded-md shadow-inner border border-whisper">
+                            <div className="flex items-center gap-2 bg-canvas px-4 py-2 rounded-xl shadow-inner border border-whisper">
                               <span className="text-[10px] text-steel uppercase font-mono tracking-widest font-semibold">
                                 Confidence
                               </span>
@@ -1217,7 +1232,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 (imp: string, i: number) => (
                                   <div
                                     key={`${imp.slice(0, 60)}-${i}`}
-                                    className="text-sm p-4 rounded-lg bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card hover:shadow-md transition-shadow"
+                                    className="text-sm p-4 rounded-xl bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card"
                                   >
                                     <span className="text-muted shrink-0 font-bold font-mono text-xs mt-0.5">
                                       {(i + 1).toString().padStart(2, "0")}
@@ -1256,11 +1271,10 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
 
                       {/* OPTIMIZED PROMPT OUTPUT CARD */}
-                      <Card className="border border-whisper bg-surface shadow-card rounded-xl relative overflow-hidden p-2">
-                        <div className="bg-surface rounded-lg shadow-card border border-whisper h-full">
+                      <Card className="border border-whisper bg-surface shadow-card rounded-xl relative overflow-hidden sticky bottom-4 z-10">
                           <CardHeader className="pb-4 pt-6 px-6 border-b border-whisper flex flex-row items-center justify-between">
                             <div>
-                              <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display tracking-tight text-ink">
+                              <CardTitle className="text-2xl font-bold flex items-center gap-2 font-display tracking-tight text-ink" style={{ textWrap: "balance" }}>
                                 <Sparkle className="w-5 h-5 text-ink" />
                                 Engineered Prompt
                               </CardTitle>
@@ -1291,7 +1305,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               {/* Export selectors */}
                               <div className="flex rounded-xl py-0.5 px-1 bg-surface divide-x divide-edges shadow-card shrink-0 items-center">
                                 <button
-                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
+                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors font-mono font-semibold"
                                   onClick={() =>
                                     handleCopyToClipboard(
                                       getMarkdownText(optimizedResult),
@@ -1303,7 +1317,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                   {copiedState === "markdown" ? "✓ MD" : "MD"}
                                 </button>
                                 <button
-                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors,shadow,ring font-mono font-semibold"
+                                  className="px-3 py-1 text-[11px] text-steel hover:text-ink transition-colors font-mono font-semibold"
                                   onClick={() =>
                                     handleCopyToClipboard(
                                       JSON.stringify(optimizedResult, null, 2),
@@ -1325,14 +1339,13 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </div>
                           </CardContent>
 
-                          <CardFooter className="py-4 flex justify-between bg-surface text-xs text-muted font-medium px-6 rounded-b-[calc(2rem-0.5rem)]">
+                          <CardFooter className="py-4 flex justify-between bg-surface text-xs text-muted font-medium px-6 rounded-b-xl">
                             <span>Engineered via {selectedModel}</span>
                             <span className="flex items-center gap-1.5 text-steel tracking-tight">
                               <ShieldCheck className="w-4 h-4 text-emerald-500" />
                               Secure client-side execution
                             </span>
                           </CardFooter>
-                        </div>
                       </Card>
                     </motion.div>
                   )}
@@ -1352,9 +1365,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               className="space-y-6"
             >
               {/* FILTER TOOLBAR */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-lg border border-whisper shadow-card">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-5 rounded-xl border border-whisper shadow-card">
                 <div>
-                  <h3 className="text-xl font-bold font-display tracking-tight text-ink">
+                  <h3 className="text-xl font-bold font-display tracking-tight text-ink" style={{ textWrap: "balance" }}>
                     Prompt Presets Gallery
                   </h3>
                   <p className="text-xs text-steel mt-0.5">
@@ -1365,7 +1378,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Category Filter */}
-                  <div className="flex gap-1 border border-whisper p-1 bg-canvas rounded-md">
+                  <div className="flex gap-1 border border-whisper p-1 bg-canvas rounded-xl">
                     {[
                       "All",
                       "Coding",
@@ -1376,7 +1389,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     ].map((cat) => (
                       <button
                         key={cat}
-                        className={`text-[11px] px-3 py-1.5 rounded-lg font-semibold tracking-wide uppercase transition-colors,shadow,ring ${categoryFilter === cat ? "bg-surface text-ink shadow-card" : "text-muted hover:text-steel"}`}
+                        className={`text-[11px] px-3 py-1.5 rounded-xl font-semibold tracking-wide uppercase transition-colors ${categoryFilter === cat ? "bg-surface text-ink shadow-card" : "text-muted hover:text-steel"}`}
                         onClick={() => setCategoryFilter(cat)}
                       >
                         {cat}
@@ -1389,7 +1402,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     placeholder="Search curated prompts..."
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    className="max-w-[200px] h-9 text-xs bg-surface border-whisper rounded-lg shadow-card"
+                    className="max-w-[200px] h-9 text-xs bg-surface border-whisper rounded-xl shadow-card"
                   />
                 </div>
               </div>
@@ -1404,7 +1417,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                 {filteredTemplates.map((tpl, i) => (
                   <motion.div key={`${tpl.category}-${tpl.name}`} variants={staggerItem}>
                     <Card
-                      className="border-whisper bg-surface hover:shadow-md shadow-card transition-colors,shadow,ring hover:border-whisper flex flex-col justify-between group rounded-lg ring-1 ring-inset ring-whisper/20"
+                      className="border-whisper bg-surface shadow-card flex flex-col justify-between group rounded-xl"
                     >
                     <CardHeader className="pb-3 pt-5 px-5 border-b border-whisper/40">
                       <div className="flex justify-between items-start">
@@ -1419,7 +1432,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         </Badge>
                       </div>
                       <CardTitle
-                        className="text-lg font-bold mt-2 font-display text-ink tracking-tight cursor-pointer group-hover:text-accent transition-colors"
+                        className="text-lg font-bold mt-2 font-display text-ink tracking-tight cursor-pointer" style={{ textWrap: "balance" }}
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         {tpl.name}
@@ -1432,7 +1445,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     <CardContent className="pb-4 px-5 pt-4">
                       {/* Double-bezel: inner nested surface with its own depth */}
                       <div
-                        className="p-4 bg-canvas border border-whisper/70 rounded-md text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 group-hover:line-clamp-none transition-[background,color] duration-300 select-none cursor-pointer hover:bg-canvas/80"
+                        className="p-4 bg-canvas border border-whisper/70 rounded-xl text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 select-none cursor-pointer"
                         onClick={() => handleApplyTemplate(tpl)}
                       >
                         {tpl.promptText}
@@ -1444,7 +1457,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
                     </CardContent>
 
-                    <CardFooter className="py-3 px-5 border-t border-whisper/40 bg-canvas/50 flex justify-between rounded-b-[1.5rem]">
+                    <CardFooter className="py-3 px-5 border-t border-whisper/40 bg-canvas/50 flex justify-between rounded-b-xl">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1489,10 +1502,9 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* LEFT: EDIT / CREATE FORM */}
                 <div className="lg:w-1/3">
-                  <Card className="border-whisper bg-surface shadow-card rounded-xl sticky top-24 p-1.5">
-                    <div className="bg-surface rounded-[calc(0.75rem-0.375rem)] shadow-card border border-whisper h-full">
+                  <Card className="border-whisper bg-surface shadow-card rounded-xl sticky top-24">
                       <CardHeader className="px-6 pt-6">
-                        <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight">
+                        <CardTitle className="text-xl font-bold font-display flex items-center gap-2 text-ink tracking-tight" style={{ textWrap: "balance" }}>
                           {editingPersona ? (
                             <GearSix className="w-5 h-5 text-ink" />
                           ) : (
@@ -1523,7 +1535,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaName(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-accent shadow-card"
+                              className="bg-surface border-whisper h-10 text-xs rounded-xl focus:ring-accent shadow-card"
                             />
                           </div>
 
@@ -1539,7 +1551,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaDescription(e.target.value)
                               }
-                              className="bg-surface border-whisper h-10 text-xs rounded-md focus:ring-accent shadow-card"
+                              className="bg-surface border-whisper h-10 text-xs rounded-xl focus:ring-accent shadow-card"
                             />
                           </div>
 
@@ -1557,12 +1569,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                               onChange={(e) =>
                                 setNewPersonaPrompt(e.target.value)
                               }
-                              className="bg-surface border-whisper text-xs font-mono rounded-md focus:ring-accent shadow-card resize-none"
+                              className="bg-surface border-whisper text-xs font-mono rounded-xl focus:ring-accent shadow-card resize-none"
                             />
                           </div>
                         </CardContent>
 
-                        <CardFooter className="flex justify-end gap-2 border-t border-whisper pt-4 px-6 pb-6 bg-canvas rounded-b-[calc(2rem-0.375rem)] mt-4">
+                        <CardFooter className="flex justify-end gap-2 border-t border-whisper pt-4 px-6 pb-6 bg-canvas rounded-b-xl mt-4">
                           {editingPersona && (
                             <Button
                               type="button"
@@ -1589,13 +1601,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                           </Button>
                         </CardFooter>
                       </form>
-                    </div>
                   </Card>
                 </div>
 
                 {/* RIGHT: PERSONAS LIST GRID */}
                 <div className="flex-1 space-y-4">
-                  <div className="bg-surface p-5 border border-whisper rounded-lg flex items-center justify-between shadow-card">
+                  <div className="bg-surface p-5 border border-whisper rounded-xl flex items-center justify-between shadow-card">
                     <div>
                       <h3 className="text-base font-bold font-display text-ink tracking-tight">
                         Durable Persona Registry
@@ -1610,7 +1621,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       placeholder="Keyword filter..."
                       value={personaSearch}
                       onChange={(e) => setPersonaSearch(e.target.value)}
-                      className="max-w-[180px] h-9 text-xs bg-canvas border-whisper rounded-md"
+                      className="max-w-[180px] h-9 text-xs bg-canvas border-whisper rounded-xl"
                     />
                   </div>
 
@@ -1631,7 +1642,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         return (
                           <motion.div key={pers.id} variants={staggerItem}>
                           <Card
-                            className={`border-whisper flex flex-col justify-between relative group rounded-lg shadow-card transition-colors,shadow,ring hover:shadow-md ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
+                            className={`border-whisper flex flex-col justify-between relative group rounded-xl shadow-card ${selectedPersona === pers.id ? "bg-canvas border-accent/30" : "bg-surface"}`}
                           >
                             <CardHeader className="pb-3 pt-5 px-5">
                               <div className="flex justify-between items-start">
@@ -1677,7 +1688,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                 )}
                               </div>
 
-                              <CardTitle className="text-base font-bold font-display mt-3 text-ink tracking-tight">
+                              <CardTitle className="text-base font-bold font-display mt-3 text-ink tracking-tight" style={{ textWrap: "balance" }}>
                                 {pers.name}
                               </CardTitle>
                               <CardDescription className="text-xs text-steel min-h-[32px] leading-snug mt-1">
@@ -1686,12 +1697,12 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                             </CardHeader>
 
                             <CardContent className="pb-4 px-5 text-[11px] font-mono leading-snug text-steel max-h-[100px] overflow-y-auto">
-                              <div className="bg-canvas p-3 rounded-md border border-whisper">
+                              <div className="bg-canvas p-3 rounded-xl border border-whisper">
                                 {pers.systemPrompt}
                               </div>
                             </CardContent>
 
-                            <CardFooter className="py-3 px-5 border-t border-whisper bg-surface flex justify-between items-center rounded-b-2xl">
+                            <CardFooter className="py-3 px-5 border-t border-whisper bg-surface flex justify-between items-center rounded-b-xl">
                               {!isPreset && (
                                 <Button
                                   variant="ghost"
@@ -1711,7 +1722,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                                     ? "secondary"
                                     : "ghost"
                                 }
-                                className={`text-xs font-semibold rounded-xl px-5 transition-colors,shadow,ring ${selectedPersona === pers.id ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover shadow-md" : "text-steel hover:bg-hover hover:text-ink"}`}
+                                className={`text-xs font-semibold rounded-xl px-5 transition-colors ${selectedPersona === pers.id ? "bg-accent text-accent-foreground shadow-sm hover:bg-accent-hover" : "text-steel hover:bg-hover hover:text-ink"}`}
                                 onClick={() => {
                                   setSelectedPersona(pers.id);
                                   toast.success(
@@ -1744,7 +1755,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="space-y-6"
             >
-              <div className="bg-surface p-6 border border-whisper rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-card">
+              <div className="bg-surface p-6 border border-whisper rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-card">
                 <div>
                   <h3 className="text-xl font-bold font-display tracking-tight text-ink">
                     Prompt Engineering Logs
@@ -1853,7 +1864,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     variants={staggerItem}
                   >
                   <div
-                    className="border border-whisper rounded-lg bg-surface p-6 hover:shadow-md transition-colors,shadow,ring cursor-pointer group"
+                    className="border border-whisper rounded-xl bg-surface p-6 shadow-card cursor-pointer group"
                     onClick={() => setSelectedHistoryItem(item)}
                   >
                     {/* Upper Metadata */}
@@ -1873,7 +1884,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 bg-canvas px-3 py-1 rounded-lg border border-whisper shadow-inner">
+                        <div className="flex items-center gap-1.5 bg-canvas px-3 py-1 rounded-xl border border-whisper shadow-inner">
                           <span className="text-[10px] uppercase font-mono tracking-widest text-steel font-semibold">
                             Score
                           </span>
@@ -1885,7 +1896,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity,color hover:bg-error/10 rounded-xl"
+                          className="h-8 w-8 text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-[opacity,color] hover:bg-error/10 rounded-xl"
                           onClick={(e) => handleDeleteHistory(item.id, e)}
                         >
                           <Trash className="w-4 h-4" />
@@ -1899,7 +1910,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <span className="text-[10px] font-mono text-muted font-bold tracking-widest uppercase block mb-1">
                           Original Draft Excerpt
                         </span>
-                        <div className="p-4 bg-canvas rounded-md text-xs font-mono text-steel line-clamp-2 select-none border border-whisper shadow-inner leading-snug">
+                        <div className="p-4 bg-canvas rounded-xl text-xs font-mono text-steel line-clamp-2 select-none border border-whisper shadow-inner leading-snug">
                           {item.originalPrompt}
                         </div>
                       </div>
@@ -1908,7 +1919,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                         <span className="text-[10px] font-mono text-ink font-bold tracking-widest uppercase block mb-1">
                           Engineered Prompt Excerpt
                         </span>
-                        <div className="p-4 bg-accent text-accent-foreground rounded-md text-xs font-mono line-clamp-2 select-none border border-edges shadow-md leading-snug">
+                        <div className="p-4 bg-accent text-accent-foreground rounded-xl text-xs font-mono line-clamp-2 select-none border border-edges shadow-md leading-snug">
                           {item.optimizedPrompt}
                         </div>
                       </div>
@@ -1955,7 +1966,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                   <div className="flex items-center gap-4 mb-3">
                     <img src={openprompterIcon} alt="OpenPrompter" className="w-14 h-14 rounded-xl shadow-card" width={56} height={56} />
                     <div>
-                      <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink">
+                      <CardTitle className="text-2xl font-bold font-display tracking-tight text-ink" style={{ textWrap: "balance" }}>
                         About OpenPrompter
                       </CardTitle>
                       <CardDescription className="text-xs text-steel bg-canvas uppercase tracking-widest font-mono font-semibold py-1.5 px-3 rounded-xl inline-block mt-2 w-max">
@@ -1972,7 +1983,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     architectural transparency.
                   </p>
 
-                  <div className="p-6 bg-accent text-accent-foreground border border-edges rounded-lg space-y-3 shadow-card">
+                  <div className="p-6 bg-accent text-accent-foreground border border-edges rounded-xl space-y-3 shadow-card">
                     <h4 className="text-xs font-bold text-accent-foreground flex items-center gap-2 uppercase font-mono tracking-widest">
                       <Lock className="w-4 h-4 text-emerald-400" /> Bring Your
                       Own Key Architecture
@@ -1994,7 +2005,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
                     </li>
                     <li className="pl-4">
                       Select your preferred API provider from the grid:
-                      OpenAI, DeepSeek, Anthropic, or Custom endpoint.
+                      OpenAI, DeepSeek, Anthropic, Gemini, or Custom endpoint.
                     </li>
                     <li className="pl-4">
                       Generate and copy your API key from the provider's
@@ -2107,6 +2118,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
         setCustomModelInputVal={setCustomModelInputVal}
         setCustomModel={setCustomModel}
         availableModels={availableModels}
+        modelsLoading={modelsLoading}
         handleSaveApiKey={handleSaveApiKey}
       />
 
@@ -2130,7 +2142,7 @@ ${(pr.key_changes || []).map((ch: string) => `- ${ch}`).join("\n")}
 
         {/* SHARED LINK FAB */}
       {sharedLinkCopied && (
-        <div className="fixed bottom-6 right-6 z-50 bg-accent text-accent-foreground text-xs font-semibold px-4 py-2.5 rounded-lg shadow-card animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 right-6 z-50 bg-accent text-accent-foreground text-xs font-semibold px-4 py-2.5 rounded-xl shadow-card animate-in fade-in slide-in-from-bottom-4 duration-300">
           <Check className="w-3.5 h-3.5 mr-1.5 inline" />
           Share link copied!
         </div>

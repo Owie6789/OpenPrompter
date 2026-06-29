@@ -10,7 +10,7 @@
 
 /* ── Shaders Design System ────────────────────────────── */
 /* Dark-first theme. Inspired by Shaders WebGPU library.  */
-/* Neutral black/grey/white + golden yellow (#ffcb6b) on dark bg. */
+/* Ink (#e6e9fa) + golden yellow (#ffcb6b) on dark bg.     */
 
 @theme {
   /* Typography */
@@ -28,13 +28,13 @@
   --color-border: #202129;
   --color-ring: #e6e9fa;
   --color-primary: #e6e9fa;
-  --color-primary-foreground: #0a1820;
+  --color-primary-foreground: #141416;
   --color-secondary: #242430;
   --color-secondary-foreground: #e6e9fa;
   --color-destructive: #ff6b6b;
   --color-destructive-foreground: #ffffff;
   --color-accent: #e6e9fa;
-  --color-accent-foreground: #0a1820;
+  --color-accent-foreground: #141416;
   --color-popover: #1a1a1b;
   --color-popover-foreground: #e6e9fa;
   --color-card: #1a1a1b;
@@ -43,7 +43,7 @@
   --color-sidebar: #0f0f11;
   --color-sidebar-foreground: #e6e9fa;
   --color-sidebar-primary: #e6e9fa;
-  --color-sidebar-primary-foreground: #0a1820;
+  --color-sidebar-primary-foreground: #141416;
   --color-sidebar-accent: #242430;
   --color-sidebar-accent-foreground: #e6e9fa;
   --color-sidebar-border: #202129;
@@ -71,7 +71,6 @@
 
   /* ── Shadows ── */
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.25);
   --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
@@ -84,13 +83,13 @@
   --popover: #1a1a1b;
   --popover-foreground: #e6e9fa;
   --primary: #e6e9fa;
-  --primary-foreground: #0a1820;
+  --primary-foreground: #141416;
   --secondary: #242430;
   --secondary-foreground: #e6e9fa;
   --muted: #697088;
   --muted-foreground: #81879c;
   --accent: #e6e9fa;
-  --accent-foreground: #0a1820;
+  --accent-foreground: #141416;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
   --border: #202129;
@@ -99,13 +98,13 @@
   --radius: 0.25rem;
   --chart-1: #e6e9fa;
   --chart-2: #ffcb6b;
-  --chart-3: #d930b1;
-  --chart-4: #a252fa;
-  --chart-5: #b79cff;
+  --chart-3: #ff6b6b;
+  --chart-4: #697088;
+  --chart-5: #81879c;
   --sidebar: #0f0f11;
   --sidebar-foreground: #e6e9fa;
   --sidebar-primary: #e6e9fa;
-  --sidebar-primary-foreground: #0a1820;
+  --sidebar-primary-foreground: #141416;
   --sidebar-accent: #242430;
   --sidebar-accent-foreground: #e6e9fa;
   --sidebar-border: #202129;
@@ -122,13 +121,13 @@
   --popover: #1a1a1b;
   --popover-foreground: #e6e9fa;
   --primary: #e6e9fa;
-  --primary-foreground: #0a1820;
+  --primary-foreground: #141416;
   --secondary: #242430;
   --secondary-foreground: #e6e9fa;
   --muted: #697088;
   --muted-foreground: #81879c;
   --accent: #e6e9fa;
-  --accent-foreground: #0a1820;
+  --accent-foreground: #141416;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
   --border: #202129;
@@ -136,13 +135,13 @@
   --ring: #e6e9fa;
   --chart-1: #e6e9fa;
   --chart-2: #ffcb6b;
-  --chart-3: #d930b1;
-  --chart-4: #a252fa;
-  --chart-5: #b79cff;
+  --chart-3: #ff6b6b;
+  --chart-4: #697088;
+  --chart-5: #81879c;
   --sidebar: #0f0f11;
   --sidebar-foreground: #e6e9fa;
   --sidebar-primary: #e6e9fa;
-  --sidebar-primary-foreground: #0a1820;
+  --sidebar-primary-foreground: #141416;
   --sidebar-accent: #242430;
   --sidebar-accent-foreground: #e6e9fa;
   --sidebar-border: #202129;
@@ -275,10 +274,18 @@ p, .text-pretty {
   --radius-2xl: calc(var(--radius) * 2.2);
   --radius-3xl: calc(var(--radius) * 2.6);
   --radius-4xl: calc(var(--radius) * 2.6);
-  @keyframes spinner-move { to { stroke-dashoffset: -100; } }
+  @keyframes spinner-move {
+  to {
+    stroke-dashoffset: -100;
+    }
+  }
   @keyframes spinner-dash {
-    0%, 100% { stroke-dasharray: 15 85; }
-    50% { stroke-dasharray: 40 60; }
+  0%, 100% {
+    stroke-dasharray: 15 85;
+    }
+  50% {
+    stroke-dasharray: 40 60;
+    }
   }
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
@@ -310,5 +317,71 @@ p, .text-pretty {
 @layer base {
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground; }
-  html { @apply font-sans; }
+
+  /* ── Button inner shadow (3D depth) ── */
+  button, [role="button"], a[role="button"] {
+    box-shadow:
+      inset 0 2px 3px rgba(0, 0, 0, 0.3),
+      inset 0 1px 1px rgba(0, 0, 0, 0.2),
+      0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  button:active, [role="button"]:active, a[role="button"]:active {
+    box-shadow:
+      inset 0 3px 5px rgba(0, 0, 0, 0.4),
+      inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ── BYOK Dialog: prevent scroll chaining + smooth scroll ── */
+  .byok-dialog {
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* ── BYOK Dialog content wrapper — padding pushes scrollbar outward ── */
+  .byok-dialog > .byok-body {
+    padding-right: 12px;
+  }
+
+  /* ── BYOK Dialog: 3D scrollbar, shifted from edge ── */
+  .byok-dialog::-webkit-scrollbar {
+    width: 10px;
+  }
+  .byok-dialog::-webkit-scrollbar-track {
+    background: linear-gradient(to right, rgba(0,0,0,0.15), rgba(0,0,0,0.05), rgba(0,0,0,0.15));
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+    margin: 8px 0;
+  }
+  .byok-dialog::-webkit-scrollbar-thumb {
+    background: linear-gradient(to right, rgba(255,255,255,0.08), rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .byok-dialog::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to right, rgba(255,255,255,0.12), rgba(255,255,255,0.25), rgba(255,255,255,0.12));
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .byok-dialog::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(to right, rgba(255,255,255,0.15), rgba(255,255,255,0.3), rgba(255,255,255,0.15));
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  /* ── BYOK Inputs: 3D recessed look ── */
+  .byok-input {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(0, 0, 0, 0.15),
+      0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .byok-input:focus,
+  .byok-input:focus-visible {
+    box-shadow:
+      inset 0 2px 4px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(0, 0, 0, 0.15),
+      0 0 0 2px var(--color-accent, rgba(255, 203, 107, 0.25));
+    outline: 0;
+    outline-offset: 0;
+    -webkit-appearance: none;
+  }
 }

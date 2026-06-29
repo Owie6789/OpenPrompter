@@ -25,7 +25,7 @@ export interface GlassSurfaceProps {
 }
 
 const GlassSurface: React.FC<GlassSurfaceProps> = ({
-  children, width = 200, height = 80, borderRadius = 20, borderWidth = 0.07,
+  children, width = 200, height = 'auto', borderRadius = 20, borderWidth = 0.07,
   brightness = 50, opacity = 0.93, blur = 11, displace = 0, backgroundOpacity = 0,
   saturation = 1, distortionScale = -180, redOffset = 0, greenOffset = 10,
   blueOffset = 20, xChannel = 'R', yChannel = 'G', mixBlendMode = 'difference',
@@ -136,13 +136,14 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const getContainerStyles = (): React.CSSProperties => {
     const hasInset = className.includes('inset-0');
     const heightValue = typeof height === 'number' ? `${height}px` : height;
+    const heightStyle = hasInset ? { minHeight: heightValue } : (height ? { height: heightValue } : {});
     const baseStyles: React.CSSProperties = {
-      ...style,
       width: typeof width === 'number' ? `${width}px` : width,
-      ...(hasInset ? { minHeight: heightValue } : { height: heightValue }),
+      ...heightStyle,
       borderRadius: `${borderRadius}px`,
       '--glass-frost': backgroundOpacity,
-      '--glass-saturation': saturation
+      '--glass-saturation': saturation,
+      ...style
     } as unknown as React.CSSProperties;
 
     if (svgSupported) {
@@ -156,7 +157,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   return (
-    <div ref={containerRef} className={`relative z-[0] flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out ${className}`} style={getContainerStyles()}>
+    <div ref={containerRef} className={`relative z-[0] isolate flex items-center justify-center transition-opacity duration-[260ms] ease-out ${className}`} style={getContainerStyles()}>
       <svg className="w-full h-full pointer-events-none absolute inset-0 opacity-0 -z-10" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">

@@ -6,7 +6,6 @@ import {
   useState,
   useEffect,
   useCallback,
-  useMemo,
   type ReactNode,
 } from "react";
 
@@ -39,21 +38,21 @@ const shapeMap: Record<ShapeVariant, ShapeClasses> = {
     focusRing: "rounded-[22px]",
     mergedBg: "rounded-2xl",
     container: "rounded-3xl",
-    button: "rounded-xl",
+    button: "rounded-[20px]",
     input: "rounded-[20px]",
     bgRadius: 20,
     mergedRadius: 16,
   },
   rounded: {
-    item: "rounded-lg",
-    bg: "rounded-lg",
-    focusRing: "rounded-[10px]",
-    mergedBg: "rounded-lg",
+    item: "rounded-xl",
+    bg: "rounded-xl",
+    focusRing: "rounded-[14px]",
+    mergedBg: "rounded-xl",
     container: "rounded-xl",
-    button: "rounded-lg",
-    input: "rounded-lg",
-    bgRadius: 8,
-    mergedRadius: 8,
+    button: "rounded-xl",
+    input: "rounded-xl",
+    bgRadius: 12,
+    mergedRadius: 12,
   },
 };
 
@@ -80,18 +79,18 @@ function useShapeContext() {
 function transitionShape(callback: () => void) {
   const root = document.documentElement;
   root.classList.add("transitioning");
-  root.offsetHeight; // NOSONAR - intentional forced reflow
+  void root.offsetHeight;
   callback();
   setTimeout(() => root.classList.remove("transitioning"), 200);
 }
 
 function ShapeProvider({
   children,
-  defaultShape = "pill",
-}: Readonly<{
+  defaultShape = "rounded",
+}: {
   children: ReactNode;
   defaultShape?: ShapeVariant;
-}>) {
+}) {
   const [shape, setShapeState] = useState<ShapeVariant>(defaultShape);
 
   const setShape = useCallback((next: ShapeVariant) => {
@@ -99,17 +98,6 @@ function ShapeProvider({
   }, []);
 
   // Global keyboard shortcut: R to cycle radius
-  const nextShape = useCallback((prev: ShapeVariant): ShapeVariant => {
-    const idx = shapeOrder.indexOf(prev);
-    return shapeOrder[(idx + 1) % shapeOrder.length];
-  }, []);
-
-  const cycleShape = useCallback(() => {
-    transitionShape(() => {
-      setShapeState(nextShape);
-    });
-  }, [nextShape]);
-
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "r" && e.key !== "R") return;
@@ -117,18 +105,19 @@ function ShapeProvider({
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
       e.preventDefault();
-      cycleShape();
+      transitionShape(() => {
+        setShapeState((prev) => {
+          const idx = shapeOrder.indexOf(prev);
+          return shapeOrder[(idx + 1) % shapeOrder.length];
+        });
+      });
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [cycleShape]);
+  }, []);
 
-  const contextValue = useMemo(
-    () => ({ shape, setShape, classes: shapeMap[shape] }),
-    [shape, setShape],
-  );
   return (
-    <ShapeContext.Provider value={contextValue}>
+    <ShapeContext.Provider value={{ shape, setShape, classes: shapeMap[shape] }}>
       {children}
     </ShapeContext.Provider>
   );

@@ -12,7 +12,7 @@ import {
   type HTMLAttributes,
 } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { IconComponent } from "@/lib/icon-context";
 import { cn } from "@/lib/utils";
@@ -146,7 +146,7 @@ const triggerVariants = cva(
     "text-[13px] h-9 px-3 min-w-[160px]",
     "transition-[background-color,color] duration-80",
     "disabled:opacity-50 disabled:pointer-events-none",
-    "focus-visible:ring-1 focus-visible:ring-[#6B97FF]",
+    "focus-visible:ring-1 focus-visible:ring-ring",
   ],
   {
     variants: {
@@ -555,7 +555,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
             <AnimatePresence>
               {focusRect && (
                 <motion.div
-                  className={`absolute ${shape.focusRing} pointer-events-none z-20 border border-[#6B97FF]`}
+                  className={`absolute ${shape.focusRing} pointer-events-none z-20 border border-ring`}
                   initial={false}
                   animate={{
                     left: focusRect.left - 2,

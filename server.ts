@@ -676,10 +676,18 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData = (await response.json()) as AnthropicResponse;
+      let resData;
+      try {
+        resData = (await response.json()) as AnthropicResponse;
+      } catch {
+        const rawBody = await response.text().catch(() => "(unreadable)");
+        console.error(`[${rid}] Non-JSON response from Anthropic: ${sanitizeForLog(rawBody, 300)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
+      }
       const content = resData.content?.[0]?.text;
       if (!content) {
-        throw new Error("No text content returned from Anthropic API.");
+        console.error(`[${rid}] Anthropic response missing content: ${sanitizeForLog(JSON.stringify(resData), 200)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unexpected response format."));
       }
       const cookedText = stripJsonFence(content);
       const result = parseAndValidateLlmResponse(cookedText, rid, "Anthropic");
@@ -715,10 +723,18 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData = (await response.json()) as OpenAIChatResponse;
+      let resData;
+      try {
+        resData = (await response.json()) as OpenAIChatResponse;
+      } catch {
+        const rawBody = await response.text().catch(() => "(unreadable)");
+        console.error(`[${rid}] Non-JSON response: ${sanitizeForLog(rawBody, 300)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
+      }
       const content = resData.choices?.[0]?.message?.content;
       if (!content) {
-        throw new Error("No text content returned from the API.");
+        console.error(`[${rid}] Response missing content: ${sanitizeForLog(JSON.stringify(resData), 200)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unexpected response format."));
       }
 
       const cookedText = stripJsonFence(content);
