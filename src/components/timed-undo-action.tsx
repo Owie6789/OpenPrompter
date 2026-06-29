@@ -112,10 +112,7 @@ export const TimedUndoAction: FC<TimedUndoActionProps> = ({
               <div className="flex items-center justify-center gap-2">
                 <AnimatedText
                   text={isDeleting ? undoLabel : deleteLabel}
-                  className={cn(
-                    "z-10 text-xs",
-                    isDeleting ? "text-red-400" : "text-red-400"
-                  )}
+                  className="z-10 text-xs text-red-400"
                 />
               </div>
 
@@ -183,11 +180,11 @@ function AnimatedText({
   text,
   className,
   delayStep = 0.014,
-}: {
+}: Readonly<{
   text: string;
   className?: string;
   delayStep?: number;
-}) {
+}>) {
   const chars = text.split("");
 
   return (
@@ -199,7 +196,7 @@ function AnimatedText({
         >
           {chars.map((char, i) => (
             <motion.span
-              key={i}
+              key={`${text}-${i}`}
               initial={{
                 y: 10,
                 opacity: 0,

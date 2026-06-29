@@ -53,7 +53,7 @@ const providerDisplayNames: Record<string, string> = {
   gemini: "Gemini",
 };
 
-function ProviderLogo({ provider, className = "w-4 h-4" }: { provider: string; className?: string }) {
+function ProviderLogo({ provider, className = "w-4 h-4" }: Readonly<{ provider: string; className?: string }>) {
   switch (provider) {
     case "openai":
       return (
@@ -108,8 +108,6 @@ export default function ByokDialog({
 
   const providerKeyUrl = providerKeyUrls[providerInputVal] ?? null;
   const providerLabel = providerDisplayNames[providerInputVal] ?? "API";
-  const isCustom = providerInputVal === "custom";
-
   // Separate toggle state — independent of provider selection
   const [showEndpoint, setShowEndpoint] = useState(false);
   const previousProviderRef = useRef<string>("openai");
@@ -119,12 +117,6 @@ export default function ByokDialog({
     m.id.toLowerCase().includes(customModelInputVal.toLowerCase()) ||
     m.name.toLowerCase().includes(customModelInputVal.toLowerCase())
   );
-
-  const scrollToEndpoint = useCallback(() => {
-    setTimeout(() => {
-      endpointRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 150);
-  }, []);
 
   const handleProviderClick = useCallback((p: { id: string; endpoint: string }) => {
     setProviderInputVal(p.id);
@@ -209,9 +201,9 @@ export default function ByokDialog({
               {/* Provider Selection */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold text-steel uppercase tracking-widest">
+                  <span className="text-[11px] font-semibold text-steel uppercase tracking-widest">
                     API Provider
-                  </label>
+                  </span>
                   {providerKeyUrl && (
                     <a
                       href={providerKeyUrl}
@@ -274,9 +266,9 @@ export default function ByokDialog({
               <div ref={endpointRef} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
+                    <span className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                       Custom Endpoint
-                    </label>
+                    </span>
                     <p className="text-[10px] text-muted mt-0.5">
                       Override the default API base URL
                     </p>

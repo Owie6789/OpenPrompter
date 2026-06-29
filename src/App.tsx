@@ -550,12 +550,20 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
   ) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedState(type);
-      toast.success("Copied to clipboard!");
-      setTimeout(() => setCopiedState(null), 2000);
     } catch {
-      toast.error("Clipboard access denied. Please copy manually.");
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const copyOk = document.execCommand('copy'); // NOSONAR - intentional fallback for non-HTTPS
+      ta.remove();
+      if (!copyOk) throw new Error('execCommand copy failed');
     }
+    setCopiedState(type);
+    toast.success("Copied to clipboard!");
+    setTimeout(() => setCopiedState(null), 2000);
   };
 
   // Clear workspace input

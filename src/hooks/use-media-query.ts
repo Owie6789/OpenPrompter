@@ -1,31 +1,34 @@
 import { useState, useEffect } from 'react';
 
-function unsafeGetMatches(query: string): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia(query).matches;
+function readMatches(query: string): boolean {
+  const win = globalThis.window as typeof globalThis.window | undefined;
+  return !!win && typeof win.matchMedia === 'function'
+    ? win.matchMedia(query).matches
+    : false;
 }
 
-function getInitialValue<T>(query: string, getValue: (matches: boolean) => T): T {
-  const matches = unsafeGetMatches(query);
-  return getValue(matches);
-}
+export function useMediaQuery<T = boolean>(
+  query: string,
+  getValue?: (matches: boolean) => T,
+): T {
+  const mapValue = (matches: boolean): T =>
+    getValue ? getValue(matches) : (matches as unknown as T);
 
-export function useMediaQuery<T = boolean>(query: string, getValue?: (matches: boolean) => T): T {
-  const isBoolean = getValue === undefined;
-  const initial = getInitialValue(query, (m) => (isBoolean ? m as unknown as T : getValue!(m)));
-
-  if (typeof window === 'undefined') return initial;
-
-  const [value, setValue] = useState<T>(initial);
+  const [value, setValue] = useState<T>(() => mapValue(readMatches(query)));
 
   useEffect(() => {
-    const mql = window.matchMedia(query);
-    const handler = (e: MediaQueryListEvent) => {
-      setValue(isBoolean ? e.matches as unknown as T : getValue!(e.matches));
-    };
+    const win = globalThis.window as typeof globalThis.window | undefined;
+    if (!win || typeof win.matchMedia !== 'function') return;
+
+    const mql = win.matchMedia(query);
+    const update = (matches: boolean) => setValue(mapValue(matches));
+
+    update(mql.matches);
+
+    const handler = (e: MediaQueryListEvent) => update(e.matches);
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
-  }, [query]);
+  }, [query, getValue]);
 
   return value;
 }

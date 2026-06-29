@@ -136,7 +136,12 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const getContainerStyles = (): React.CSSProperties => {
     const hasInset = className.includes('inset-0');
     const heightValue = typeof height === 'number' ? `${height}px` : height;
-    const heightStyle = hasInset ? { minHeight: heightValue } : (height ? { height: heightValue } : {});
+    let heightStyle: React.CSSProperties = {};
+    if (hasInset) {
+      heightStyle = { minHeight: heightValue };
+    } else if (height) {
+      heightStyle = { height: heightValue };
+    }
     const baseStyles: React.CSSProperties = {
       width: typeof width === 'number' ? `${width}px` : width,
       ...heightStyle,
