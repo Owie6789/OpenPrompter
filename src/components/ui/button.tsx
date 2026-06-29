@@ -111,6 +111,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       : bgVariants[variant ?? "primary"];
 
     let buttonContent: React.ReactNode;
+    const spinnerPx =
+      size === "sm" || size === "icon-sm" ? 14 :
+      size === "lg" || size === "icon-lg" ? 20 :
+      16;
+
     if (loading) {
       buttonContent = (
         <>
@@ -125,7 +130,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </span>
           <span className="absolute inset-0 flex items-center justify-center">
             <svg
-              className="h-8 w-8"
+              className="shrink-0"
+              style={{ width: spinnerPx, height: spinnerPx }}
               viewBox="0 0 24 24"
               fill="none"
             >
