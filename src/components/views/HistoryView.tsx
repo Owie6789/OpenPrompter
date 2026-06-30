@@ -17,14 +17,14 @@ import { useReducedMotion } from "@/src/hooks/use-reduced-motion";
 import { type PromptHistoryItem } from "@/src/types";
 import emptyHistoryAsset from "@/assets/op-appasset-emptyhistorystate.png";
 
-type HistoryViewProps = {
+type HistoryViewProps = Readonly<{
   historyList: PromptHistoryItem[];
   setHistoryList: React.Dispatch<React.SetStateAction<PromptHistoryItem[]>>;
   showClearConfirm: boolean;
   setShowClearConfirm: (open: boolean) => void;
   setSelectedHistoryItem: (item: PromptHistoryItem | null) => void;
   handleDeleteHistory: (id: string, e: React.MouseEvent) => void;
-};
+}>;
 
 export function HistoryView({
   historyList,
@@ -105,10 +105,10 @@ export function HistoryView({
               className="text-xs text-steel hover:text-ink rounded-xl font-semibold cursor-pointer"
               onClick={() => {
                 const md = historyList
-                  .map(
-                    (h) =>
-                      `# ${h.promptType} - ${h.createdAt}\n\n**Original:**\n${h.originalPrompt}\n\n**Optimized:**\n${h.optimizedPrompt}\n\n**Improvements:**\n${(h.improvements || []).map((i) => `- ${i}`).join("\n")}\n\n**Confidence:** ${h.confidenceScore}%  \n---\n`,
-                  )
+                  .map((h) => {
+                    const improvementsList = (h.improvements || []).map((i) => `- ${i}`).join("\n");
+                    return `# ${h.promptType} - ${h.createdAt}\n\n**Original:**\n${h.originalPrompt}\n\n**Optimized:**\n${h.optimizedPrompt}\n\n**Improvements:**\n${improvementsList}\n\n**Confidence:** ${h.confidenceScore}%  \n---\n`;
+                  })
                   .join("\n");
                 const blob = new Blob([md], { type: "text/markdown" });
                 const url = URL.createObjectURL(blob);
@@ -173,8 +173,16 @@ export function HistoryView({
             variants={staggerItem}
           >
           <div
+            role="button"
+            tabIndex={0}
             className="border border-whisper rounded-xl bg-surface p-6 shadow-card cursor-pointer group"
             onClick={() => setSelectedHistoryItem(item)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSelectedHistoryItem(item);
+              }
+            }}
           >
             {/* Upper Metadata */}
             <div className="flex justify-between items-center flex-wrap gap-2 mb-4">

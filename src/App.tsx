@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Copy, Check, X, Coffee } from "@phosphor-icons/react";
+import { Check, X, Coffee } from "@phosphor-icons/react";
 import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { ScrollProgress } from "@/src/components/ScrollProgress"
-import { useReducedMotion } from "@/src/hooks/use-reduced-motion"
 import { AppLayout } from "@/src/components/AppLayout";
 import { AboutView } from "@/src/components/views/AboutView";
 import { HistoryView } from "@/src/components/views/HistoryView";
@@ -58,30 +57,7 @@ function generateId(prefix: string): string {
 }
 
 export default function App() {
-  // Animation variants for staggered entry
-  const reducedMotion = useReducedMotion()
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: reducedMotion ? 0 : 0.06,
-        delayChildren: reducedMotion ? 0 : 0.08,
-      },
-    },
-  } satisfies React.ComponentProps<typeof motion.div>["variants"];
-
-  const staggerItem = {
-    hidden: { opacity: 0, y: reducedMotion ? 0 : 12 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 300, damping: 30 },
-    },
-  } satisfies React.ComponentProps<typeof motion.div>["variants"];
-
-type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
+  type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<TabType>("optimizer");
@@ -482,13 +458,6 @@ type TabType = "optimizer" | "templates" | "personas" | "history" | "about";
     setNewPersonaDescription("");
     setNewPersonaPrompt("");
     setEditingPersona(null);
-  };
-
-  const handleEditPersona = (pers: CustomPersona) => {
-    setEditingPersona(pers);
-    setNewPersonaName(pers.name);
-    setNewPersonaDescription(pers.description);
-    setNewPersonaPrompt(pers.systemPrompt);
   };
 
   const handleDeleteHistory = (id: string, e?: React.MouseEvent) => {

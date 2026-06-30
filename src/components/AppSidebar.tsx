@@ -38,10 +38,10 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   { id: "about", label: "About", icon: Info },
 ];
 
-type AppSidebarProps = {
+type AppSidebarProps = Readonly<{
   activeTab: string;
   onTabChange: (tab: string) => void;
-};
+}>;
 
 export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
   return (

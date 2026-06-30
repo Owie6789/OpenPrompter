@@ -2,11 +2,11 @@ import React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/src/components/AppSidebar";
 
-type AppLayoutProps = {
+type AppLayoutProps = Readonly<{
   activeTab: string;
   onTabChange: (tab: string) => void;
   children: React.ReactNode;
-};
+}>;
 
 export function AppLayout({ activeTab, onTabChange, children }: AppLayoutProps) {
   return (

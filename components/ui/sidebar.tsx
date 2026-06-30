@@ -98,8 +98,8 @@ function SidebarProvider({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
@@ -579,7 +579,6 @@ function SidebarMenuButton({
   ...props
 }: SidebarMenuButtonProps) {
   const Comp = asChild ? Slot.Root : 'button';
-  const { isMobile, state } = useSidebar();
 
   const button = (
     <HighlightItem
@@ -679,6 +678,7 @@ function SidebarMenuSkeleton({
   ...props
 }: SidebarMenuSkeletonProps) {
   // Random width between 50 to 90%.
+  // sonar-disable-next-line:S6442 - Math.random is used for non-security visual variation only
   const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`);
 
   return (
@@ -888,7 +888,7 @@ type ControlledParentModeHighlightProps<T extends React.ElementType = 'div'> =
 
 type ControlledChildrenModeHighlightProps<T extends React.ElementType = 'div'> =
   BaseHighlightProps<T> & {
-    mode?: 'children' | undefined;
+    mode?: 'children';
     controlledItems: true;
     children: React.ReactNode;
   };
@@ -1006,11 +1006,10 @@ function Highlight<T extends React.ElementType = 'div'>({
 
       setBoundsState((prev) => {
         if (
-          prev &&
-          prev.top === newBounds.top &&
-          prev.left === newBounds.left &&
-          prev.width === newBounds.width &&
-          prev.height === newBounds.height
+          prev?.top === newBounds.top &&
+          prev?.left === newBounds.left &&
+          prev?.width === newBounds.width &&
+          prev?.height === newBounds.height
         ) {
           return prev;
         }
@@ -1100,40 +1099,44 @@ function Highlight<T extends React.ElementType = 'div'>({
     return children;
   };
 
+  const providerValue = React.useMemo(() => ({
+    mode,
+    activeValue,
+    setActiveValue: safeSetActiveValue,
+    id,
+    hover,
+    click,
+    className,
+    style,
+    transition,
+    disabled,
+    enabled,
+    exitDelay,
+    setBounds: safeSetBounds,
+    clearBounds,
+    activeClassName: activeClassNameState,
+    setActiveClassName: setActiveClassNameState,
+    forceUpdateBounds: (props as ParentModeHighlightProps)
+      ?.forceUpdateBounds,
+  }), [mode, activeValue, safeSetActiveValue, id, hover, click, className, style, transition, disabled, enabled, exitDelay, safeSetBounds, clearBounds, activeClassNameState, setActiveClassNameState, props]);
+
+  const highlightContent = enabled
+    ? controlledItems
+      ? render(children)
+      : render(
+          React.Children.map(children, (child, index) => (
+            <HighlightItem key={React.isValidElement(child) ? child.key ?? `item-${index}` : `item-${index}`} className={(props as UncontrolledParentModeHighlightProps)?.itemsClassName}>
+              {child}
+            </HighlightItem>
+          )),
+        )
+    : children;
+
   return (
     <HighlightContext.Provider
-      value={{
-        mode,
-        activeValue,
-        setActiveValue: safeSetActiveValue,
-        id,
-        hover,
-        click,
-        className,
-        style,
-        transition,
-        disabled,
-        enabled,
-        exitDelay,
-        setBounds: safeSetBounds,
-        clearBounds,
-        activeClassName: activeClassNameState,
-        setActiveClassName: setActiveClassNameState,
-        forceUpdateBounds: (props as ParentModeHighlightProps)
-          ?.forceUpdateBounds,
-      }}
+      value={providerValue}
     >
-      {enabled
-        ? controlledItems
-          ? render(children)
-          : render(
-              React.Children.map(children, (child, index) => (
-                <HighlightItem key={index} className={(props as UncontrolledParentModeHighlightProps)?.itemsClassName}>
-                  {child}
-                </HighlightItem>
-              )),
-            )
-        : children}
+      {highlightContent}
     </HighlightContext.Provider>
   );
 }
@@ -1289,7 +1292,7 @@ function HighlightItem<T extends React.ElementType>({
     'data-highlight': true,
   };
 
-  const commonHandlers = hover
+  const hoverHandlers = hover
     ? {
         onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => {
           setActiveValue(childValue);
@@ -1300,14 +1303,18 @@ function HighlightItem<T extends React.ElementType>({
           element.props.onMouseLeave?.(e);
         },
       }
-    : click
-      ? {
-          onClick: (e: React.MouseEvent<HTMLDivElement>) => {
-            setActiveValue(childValue);
-            element.props.onClick?.(e);
-          },
-        }
-      : {};
+    : {};
+
+  const clickHandler = !hover && click
+    ? {
+        onClick: (e: React.MouseEvent<HTMLDivElement>) => {
+          setActiveValue(childValue);
+          element.props.onClick?.(e);
+        },
+      }
+    : {};
+
+  const commonHandlers = { ...hoverHandlers, ...clickHandler };
 
   if (asChild) {
     if (mode === 'children') {
@@ -1448,12 +1455,12 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const mql = globalThis.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(globalThis.innerWidth < MOBILE_BREAKPOINT)
     }
     mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    setIsMobile(globalThis.innerWidth < MOBILE_BREAKPOINT)
     return () => mql.removeEventListener("change", onChange)
   }, [])
 

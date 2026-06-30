@@ -9,14 +9,14 @@ import { useReducedMotion } from "@/src/hooks/use-reduced-motion";
 import { PRESET_TEMPLATES } from "@/src/data";
 import type { PromptTemplate } from "@/src/types";
 
-type PresetsViewProps = {
+type PresetsViewProps = Readonly<{
   templateSearch: string;
   setTemplateSearch: (val: string) => void;
   categoryFilter: string;
   setCategoryFilter: (val: string) => void;
   handleApplyTemplate: (tpl: PromptTemplate) => void;
   handleShareTemplate: (tpl: PromptTemplate) => void;
-};
+}>;
 
 const CATEGORIES = ["All", "Coding", "Marketing", "Analysis", "Sales", "Education"] as const;
 
@@ -144,8 +144,16 @@ export function PresetsView({
 
             <CardContent className="pb-4 px-5 pt-4">
               <div
+                role="button"
+                tabIndex={0}
                 className="p-4 bg-canvas border border-whisper/70 rounded-xl text-[11px] font-mono leading-snug text-steel/80 line-clamp-3 select-none cursor-pointer"
                 onClick={() => handleApplyTemplate(tpl)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleApplyTemplate(tpl);
+                  }
+                }}
               >
                 {tpl.promptText}
               </div>

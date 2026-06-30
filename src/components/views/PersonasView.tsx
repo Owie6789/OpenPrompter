@@ -10,7 +10,7 @@ import { useReducedMotion } from "@/src/hooks/use-reduced-motion";
 import { PRESET_PERSONAS } from "@/src/data";
 import type { CustomPersona } from "@/src/types";
 
-type PersonasViewProps = {
+type PersonasViewProps = Readonly<{
   customPersonas: CustomPersona[];
   setCustomPersonas: React.Dispatch<React.SetStateAction<CustomPersona[]>>;
   selectedPersona: string;
@@ -27,7 +27,7 @@ type PersonasViewProps = {
   setPersonaSearch: (val: string) => void;
   handleSaveCustomPersona: (e: React.FormEvent) => void;
   handleSharePersona: (pers: CustomPersona) => void;
-};
+}>;
 
 export function PersonasView({
   customPersonas,
@@ -76,6 +76,12 @@ export function PersonasView({
     setNewPersonaName(pers.name);
     setNewPersonaDescription(pers.description);
     setNewPersonaPrompt(pers.systemPrompt);
+  };
+
+  const handleDeletePersona = (id: string, name: string) => {
+    setCustomPersonas((prev) => prev.filter((p) => p.id !== id));
+    if (selectedPersona === id) setSelectedPersona("p1");
+    toast.info(`Persona "${name}" deleted.`);
   };
 
   return (
@@ -259,16 +265,7 @@ export function PersonasView({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted hover:text-error hover:bg-error/10 rounded-xl"
-                              onClick={() => {
-                                setCustomPersonas((prev) =>
-                                  prev.filter((p) => p.id !== pers.id),
-                                );
-                                if (selectedPersona === pers.id)
-                                  setSelectedPersona("p1");
-                                toast.info(
-                                  `Persona "${pers.name}" deleted.`,
-                                );
-                              }}
+                              onClick={() => handleDeletePersona(pers.id, pers.name)}
                             >
                               <Trash className="w-3.5 h-3.5" />
                             </Button>

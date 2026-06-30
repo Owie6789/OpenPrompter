@@ -25,7 +25,7 @@ import { useReducedMotion } from "@/src/hooks/use-reduced-motion";
 
 type AvailableModel = { id: string; name: string };
 
-type WorkspaceViewProps = {
+type WorkspaceViewProps = Readonly<{
   promptInput: string;
   setPromptInput: (val: string) => void;
   customInstructions: string;
@@ -44,14 +44,14 @@ type WorkspaceViewProps = {
   isOptimizing: boolean;
   optimizedResult: OptimizationResult | null;
   progressStep: string;
-  copiedState: string;
+  copiedState: "original" | "optimized" | "markdown" | "json" | null;
   handleOptimizePrompt: () => void;
   handleCopyToClipboard: (text: string, type: string) => void;
   getMarkdownText: (result: OptimizationResult) => string;
   handleResetWorkspace: () => void;
   loadingAsset: string;
   setActiveTab: (tab: string) => void;
-};
+}>;
 
 export function WorkspaceView({
   promptInput,
@@ -81,6 +81,18 @@ export function WorkspaceView({
   setActiveTab,
 }: WorkspaceViewProps) {
   const reducedMotion = useReducedMotion();
+
+  const confidenceColorClass = (score: number): string => {
+    if (score >= 90) return "text-ink";
+    if (score >= 70) return "text-steel";
+    return "text-amber-500";
+  };
+
+  const modelStatusLabel = modelsLoading
+    ? "loading"
+    : availableModels.length > 0
+      ? "available"
+      : "none";
 
   return (
     <motion.div
@@ -213,12 +225,13 @@ export function WorkspaceView({
                         <label htmlFor="model-select" className="text-[11px] font-semibold text-steel uppercase tracking-wider">
                           Model
                         </label>
-                        {modelsLoading ? (
+                        {modelStatusLabel === "loading" && (
                           <span className="flex items-center gap-1 text-[10px] text-muted">
                             <div className="w-2.5 h-2.5 rounded-xl border-2 border-muted border-t-transparent animate-spin" />
                             Loading models...
                           </span>
-                        ) : availableModels.length > 0 ? (
+                        )}
+                        {modelStatusLabel === "available" && (
                           <button
                             type="button"
                             onClick={() => setShowApiKeyDialog(true)}
@@ -226,7 +239,8 @@ export function WorkspaceView({
                           >
                             {availableModels.length} models
                           </button>
-                        ) : (
+                        )}
+                        {modelStatusLabel === "none" && (
                           <button
                             type="button"
                             onClick={() => setShowApiKeyDialog(true)}
@@ -483,7 +497,7 @@ export function WorkspaceView({
                       </span>
                       <div className="flex items-center gap-1">
                         <span
-                          className={`text-base font-bold font-mono tracking-tight ${optimizedResult.confidence_score >= 90 ? "text-ink" : optimizedResult.confidence_score >= 70 ? "text-steel" : "text-amber-500"}`}
+                          className={`text-base font-bold font-mono tracking-tight ${confidenceColorClass(optimizedResult.confidence_score)}`}
                         >
                           {optimizedResult.confidence_score}%
                         </span>

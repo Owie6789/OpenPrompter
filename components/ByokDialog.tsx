@@ -324,16 +324,17 @@ export default function ByokDialog({
                   <label htmlFor="byok-model" className="text-[11px] font-semibold text-steel uppercase tracking-widest">
                     Model
                   </label>
-                  {modelsLoading ? (
+                  {modelsLoading && (
                     <span className="text-[10px] text-accent font-mono flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full border border-accent border-t-transparent animate-spin" />
-                      Fetching...
+                      <span>Fetching...</span>
                     </span>
-                  ) : availableModels.length > 0 ? (
+                  )}
+                  {!modelsLoading && availableModels.length > 0 && (
                     <span className="text-[10px] text-muted font-mono tabular-nums">
                       {availableModels.length} models
                     </span>
-                  ) : null}
+                  )}
                 </div>
 
                 <div className="relative">
