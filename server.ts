@@ -59,13 +59,14 @@ const configuredOrigins = process.env.APP_URL
   ? process.env.APP_URL.split(",").map((s) => s.trim()).filter(Boolean)
   : [];
 
-const corsOrigin = process.env.NODE_ENV === "production"
-  ? configuredOrigins.length > 0
-    ? configuredOrigins
-    : (() => { throw new Error("APP_URL must be configured in production for CORS."); })()
-  : configuredOrigins.length > 0
-    ? configuredOrigins
-    : true;
+let corsOrigin: string | string[] | boolean;
+if (isProd && configuredOrigins.length === 0) {
+  throw new Error("APP_URL must be configured in production for CORS.");
+} else if (configuredOrigins.length > 0) {
+  corsOrigin = configuredOrigins;
+} else {
+  corsOrigin = `http://localhost:${PORT}`;
+}
 
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "50kb" }));
@@ -182,7 +183,7 @@ function assertSafeEndpoint(url: string, prov: string): void {
 
   if (!url) return;
   const parsed = new URL(url);
-  const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname.endsWith(h));
+  const allowed = ALLOWED_ENDPOINTS.some((h) => parsed.hostname === h || parsed.hostname.endsWith('.' + h));
   if (!allowed) {
     throw new Error("Endpoint not permitted.");
   }
@@ -242,6 +243,12 @@ function sanitizeControlSequences(text: string): string {
   return text.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
 }
 
+const PROVIDER_HOSTS: Record<string, string[]> = {
+  openai: ["api.openai.com"],
+  deepseek: ["api.deepseek.com"],
+  anthropic: ["api.anthropic.com"],
+};
+
 function resolveProvider(endpoint: string): ProviderConfig {
   if (!endpoint) return PROVIDERS.custom;
   const e = endpoint.toLowerCase();
@@ -249,6 +256,21 @@ function resolveProvider(endpoint: string): ProviderConfig {
   if (e.includes("anthropic")) return PROVIDERS.anthropic;
   if (e.includes("openai")) return PROVIDERS.openai;
   return PROVIDERS.custom;
+}
+
+function resolveProviderSafety(endpoint: string, claimedProvider: string): string {
+  if (claimedProvider === "custom") return "custom";
+  // No custom endpoint supplied — the hardcoded defaultEndpoint is used,
+  // so the claimed provider can be trusted without hostname verification.
+  if (!endpoint) return claimedProvider;
+  try {
+    const parsed = new URL(endpoint);
+    const hosts = PROVIDER_HOSTS[claimedProvider] || [];
+    if (hosts.some((h) => parsed.hostname === h || parsed.hostname.endsWith('.' + h))) return claimedProvider;
+    return "custom";
+  } catch {
+    return "custom";
+  }
 }
 
 // Generate a simple request ID
@@ -326,7 +348,8 @@ app.post("/api/models", async (req, res) => {
     }
 
     const endpoint = (apiEndpoint || "").trim();
-    const prov = provider || resolveProvider(endpoint).label.toLowerCase();
+    const claimedProv = provider || resolveProvider(endpoint).label.toLowerCase();
+    const prov = resolveProviderSafety(endpoint, claimedProv);
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     try {
@@ -463,6 +486,24 @@ function stripJsonFence(text: string): string {
   return cleaned.trim();
 }
 
+function parseAndValidateLlmResponse(
+  cookedText: string,
+  rid: string,
+  providerName: string
+): { status: "ok"; data: LlmResponse } | { status: "error"; httpStatus: number; body: ErrorResponse } {
+  try {
+    const parsedData = JSON.parse(cookedText);
+    if (!validateLlmResponse(parsedData)) {
+      console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
+      return { status: "error", httpStatus: 500, body: errorResponse("schema_error", "LLM returned an unexpected response format.") };
+    }
+    return { status: "ok", data: sanitizeLlmResponse(parsedData) };
+  } catch {
+    console.error(`[${rid}] Failed to parse JSON from ${providerName}: ${sanitizeForLog(cookedText, 200)}`);
+    return { status: "error", httpStatus: 500, body: errorResponse("json_parse_error", "Failed to parse API response as JSON.") };
+  }
+}
+
 function sanitizeForLog(s: string, maxLen = 500): string {
   const ESC = String.fromCodePoint(27);
   let clean = s
@@ -541,7 +582,8 @@ app.post("/api/optimize", async (req, res) => {
     }
 
     const activeEndpoint = (apiEndpoint || "").trim();
-    const prov = provider || resolveProvider(activeEndpoint).label.toLowerCase();
+    const claimedProv = provider || resolveProvider(activeEndpoint).label.toLowerCase();
+    const prov = resolveProviderSafety(activeEndpoint, claimedProv);
     const cfg = PROVIDERS[prov] || PROVIDERS.openai;
 
     // Validate endpoint
@@ -634,23 +676,25 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData = (await response.json()) as AnthropicResponse;
+      let resData;
+      const rawBody = await response.text();
+      try {
+        resData = JSON.parse(rawBody) as AnthropicResponse;
+      } catch {
+        console.error(`[${rid}] Non-JSON response from Anthropic: ${sanitizeForLog(rawBody, 300)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
+      }
       const content = resData.content?.[0]?.text;
       if (!content) {
-        throw new Error("No text content returned from Anthropic API.");
+        console.error(`[${rid}] Anthropic response missing content: ${sanitizeForLog(JSON.stringify(resData), 200)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unexpected response format."));
       }
       const cookedText = stripJsonFence(content);
-      try {
-        const parsedData = JSON.parse(cookedText);
-        if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
-          return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
-        }
-        return res.json(sanitizeLlmResponse(parsedData));
-      } catch {
-        console.error(`[${rid}] Failed to parse JSON from Anthropic: ${sanitizeForLog(cookedText, 200)}`);
-        return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
+      const result = parseAndValidateLlmResponse(cookedText, rid, "Anthropic");
+      if (result.status === "error") {
+        return res.status(result.httpStatus).json(result.body);
       }
+      return res.json(result.data);
     } else {
       // OpenAI-compatible format
       const endpointUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
@@ -679,25 +723,26 @@ You MUST return your response as a valid, parsable JSON object matching this sch
         return res.status(response.status).json(errorResponse("api_error", "Upstream API error. Check your key and model."));
       }
 
-      const resData = (await response.json()) as OpenAIChatResponse;
+      let resData;
+      const rawBody = await response.text();
+      try {
+        resData = JSON.parse(rawBody) as OpenAIChatResponse;
+      } catch {
+        console.error(`[${rid}] Non-JSON response: ${sanitizeForLog(rawBody, 300)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
+      }
       const content = resData.choices?.[0]?.message?.content;
       if (!content) {
-        throw new Error("No text content returned from the API.");
+        console.error(`[${rid}] Response missing content: ${sanitizeForLog(JSON.stringify(resData), 200)}`);
+        return res.status(502).json(errorResponse("upstream_error", "The API returned an unexpected response format."));
       }
 
       const cookedText = stripJsonFence(content);
-
-      try {
-        const parsedData = JSON.parse(cookedText);
-        if (!validateLlmResponse(parsedData)) {
-          console.error(`[${rid}] Schema validation failed: ${sanitizeForLog(cookedText, 200)}`);
-          return res.status(500).json(errorResponse("schema_error", "LLM returned an unexpected response format."));
-        }
-        return res.json(sanitizeLlmResponse(parsedData));
-      } catch {
-        console.error(`[${rid}] Failed to parse JSON: ${sanitizeForLog(cookedText, 200)}`);
-        return res.status(500).json(errorResponse("json_parse_error", "Failed to parse API response as JSON."));
+      const result = parseAndValidateLlmResponse(cookedText, rid, "OpenAI");
+      if (result.status === "error") {
+        return res.status(result.httpStatus).json(result.body);
       }
+      return res.json(result.data);
     }
   } catch (error: unknown) {
     console.error(`[${rid}] Endpoint error: ${sanitizeForLog(errorMessage(error))}`);
@@ -706,8 +751,9 @@ You MUST return your response as a valid, parsable JSON object matching this sch
 });
 
 // Start server
-async function run() {
-  if (process.env.NODE_ENV !== "production") {
+const isDev = !isProd;
+void (async () => { // NOSONAR - top-level await incompatible with --format=cjs
+  if (isDev) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -737,6 +783,4 @@ async function run() {
     }
     throw err;
   });
-}
-
-run();
+})();

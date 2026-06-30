@@ -1,21 +1,7 @@
-import { useState, useEffect } from "react"
-
-const QUERY = "(prefers-reduced-motion: reduce)"
+import { useMediaQuery } from "./use-media-query"
 
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() => {
-    if (globalThis.window === undefined) return false
-    return globalThis.window.matchMedia(QUERY).matches
-  })
-
-  useEffect(() => {
-    const mq = globalThis.window.matchMedia(QUERY)
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-
-  return reduced
+  return useMediaQuery("(prefers-reduced-motion: reduce)")
 }
 
 export function useSafeMotion(fullY: number = 16) {

@@ -13,7 +13,7 @@ const buttonVariants = cva(
     "text-box-trim-both text-box-edge-cap-alphabetic",
     "transition-colors duration-80",
     "disabled:opacity-50 disabled:pointer-events-none",
-    "focus-visible:ring-1 focus-visible:ring-[#6B97FF]",
+    "focus-visible:ring-1 focus-visible:ring-ring",
   ],
   {
     variants: {
@@ -96,11 +96,81 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button";
     const isIconOnly = size === "icon" || size === "icon-sm" || size === "icon-lg";
-    const iconSize = size === "sm" ? 14 : size === "lg" ? 20 : 16;
+
+    let iconSize: number;
+    if (size === "sm") {
+      iconSize = 14;
+    } else if (size === "lg") {
+      iconSize = 20;
+    } else {
+      iconSize = 16;
+    }
     const shape = useShape();
     const bgClass = active
       ? activeBgVariants[variant ?? "primary"]
       : bgVariants[variant ?? "primary"];
+
+    let buttonContent: React.ReactNode;
+    if (loading) {
+      buttonContent = (
+        <>
+          <span className="flex items-center justify-center gap-[inherit] opacity-0">
+            {LeadingIcon && !isIconOnly && (
+              <LeadingIcon size={iconSize} strokeWidth={2} />
+            )}
+            {children}
+            {TrailingIcon && !isIconOnly && (
+              <TrailingIcon size={iconSize} strokeWidth={2} />
+            )}
+          </span>
+          <span className="absolute inset-0 flex items-center justify-center">
+            <svg
+              className="h-8 w-8"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M 12 12 C 14 8.5 19 8.5 19 12 C 19 15.5 14 15.5 12 12 C 10 8.5 5 8.5 5 12 C 5 15.5 10 15.5 12 12 Z"
+                stroke="currentColor"
+                strokeWidth="1.125"
+                strokeLinecap="round"
+                pathLength="100"
+                style={{
+                  strokeDasharray: "15 85",
+                  animation: "spinner-move 2s linear infinite, spinner-dash 4s ease-in-out infinite",
+                }}
+              />
+            </svg>
+          </span>
+        </>
+      );
+    } else if (isIconOnly) {
+      buttonContent = (
+        <span className="[&_svg]:stroke-[1.5] [&_svg]:transition-[stroke-width] [&_svg]:duration-80 group-hover:[&_svg]:stroke-[2]">
+          {children}
+        </span>
+      );
+    } else {
+      buttonContent = (
+        <>
+          {LeadingIcon && (
+            <LeadingIcon
+              size={iconSize}
+              strokeWidth={1.5}
+              className="transition-[stroke-width] duration-80 group-hover:stroke-[2]"
+            />
+          )}
+          <span>{children}</span>
+          {TrailingIcon && (
+            <TrailingIcon
+              size={iconSize}
+              strokeWidth={1.5}
+              className="transition-[stroke-width] duration-80 group-hover:stroke-[2]"
+            />
+          )}
+        </>
+      );
+    }
 
     return (
       <Comp
@@ -127,60 +197,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           )}
         />
         <span className="relative inline-flex items-center justify-center gap-[inherit]">
-          {loading ? (
-            <>
-              <span className="flex items-center justify-center gap-[inherit] opacity-0">
-                {LeadingIcon && !isIconOnly && (
-                  <LeadingIcon size={iconSize} strokeWidth={2} />
-                )}
-                {children}
-                {TrailingIcon && !isIconOnly && (
-                  <TrailingIcon size={iconSize} strokeWidth={2} />
-                )}
-              </span>
-              <span className="absolute inset-0 flex items-center justify-center">
-                <svg
-                  className="h-8 w-8"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M 12 12 C 14 8.5 19 8.5 19 12 C 19 15.5 14 15.5 12 12 C 10 8.5 5 8.5 5 12 C 5 15.5 10 15.5 12 12 Z"
-                    stroke="currentColor"
-                    strokeWidth="1.125"
-                    strokeLinecap="round"
-                    pathLength="100"
-                    style={{
-                      strokeDasharray: "15 85",
-                      animation: "spinner-move 2s linear infinite, spinner-dash 4s ease-in-out infinite",
-                    }}
-                  />
-                </svg>
-              </span>
-            </>
-          ) : isIconOnly ? (
-            <span className="[&_svg]:stroke-[1.5] [&_svg]:transition-[stroke-width] [&_svg]:duration-80 group-hover:[&_svg]:stroke-[2]">
-              {children}
-            </span>
-          ) : (
-            <>
-              {LeadingIcon && (
-                <LeadingIcon
-                  size={iconSize}
-                  strokeWidth={1.5}
-                  className="transition-[stroke-width] duration-80 group-hover:stroke-[2]"
-                />
-              )}
-              <span>{children}</span>
-              {TrailingIcon && (
-                <TrailingIcon
-                  size={iconSize}
-                  strokeWidth={1.5}
-                  className="transition-[stroke-width] duration-80 group-hover:stroke-[2]"
-                />
-              )}
-            </>
-          )}
+          {buttonContent}
         </span>
       </Comp>
     );

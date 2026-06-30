@@ -1,32 +1,20 @@
-"use client"
-
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@/lib/utils"
 
-const Input = React.forwardRef<
-  HTMLInputElement,
-  InputPrimitive.Props
->(({ className, type, ...props }, ref) => {
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
       className={cn(
-        "flex h-9 w-full rounded-lg border border-foreground/10 bg-canvas px-3 py-1.5",
-        "text-sm text-ink leading-snug placeholder:text-muted",
-        "transition-[border-color,box-shadow] duration-150",
-        "hover:border-foreground/20",
-        "focus-visible:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/15",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        "aria-[invalid=true]:border-error aria-[invalid=true]:ring-error/20",
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         className
       )}
       {...props}
     />
   )
-})
-Input.displayName = "Input"
+}
 
 export { Input }

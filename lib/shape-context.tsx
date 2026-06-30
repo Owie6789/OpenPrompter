@@ -44,15 +44,15 @@ const shapeMap: Record<ShapeVariant, ShapeClasses> = {
     mergedRadius: 16,
   },
   rounded: {
-    item: "rounded-lg",
-    bg: "rounded-lg",
-    focusRing: "rounded-[10px]",
-    mergedBg: "rounded-lg",
+    item: "rounded-xl",
+    bg: "rounded-xl",
+    focusRing: "rounded-[14px]",
+    mergedBg: "rounded-xl",
     container: "rounded-xl",
-    button: "rounded-lg",
-    input: "rounded-lg",
-    bgRadius: 8,
-    mergedRadius: 8,
+    button: "rounded-xl",
+    input: "rounded-xl",
+    bgRadius: 12,
+    mergedRadius: 12,
   },
 };
 
@@ -86,7 +86,7 @@ function transitionShape(callback: () => void) {
 
 function ShapeProvider({
   children,
-  defaultShape = "pill",
+  defaultShape = "rounded",
 }: {
   children: ReactNode;
   defaultShape?: ShapeVariant;

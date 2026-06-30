@@ -43,7 +43,7 @@ export default function ImportShareDialog({
                 <ShareNetwork className="w-5 h-5" />
                 Import Shared {importData.type === "template" ? "Template" : "Persona"}
               </DialogTitle>
-              <DialogDescription className="text-xs text-steel mt-3 p-4 bg-canvas rounded-md border border-whisper leading-snug">
+              <DialogDescription className="text-xs text-steel mt-3 p-4 bg-canvas rounded-xl border border-whisper leading-snug">
                 Someone shared a {importData.type} with you. Review the details below and confirm to add it to your workspace.
               </DialogDescription>
             </DialogHeader>
@@ -53,7 +53,7 @@ export default function ImportShareDialog({
                 <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                   Name
                 </p>
-                <div className="p-3 bg-surface border border-whisper rounded-md text-sm font-medium text-ink">
+                <div className="p-3 bg-surface border border-whisper rounded-xl text-sm font-medium text-ink">
                   {importData.data.name}
                 </div>
               </div>
@@ -62,7 +62,7 @@ export default function ImportShareDialog({
                 <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                   Description
                 </p>
-                <div className="p-3 bg-surface border border-whisper rounded-md text-xs text-steel leading-snug">
+                <div className="p-3 bg-surface border border-whisper rounded-xl text-xs text-steel leading-snug">
                   {importData.data.description || "No description"}
                 </div>
               </div>
@@ -71,7 +71,7 @@ export default function ImportShareDialog({
                 <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                   {importData.type === "template" ? "Prompt Text" : "System Prompt"}
                 </p>
-                <div className="p-3 bg-canvas border border-whisper rounded-md text-xs font-mono text-steel leading-snug max-h-[200px] overflow-y-auto whitespace-pre-wrap">
+                <div className="p-3 bg-canvas border border-whisper rounded-xl text-xs font-mono text-steel leading-snug max-h-[200px] overflow-y-auto whitespace-pre-wrap">
                   {importData.type === "template"
                     ? importData.data.promptText
                     : importData.data.systemPrompt}
@@ -83,7 +83,7 @@ export default function ImportShareDialog({
                   <p className="text-[11px] font-semibold text-steel uppercase tracking-widest block">
                     Category
                   </p>
-                  <div className="p-3 bg-surface border border-whisper rounded-md text-xs font-medium text-steel">
+                  <div className="p-3 bg-surface border border-whisper rounded-xl text-xs font-medium text-steel">
                     {importData.data.category}
                   </div>
                 </div>
@@ -96,13 +96,13 @@ export default function ImportShareDialog({
               variant="ghost"
               size="sm"
               onClick={handleCancelImport}
-              className="rounded-md font-semibold text-steel"
+              className="rounded-xl font-semibold text-steel"
             >
               Cancel
             </Button>
             <Button
               size="sm"
-              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
+              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-xl px-6 font-semibold"
               onClick={handleConfirmImport}
             >
               Import {importData.type === "template" ? "Template" : "Persona"}

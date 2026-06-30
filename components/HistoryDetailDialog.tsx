@@ -52,7 +52,7 @@ export default function HistoryDetailDialog({
                 Engineered {selectedHistoryItem.createdAt}
               </span>
 
-              <div className="flex items-center gap-1.5 bg-canvas border border-whisper px-3 py-1.5 rounded-md shadow-inner">
+              <div className="flex items-center gap-1.5 bg-canvas border border-whisper px-3 py-1.5 rounded-xl shadow-inner">
                 <span className="text-[10px] text-steel uppercase font-mono font-bold tracking-widest">
                   Confidence Score
                 </span>
@@ -75,7 +75,7 @@ export default function HistoryDetailDialog({
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest font-mono block">
                   Original Draft
                 </span>
-                <div className="p-5 rounded-md bg-canvas border border-whisper text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all text-steel shadow-inner">
+                <div className="p-5 rounded-xl bg-canvas border border-whisper text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all text-steel shadow-inner">
                   {selectedHistoryItem.originalPrompt}
                 </div>
               </div>
@@ -85,7 +85,7 @@ export default function HistoryDetailDialog({
                 <span className="text-[10px] font-bold text-ink uppercase tracking-widest font-mono block">
                   Optimized Framework
                 </span>
-                <div className="p-5 rounded-md bg-accent text-accent-foreground border border-edges text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all selection:bg-accent/30 shadow-card">
+                <div className="p-5 rounded-xl bg-accent text-accent-foreground border border-edges text-xs font-mono leading-snug max-h-[220px] overflow-y-auto whitespace-pre-wrap select-all selection:bg-accent/30 shadow-card">
                   {selectedHistoryItem.optimizedPrompt}
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function HistoryDetailDialog({
                 {selectedHistoryItem.improvements.map((imp, i) => (
                   <li
                     key={`${imp.slice(0, 80)}-${i}`}
-                    className="text-xs p-4 rounded-md bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card"
+                    className="text-xs p-4 rounded-xl bg-surface border border-whisper text-steel leading-snug flex items-start gap-3 shadow-card"
                   >
                     <span className="text-muted shrink-0 font-bold font-mono">
                       {(i + 1).toString().padStart(2, "0")}.
@@ -158,7 +158,7 @@ export default function HistoryDetailDialog({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs text-error hover:text-error border-error/20 hover:bg-error/10 font-semibold rounded-md"
+            className="text-xs text-error hover:text-error border-error/20 hover:bg-error/10 font-semibold rounded-xl"
             onClick={() => {
               handleDeleteHistory(selectedHistoryItem.id);
               onOpenChange(false);
@@ -173,13 +173,13 @@ export default function HistoryDetailDialog({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="rounded-md font-semibold text-steel"
+              className="rounded-xl font-semibold text-steel"
             >
               Close
             </Button>
             <Button
               size="sm"
-              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-md px-6 font-semibold"
+              className="bg-accent text-accent-foreground hover:bg-accent-hover text-xs shadow-sm rounded-xl px-6 font-semibold"
               onClick={() =>
                 handleCopyToClipboard(
                   selectedHistoryItem.optimizedPrompt,

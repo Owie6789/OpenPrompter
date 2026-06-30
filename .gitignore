@@ -27,3 +27,9 @@ clean_nm_v2.cjs
 
 # Generated / transient
 *.tsbuildinfo
+testsprite.md
+tmp/
+
+
+design-system/
+WORKSPACE-RESTRUCTURE-PLAN.md

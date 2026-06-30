@@ -15,8 +15,6 @@ const badgeColors = {
   green: "#22c55e",
   emerald: "#10b981",
   teal: "#14b8a6",
-  cyan: "#06b6d4",
-  blue: "#3b82f6",
   fuchsia: "#d946ef",
   pink: "#ec4899",
   rose: "#f43f5e",

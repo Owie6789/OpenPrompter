@@ -156,7 +156,7 @@ import {
 } from "@phosphor-icons/react";
 
 // ── HugeIcons ───────────────────────────────────────────────
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react";
 import HiChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import HiChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import HiDropper from "@hugeicons/core-free-icons/DropperIcon";
@@ -174,7 +174,7 @@ import HiStar from "@hugeicons/core-free-icons/StarIcon";
 import HiSettings from "@hugeicons/core-free-icons/Settings01Icon";
 import HiPlus from "@hugeicons/core-free-icons/PlusSignIcon";
 import HiArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import HiArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+
 import HiArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import HiSearch from "@hugeicons/core-free-icons/Search01Icon";
 import HiLoader from "@hugeicons/core-free-icons/Loading01Icon";
@@ -310,8 +310,7 @@ function hugeicons(iconDef: unknown): IconComponent {
   return function HugeIconsAdapter({ size, strokeWidth, className }: IconComponentProps) {
     return (
       <HugeiconsIcon
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        icon={iconDef as any}
+        icon={iconDef as IconSvgElement}
         size={size}
         strokeWidth={strokeWidth}
         className={className}
@@ -499,7 +498,9 @@ const hugeiconsMap: Record<IconName, IconComponent> = {
   "settings": hugeicons(HiSettings),
   "plus": hugeicons(HiPlus),
   "arrow-left": hugeicons(HiArrowLeft),
-  "arrow-right": hugeicons(HiArrowRight),
+  // HugeIcons has no standalone ArrowRight01; ChevronRight doubles as the
+  // arrow-right affordance in this library
+  "arrow-right": hugeicons(HiChevronRight),
   "arrow-up": hugeicons(HiArrowUp),
   "search": hugeicons(HiSearch),
   "loader": hugeicons(HiLoader),
