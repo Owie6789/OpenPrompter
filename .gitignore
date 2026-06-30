@@ -29,3 +29,7 @@ clean_nm_v2.cjs
 *.tsbuildinfo
 testsprite.md
 tmp/
+
+
+design-system/
+WORKSPACE-RESTRUCTURE-PLAN.md

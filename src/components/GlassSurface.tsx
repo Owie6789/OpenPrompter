@@ -129,9 +129,10 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   };
 
   const supportsBackdropFilter = () => {
-    if (typeof globalThis === 'undefined') return false;
-    return CSS.supports('backdrop-filter', 'blur(10px)');
-  };
+  return typeof CSS !== 'undefined'
+    && typeof CSS.supports === 'function'
+    && CSS.supports('backdrop-filter', 'blur(10px)');
+};
 
   const getContainerStyles = (): React.CSSProperties => {
     const hasInset = className.includes('inset-0');

@@ -677,10 +677,10 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       }
 
       let resData;
+      const rawBody = await response.text();
       try {
-        resData = (await response.json()) as AnthropicResponse;
+        resData = JSON.parse(rawBody) as AnthropicResponse;
       } catch {
-        const rawBody = await response.text().catch(() => "(unreadable)");
         console.error(`[${rid}] Non-JSON response from Anthropic: ${sanitizeForLog(rawBody, 300)}`);
         return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
       }
@@ -724,10 +724,10 @@ You MUST return your response as a valid, parsable JSON object matching this sch
       }
 
       let resData;
+      const rawBody = await response.text();
       try {
-        resData = (await response.json()) as OpenAIChatResponse;
+        resData = JSON.parse(rawBody) as OpenAIChatResponse;
       } catch {
-        const rawBody = await response.text().catch(() => "(unreadable)");
         console.error(`[${rid}] Non-JSON response: ${sanitizeForLog(rawBody, 300)}`);
         return res.status(502).json(errorResponse("upstream_error", "The API returned an unparseable response. Check your endpoint and model."));
       }
